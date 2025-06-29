@@ -38,35 +38,12 @@
     const historyList = document.getElementById("historyList");
     const historyKey = "camcookie-history";
 
-    const pages = [];
     let fuse;
 
-    const seeds = [
-      "https://camcookie876.github.io/cookie/index.html",
-      "https://camcookie876.github.io/cookie/about.html",
-      "https://camcookie876.github.io/cookie/docs.html"
-    ];
-
-    async function crawl(url) {
-      try {
-        const res = await fetch(url);
-        const html = await res.text();
-        const doc = new DOMParser().parseFromString(html, "text/html");
-        const title = doc.querySelector("title")?.textContent || url;
-        const text = Array.from(doc.querySelectorAll("p")).map(p => p.textContent).join(" ").slice(0, 500);
-        const img = doc.querySelector("img")?.getAttribute("src") || null;
-        const favicon = doc.querySelector("link[rel~='icon']")?.getAttribute("href") || "favicon.ico";
-        pages.push({ title, url, text, img, favicon });
-      } catch (err) {
-        console.warn("Failed to crawl:", url);
-      }
-    }
-
-    async function crawlAll() {
-      for (const url of seeds) {
-        await crawl(url);
-      }
-      fuse = new Fuse(pages, {
+    async function loadIndex() {
+      const res = await fetch("search.json");
+      const docs = await res.json();
+      fuse = new Fuse(docs, {
         keys: ["title", "text"],
         threshold: 0.4
       });
@@ -108,7 +85,9 @@
       }
       results.innerHTML = hits.map(hit => {
         const { title, url, text, img, favicon } = hit.item;
-        const thumb = img ? `<img class="thumb" src="${resolveURL(url, img)}" alt="Image">` : `<img class="thumb" src="${resolveURL(url, favicon)}" alt="Icon">`;
+        const thumb = img
+          ? `<img class="thumb" src="${resolveURL(url, img)}" alt="Image">`
+          : `<img class="thumb" src="${resolveURL(url, favicon || 'favicon.ico')}" alt="Icon">`;
         return `
           <li>
             ${thumb}
@@ -140,7 +119,7 @@
     const params = new URLSearchParams(location.search);
     const q = params.get("q");
 
-    crawlAll().then(() => {
+    loadIndex().then(() => {
       if (q) {
         input.value = q;
         doSearch(q);
