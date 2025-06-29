@@ -14,6 +14,8 @@ os.mkdir("indexdir")
 ix = index.create_in("indexdir", schema)
 
 writer = ix.writer()
+docs = []
+
 with open("crawler/pages.jl", "r") as f:
     for line in f:
         doc = json.loads(line)
@@ -22,4 +24,16 @@ with open("crawler/pages.jl", "r") as f:
             title=doc["title"],
             text=doc["text"]
         )
+        docs.append({
+            "url": doc["url"],
+            "title": doc["title"],
+            "text": doc["text"]
+        })
+
 writer.commit()
+
+# Export to JSON for frontend
+with open("cookie/search.json", "w") as out:
+    json.dump(docs, out)
+
+print("✅ Indexed and exported search.json")
