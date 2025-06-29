@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Camcookie Search</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 60px auto; text-align: center; }
+    input { width: 65%; padding: 10px; font-size: 1em; }
+    button { padding: 10px 16px; margin-left: 8px; }
+    ul { list-style: none; padding: 0; margin-top: 30px; text-align: left; }
+    li { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; display: flex; gap: 12px; align-items: flex-start; }
+    .thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; }
+    .meta { flex: 1; }
+    .meta a { color: #0066cc; text-decoration: none; font-weight: bold; font-size: 1.1em; }
+    .meta a:hover { text-decoration: underline; }
+    .meta p { margin: 5px 0 0; color: #333; font-size: 0.95em; }
+    #history { margin-top: 40px; text-align: left; }
+    #history h2 { font-size: 1.2em; }
+    #history ul { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Camcookie Search</h1>
+  <input id="q" placeholder="Type your query…" autocomplete="off" />
+  <button id="searchBtn">Search</button>
+  <ul id="results"></ul>
+
+  <div id="history">
+    <h2>Search History</h2>
+    <ul id="historyList"></ul>
+  </div>
+
+  <script src="fuse.min.js"></script>
+  <script>
+    const input = document.getElementById("q");
+    const button = document.getElementById("searchBtn");
+    const results = document.getElementById("results");
+    const historyList = document.getElementById("historyList");
+    const historyKey = "camcookie-history";
+
+    const pages = [];
+    let fuse;
+
+    const seeds = [
+      "https://camcookie876.github.io/cookie/index.html",
+      "https://camcookie876.github.io/cookie/about.html",
+      "https://camcookie876.github.io/cookie/docs.html"
+    ];
+
+    async function crawl(url) {
+      try {
+        const res = await fetch(url);
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        const title = doc.querySelector("title")?.textContent || url;
+        const text = Array.from(doc.querySelectorAll("p")).map(p => p.textContent).join(" ").slice(0, 500);
+        const img = doc.querySelector("img")?.getAttribute("src") || null;
+        const favicon = doc.querySelector("link[rel~='icon']")?.getAttribute("href") || "favicon.ico";
+        pages.push({ title, url, text, img, favicon });
+      } catch (err) {
+        console.warn("Failed to crawl:", url);
+      }
+    }
+
+    async function crawlAll() {
+      for (const url of seeds) {
+        await crawl(url);
+      }
+      fuse = new Fuse(pages, {
+        keys: ["title", "text"],
+        threshold: 0.4
+      });
+    }
+
+    function saveToHistory(query) {
+      const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+      history.push({ q: query, t: Date.now() });
+      localStorage.setItem(historyKey, JSON.stringify(history));
+    }
+
+    function renderHistory() {
+      const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+      if (!history.length) {
+        historyList.innerHTML = "<li>No history yet.</li>";
+        return;
+      }
+      historyList.innerHTML = history
+        .slice()
+        .reverse()
+        .map(h => `<li><a href="?q=${encodeURIComponent(h.q)}">${h.q}</a></li>`)
+        .join("");
+    }
+
+    function resolveURL(base, path) {
+      try {
+        return new URL(path, base).href;
+      } catch {
+        return path;
+      }
+    }
+
+    function doSearch(query) {
+      if (!fuse) return;
+      const hits = fuse.search(query);
+      if (!hits.length) {
+        results.innerHTML = "<li>No results found.</li>";
+        return;
+      }
+      results.innerHTML = hits.map(hit => {
+        const { title, url, text, img, favicon } = hit.item;
+        const thumb = img ? `<img class="thumb" src="${resolveURL(url, img)}" alt="Image">` : `<img class="thumb" src="${resolveURL(url, favicon)}" alt="Icon">`;
+        return `
+          <li>
+            ${thumb}
+            <div class="meta">
+              <a href="${url}" target="_blank">${title}</a>
+              <p>${text}</p>
+            </div>
+          </li>
+        `;
+      }).join("");
+      saveToHistory(query);
+      renderHistory();
+    }
+
+    button.onclick = () => {
+      const query = input.value.trim();
+      if (query) {
+        const newURL = new URL(location.href);
+        newURL.searchParams.set("q", query);
+        history.pushState(null, "", newURL);
+        doSearch(query);
+      }
+    };
+
+    input.addEventListener("keypress", e => {
+      if (e.key === "Enter") button.click();
+    });
+
+    const params = new URLSearchParams(location.search);
+    const q = params.get("q");
+
+    crawlAll().then(() => {
+      if (q) {
+        input.value = q;
+        doSearch(q);
+      }
+    });
+
+    renderHistory();
+  </script>
+</body>
+</html>
