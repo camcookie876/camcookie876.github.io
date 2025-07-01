@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mr. Super: Heatwave Hustle!</title>
+  <style>
+    html, body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+    }
+    canvas {
+      display: block;
+    }
+    #touchControls {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 10;
+    }
+    #touchControls button {
+      background: rgba(0,0,255,0.5);
+      color: white;
+      font-size: 24px;
+      border: none;
+      margin: 5px;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+<div id="touchControls">
+  <button onclick="moveLeft()">←</button>
+  <button onclick="jump()">⤒</button>
+  <button onclick="moveRight()">→</button>
+</div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const BASE_WIDTH = 800;
+const BASE_HEIGHT = 480;
+
+let level = 1;
+let orbColor = "#00f";
+let offsetX = 0;
+
+const player = {
+  x: 100, y: 380,
+  width: 64, height: 64,
+  vx: 0,
+  img: new Image(),
+};
+player.img.src = "assets/images/mr-super-run.gif";
+
+const bgImg = new Image();
+const powerUps = [];
+const enemies = [];
+
+function loadLevel(n) {
+  level = n;
+  bgImg.src = `assets/images/bg-level-${n}.png`;
+  orbColor = ["#00f", "#f00", "#0f0", "#ff0", "#0ff"][n % 5];
+
+  // Power-ups and enemies
+  powerUps.length = 0;
+  enemies.length = 0;
+  powerUps.push({ x: 600, y: 400, type: "life", img: "powerup-life.png" });
+  enemies.push({ x: 900, y: 400, img: "enemy-minion.png", width: 48, height: 48 });
+}
+
+const glowOrbs = Array.from({length: 12}).map(() => ({
+  x: Math.random() * 300 + BASE_WIDTH,
+  y: Math.random() * BASE_HEIGHT,
+  dx: (Math.random() - 0.5) * 2,
+  dy: (Math.random() - 0.5) * 2
+}));
+
+function resizeCanvas() {
+  canvas.height = window.innerHeight;
+  canvas.width = window.innerWidth;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+loadLevel(1);
+
+function drawOrbs() {
+  glowOrbs.forEach(orb => {
+    orb.x += orb.dx;
+    orb.y += orb.dy;
+    if (orb.x < BASE_WIDTH || orb.x > canvas.width) orb.dx *= -1;
+    if (orb.y < 0 || orb.y > canvas.height) orb.dy *= -1;
+
+    ctx.beginPath();
+    ctx.arc(orb.x, orb.y, 10, 0, Math.PI * 2);
+    ctx.fillStyle = orbColor;
+    ctx.shadowColor = orbColor;
+    ctx.shadowBlur = 10;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+}
+
+function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const scale = canvas.height / BASE_HEIGHT;
+  const viewW = BASE_WIDTH * scale;
+
+  // Camera follow
+  offsetX = player.x * scale - canvas.width / 3;
+  if (offsetX < 0) offsetX = 0;
+
+  // Background
+  ctx.drawImage(bgImg, -offsetX, 0, viewW, canvas.height);
+
+  // Powerups
+  powerUps.forEach(p => {
+    const img = new Image();
+    img.src = `assets/images/${p.img}`;
+    ctx.drawImage(img, p.x * scale - offsetX, p.y * scale, 32, 32);
+  });
+
+  // Enemies
+  enemies.forEach(e => {
+    const img = new Image();
+    img.src = `assets/images/${e.img}`;
+    ctx.drawImage(img, e.x * scale - offsetX, e.y * scale, e.width * scale, e.height * scale);
+  });
+
+  // Player
+  ctx.drawImage(player.img, player.x * scale - offsetX, player.y * scale, player.width * scale, player.height * scale);
+
+  // Orbs
+  drawOrbs();
+
+  requestAnimationFrame(gameLoop);
+}
+
+function moveLeft()  { player.vx = -4; }
+function moveRight() { player.vx =  4; }
+function jump() {
+  player.y -= 80; // placeholder jump
+}
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft") moveLeft();
+  if (e.key === "ArrowRight") moveRight();
+  if (e.key === " ") jump();
+});
+
+setInterval(() => {
+  player.x += player.vx;
+  player.vx *= 0.9; // friction
+}, 20);
+
+gameLoop();
+</script>
+</body>
+</html>
