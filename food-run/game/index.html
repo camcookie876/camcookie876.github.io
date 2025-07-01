@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mr. Super: Heatwave Hustle!</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #ffefd5;
+      font-family: sans-serif;
+    }
+    .screen {
+      text-align: center;
+      padding-top: 50px;
+    }
+    .hidden {
+      display: none;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      border: 3px solid #0000ff;
+    }
+  </style>
+</head>
+<body>
+  <div id="homeScreen" class="screen">
+    <h1>Mr. Super: Heatwave Hustle!</h1>
+    <button onclick="startGame()">Start Game</button>
+    <button onclick="openSettings()">Settings</button>
+  </div>
+
+  <div id="pauseScreen" class="screen hidden">
+    <h2>Paused</h2>
+    <button onclick="resumeGame()">Resume</button>
+    <button onclick="openSettings()">Settings</button>
+    <button onclick="goHome()">Home</button>
+  </div>
+
+  <div id="endScreen" class="screen hidden">
+    <h2>Level Complete!</h2>
+    <p>Rewards: <span id="rewardText"></span></p>
+    <button onclick="goHome()">Back to Home</button>
+  </div>
+
+  <div id="settingsScreen" class="screen hidden">
+    <h2>Settings</h2>
+    <button onclick="downloadGameData()">Download Game Data</button>
+    <input type="file" onchange="uploadGameData(event)" />
+    <button onclick="closeSettings()">Close</button>
+  </div>
+
+  <canvas id="gameCanvas" width="800" height="480" class="hidden"></canvas>
+
+  <script>
+    // === Game State ===
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const homeScreen = document.getElementById("homeScreen");
+    const pauseScreen = document.getElementById("pauseScreen");
+    const endScreen = document.getElementById("endScreen");
+    const settingsScreen = document.getElementById("settingsScreen");
+
+    let gameData = { levelsUnlocked: 1, rewards: [] };
+    let gameRunning = false;
+
+    const player = {
+      x: 100, y: 300, w: 40, h: 40,
+      vx: 0, vy: 0, grounded: false
+    };
+
+    const keys = {};
+    document.addEventListener("keydown", e => keys[e.key] = true);
+    document.addEventListener("keyup", e => keys[e.key] = false);
+
+    const levels = {
+      grilledGorge: {
+        name: "Grilled Gorge",
+        platforms: [
+          { x: 0, y: 440, w: 800, h: 40 },
+          { x: 200, y: 380, w: 100, h: 20 }
+        ]
+      },
+      cornyCanyon: {
+        name: "Corny Canyon",
+        platforms: [
+          { x: 0, y: 440, w: 800, h: 40 },
+          { x: 150, y: 360, w: 120, h: 20 }
+        ]
+      }
+    };
+
+    let currentLevel = levels.grilledGorge;
+
+    // === Game Loop ===
+    function startGame() {
+      homeScreen.classList.add("hidden");
+      canvas.classList.remove("hidden");
+      gameRunning = true;
+      requestAnimationFrame(gameLoop);
+    }
+
+    function resumeGame() {
+      pauseScreen.classList.add("hidden");
+      gameRunning = true;
+      requestAnimationFrame(gameLoop);
+    }
+
+    function pauseGame() {
+      gameRunning = false;
+      pauseScreen.classList.remove("hidden");
+    }
+
+    function goHome() {
+      gameRunning = false;
+      canvas.classList.add("hidden");
+      pauseScreen.classList.add("hidden");
+      endScreen.classList.add("hidden");
+      homeScreen.classList.remove("hidden");
+    }
+
+    function completeLevel() {
+      gameRunning = false;
+      gameData.rewards.push("Golden Crouton");
+      document.getElementById("rewardText").innerText = gameData.rewards.join(", ");
+      endScreen.classList.remove("hidden");
+    }
+
+    // === Settings + Save ===
+    function openSettings() {
+      settingsScreen.classList.remove("hidden");
+    }
+
+    function closeSettings() {
+      settingsScreen.classList.add("hidden");
+    }
+
+    function downloadGameData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(gameData));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", "gameData.json");
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    }
+
+    function uploadGameData(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const content = e.target.result;
+        gameData = JSON.parse(content);
+        alert("Game data loaded!");
+      };
+      reader.readAsText(file);
+    }
+
+    // === Controls + Physics ===
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (gameRunning) pauseGame();
+        else resumeGame();
+      }
+    });
+
+    function update() {
+      // movement
+      if (keys["ArrowRight"]) player.vx = 3;
+      else if (keys["ArrowLeft"]) player.vx = -3;
+      else player.vx = 0;
+
+      if (keys[" "] && player.grounded) {
+        player.vy = -10;
+        player.grounded = false;
+      }
+
+      player.vy += 0.5;
+      player.x += player.vx;
+      player.y += player.vy;
+
+      player.grounded = false;
+      for (const plat of currentLevel.platforms) {
+        if (
+          player.x < plat.x + plat.w &&
+          player.x + player.w > plat.x &&
+          player.y + player.h < plat.y + 10 &&
+          player.y + player.h + player.vy >= plat.y
+        ) {
+          player.y = plat.y - player.h;
+          player.vy = 0;
+          player.grounded = true;
+        }
+      }
+    }
+
+    function draw() {
+      ctx.fillStyle = "#ffd57e";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Platforms
+      ctx.fillStyle = "#924c00";
+      for (const plat of currentLevel.platforms) {
+        ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
+      }
+
+      // Player
+      ctx.fillStyle = "#0099ff";
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+    }
+
+    function gameLoop() {
+      if (!gameRunning) return;
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+  </script>
+</body>
+</html>
