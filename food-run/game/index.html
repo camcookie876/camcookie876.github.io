@@ -7,7 +7,7 @@
     body {
       margin: 0;
       background-color: #ffefd5;
-      font-family: sans-serif;
+      font-family: 'Segoe UI', sans-serif;
     }
     .screen {
       text-align: center;
@@ -21,13 +21,45 @@
       margin: 0 auto;
       border: 3px solid #0000ff;
     }
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 12px 24px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease-in-out;
+    }
+    button:hover {
+      background-color: #0056b3;
+      transform: scale(1.05);
+    }
+    button::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 100%;
+      width: 100%;
+      height: 4px;
+      background: #ff9900;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    button:hover::after {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
   <div id="homeScreen" class="screen">
-    <h1>Mr. Super: Heatwave Hustle!</h1>
-    <button onclick="startGame()">Start Game</button>
-    <button onclick="openSettings()">Settings</button>
+    <img src="assets/images/title-screen.png" alt="Mr. Super Home Screen" width="600" />
+    <div>
+      <button onclick="startGame()">Start Game</button>
+      <button onclick="openSettings()">Settings</button>
+    </div>
   </div>
 
   <div id="pauseScreen" class="screen hidden">
@@ -52,14 +84,18 @@
 
   <canvas id="gameCanvas" width="800" height="480" class="hidden"></canvas>
 
+  <audio id="bgMusic" loop>
+    <source src="https://upload.wikimedia.org/wikipedia/commons/b/b0/8-bit-style-background-music-loop.mp3" type="audio/mpeg">
+  </audio>
+
   <script>
-    // === Game State ===
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     const homeScreen = document.getElementById("homeScreen");
     const pauseScreen = document.getElementById("pauseScreen");
     const endScreen = document.getElementById("endScreen");
     const settingsScreen = document.getElementById("settingsScreen");
+    const bgMusic = document.getElementById("bgMusic");
 
     let gameData = { levelsUnlocked: 1, rewards: [] };
     let gameRunning = false;
@@ -92,27 +128,30 @@
 
     let currentLevel = levels.grilledGorge;
 
-    // === Game Loop ===
     function startGame() {
       homeScreen.classList.add("hidden");
       canvas.classList.remove("hidden");
+      bgMusic.play();
       gameRunning = true;
       requestAnimationFrame(gameLoop);
     }
 
     function resumeGame() {
       pauseScreen.classList.add("hidden");
+      bgMusic.play();
       gameRunning = true;
       requestAnimationFrame(gameLoop);
     }
 
     function pauseGame() {
       gameRunning = false;
+      bgMusic.pause();
       pauseScreen.classList.remove("hidden");
     }
 
     function goHome() {
       gameRunning = false;
+      bgMusic.pause();
       canvas.classList.add("hidden");
       pauseScreen.classList.add("hidden");
       endScreen.classList.add("hidden");
@@ -121,12 +160,12 @@
 
     function completeLevel() {
       gameRunning = false;
+      bgMusic.pause();
       gameData.rewards.push("Golden Crouton");
       document.getElementById("rewardText").innerText = gameData.rewards.join(", ");
       endScreen.classList.remove("hidden");
     }
 
-    // === Settings + Save ===
     function openSettings() {
       settingsScreen.classList.remove("hidden");
     }
@@ -156,7 +195,6 @@
       reader.readAsText(file);
     }
 
-    // === Controls + Physics ===
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         if (gameRunning) pauseGame();
@@ -165,7 +203,6 @@
     });
 
     function update() {
-      // movement
       if (keys["ArrowRight"]) player.vx = 3;
       else if (keys["ArrowLeft"]) player.vx = -3;
       else player.vx = 0;
@@ -198,13 +235,11 @@
       ctx.fillStyle = "#ffd57e";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Platforms
       ctx.fillStyle = "#924c00";
       for (const plat of currentLevel.platforms) {
         ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
       }
 
-      // Player
       ctx.fillStyle = "#0099ff";
       ctx.fillRect(player.x, player.y, player.w, player.h);
     }
