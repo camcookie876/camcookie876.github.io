@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Mr. Super: Heatwave Hustle!</title>
   <style>
     html, body {
@@ -10,7 +10,8 @@
       background: black;
     }
     canvas {
-      display: block;
+      display: none;
+      background: black;
     }
     #touchControls {
       position: fixed;
@@ -19,143 +20,154 @@
       z-index: 10;
     }
     #touchControls button {
-      background: rgba(0,0,255,0.5);
+      background: rgba(0,0,255,0.6);
       color: white;
-      font-size: 24px;
-      border: none;
-      margin: 5px;
+      font-size: 20px;
+      margin: 4px;
       padding: 10px;
+      border: none;
     }
   </style>
 </head>
 <body>
 
+<!-- HOME SCREEN -->
+<img
+  src="assets/images/home.png"
+  usemap="#homeMap"
+  id="homeImage"
+  alt="Home Screen"
+  width="768"
+  height="1152"
+/>
+
+<map name="homeMap">
+  <area shape="rect" coords="175,700,585,775" href="#" onclick="startGame()" onmouseover="highlightButton('start')" onmouseout="resetHome()" />
+  <area shape="rect" coords="175,800,585,875" href="#" onclick="openSettings()" onmouseover="highlightButton('settings')" onmouseout="resetHome()" />
+</map>
+
+<!-- GAME CANVAS -->
 <canvas id="gameCanvas"></canvas>
-<div id="touchControls">
+
+<!-- TOUCH CONTROLS -->
+<div id="touchControls" style="display: none;">
   <button onclick="moveLeft()">←</button>
   <button onclick="jump()">⤒</button>
   <button onclick="moveRight()">→</button>
 </div>
 
 <script>
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+  const homeImg = document.getElementById("homeImage");
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
 
-const BASE_WIDTH = 800;
-const BASE_HEIGHT = 480;
+  const player = {
+    x: 100, y: 380,
+    width: 64, height: 64,
+    vx: 0,
+    img: new Image()
+  };
+  player.img.src = "assets/images/mr-super-run.gif";
 
-let level = 1;
-let orbColor = "#00f";
-let offsetX = 0;
+  const bgImg = new Image();
+  const powerUps = [{ x: 600, y: 400, type: "life", img: "powerup-life.png" }];
+  const enemies = [{ x: 950, y: 400, img: "enemy-minion.png", width: 48, height: 48 }];
 
-const player = {
-  x: 100, y: 380,
-  width: 64, height: 64,
-  vx: 0,
-  img: new Image(),
-};
-player.img.src = "assets/images/mr-super-run.gif";
+  const glowOrbs = Array.from({length: 10}).map(() => ({
+    x: Math.random() * 300 + 800,
+    y: Math.random() * 480,
+    dx: (Math.random() - 0.5) * 2,
+    dy: (Math.random() - 0.5) * 2
+  }));
 
-const bgImg = new Image();
-const powerUps = [];
-const enemies = [];
+  const BASE_WIDTH = 800;
+  const BASE_HEIGHT = 480;
+  let offsetX = 0;
+  let orbColor = "#00f";
 
-function loadLevel(n) {
-  level = n;
-  bgImg.src = `assets/images/bg-level-${n}.png`;
-  orbColor = ["#00f", "#f00", "#0f0", "#ff0", "#0ff"][n % 5];
+  function resizeCanvas() {
+    canvas.height = window.innerHeight;
+    const scale = canvas.height / BASE_HEIGHT;
+    canvas.width = BASE_WIDTH * scale < window.innerWidth ? window.innerWidth : BASE_WIDTH * scale;
+  }
 
-  // Power-ups and enemies
-  powerUps.length = 0;
-  enemies.length = 0;
-  powerUps.push({ x: 600, y: 400, type: "life", img: "powerup-life.png" });
-  enemies.push({ x: 900, y: 400, img: "enemy-minion.png", width: 48, height: 48 });
-}
+  function startGame() {
+    homeImg.style.display = "none";
+    canvas.style.display = "block";
+    document.getElementById("touchControls").style.display = "block";
+    bgImg.src = "assets/images/bg-level-1.png";
+    resizeCanvas();
+    requestAnimationFrame(gameLoop);
+  }
 
-const glowOrbs = Array.from({length: 12}).map(() => ({
-  x: Math.random() * 300 + BASE_WIDTH,
-  y: Math.random() * BASE_HEIGHT,
-  dx: (Math.random() - 0.5) * 2,
-  dy: (Math.random() - 0.5) * 2
-}));
+  function highlightButton(btn) {
+    if (btn === "start") homeImg.src = "assets/images/home-hover-start.png";
+    else if (btn === "settings") homeImg.src = "assets/images/home-hover-settings.png";
+  }
 
-function resizeCanvas() {
-  canvas.height = window.innerHeight;
-  canvas.width = window.innerWidth;
-}
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
-loadLevel(1);
+  function resetHome() {
+    homeImg.src = "assets/images/home.png";
+  }
 
-function drawOrbs() {
-  glowOrbs.forEach(orb => {
-    orb.x += orb.dx;
-    orb.y += orb.dy;
-    if (orb.x < BASE_WIDTH || orb.x > canvas.width) orb.dx *= -1;
-    if (orb.y < 0 || orb.y > canvas.height) orb.dy *= -1;
+  function moveLeft() { player.vx = -4; }
+  function moveRight() { player.vx = 4; }
+  function jump() { player.y -= 80; }
 
-    ctx.beginPath();
-    ctx.arc(orb.x, orb.y, 10, 0, Math.PI * 2);
-    ctx.fillStyle = orbColor;
-    ctx.shadowColor = orbColor;
-    ctx.shadowBlur = 10;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-  });
-}
-
-function gameLoop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const scale = canvas.height / BASE_HEIGHT;
-  const viewW = BASE_WIDTH * scale;
-
-  // Camera follow
-  offsetX = player.x * scale - canvas.width / 3;
-  if (offsetX < 0) offsetX = 0;
-
-  // Background
-  ctx.drawImage(bgImg, -offsetX, 0, viewW, canvas.height);
-
-  // Powerups
-  powerUps.forEach(p => {
-    const img = new Image();
-    img.src = `assets/images/${p.img}`;
-    ctx.drawImage(img, p.x * scale - offsetX, p.y * scale, 32, 32);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") moveLeft();
+    if (e.key === "ArrowRight") moveRight();
+    if (e.key === " ") jump();
   });
 
-  // Enemies
-  enemies.forEach(e => {
-    const img = new Image();
-    img.src = `assets/images/${e.img}`;
-    ctx.drawImage(img, e.x * scale - offsetX, e.y * scale, e.width * scale, e.height * scale);
-  });
+  setInterval(() => {
+    player.x += player.vx;
+    player.vx *= 0.9;
+  }, 20);
 
-  // Player
-  ctx.drawImage(player.img, player.x * scale - offsetX, player.y * scale, player.width * scale, player.height * scale);
+  function drawOrbs() {
+    for (let orb of glowOrbs) {
+      orb.x += orb.dx;
+      orb.y += orb.dy;
+      if (orb.x < BASE_WIDTH || orb.x > canvas.width) orb.dx *= -1;
+      if (orb.y < 0 || orb.y > canvas.height) orb.dy *= -1;
 
-  // Orbs
-  drawOrbs();
+      ctx.beginPath();
+      ctx.arc(orb.x, orb.y, 10, 0, Math.PI * 2);
+      ctx.fillStyle = orbColor;
+      ctx.shadowColor = orbColor;
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
 
-  requestAnimationFrame(gameLoop);
-}
+  function gameLoop() {
+    const scale = canvas.height / BASE_HEIGHT;
+    const viewWidth = BASE_WIDTH * scale;
+    offsetX = player.x * scale - canvas.width / 3;
+    if (offsetX < 0) offsetX = 0;
 
-function moveLeft()  { player.vx = -4; }
-function moveRight() { player.vx =  4; }
-function jump() {
-  player.y -= 80; // placeholder jump
-}
-document.addEventListener("keydown", e => {
-  if (e.key === "ArrowLeft") moveLeft();
-  if (e.key === "ArrowRight") moveRight();
-  if (e.key === " ") jump();
-});
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bgImg, -offsetX, 0, viewWidth, canvas.height);
+    ctx.drawImage(player.img, player.x * scale - offsetX, player.y * scale, player.width * scale, player.height * scale);
 
-setInterval(() => {
-  player.x += player.vx;
-  player.vx *= 0.9; // friction
-}, 20);
+    // Power-ups
+    for (let p of powerUps) {
+      const img = new Image();
+      img.src = `assets/images/${p.img}`;
+      ctx.drawImage(img, p.x * scale - offsetX, p.y * scale, 32, 32);
+    }
 
-gameLoop();
+    // Enemies
+    for (let e of enemies) {
+      const img = new Image();
+      img.src = `assets/images/${e.img}`;
+      ctx.drawImage(img, e.x * scale - offsetX, e.y * scale, e.width * scale, e.height * scale);
+    }
+
+    drawOrbs();
+    requestAnimationFrame(gameLoop);
+  }
 </script>
 </body>
 </html>
