@@ -22,15 +22,31 @@ const config = {
   const pageName   = url.pathname.split("/").pop();
   const fromParam  = url.searchParams.get(paramKey) || "";
 
-  // inject industrial door & logo styles + subtle flicker
+  // inject door & bounce CSS
   const style = document.createElement("style");
   style.textContent = `
-    @keyframes flicker {
-      0%,100% { opacity: 1; }
-      50%     { opacity: 0.88; }
+    @keyframes door-close-left {
+      0%   { transform: translateX(-100%); }
+      80%  { transform: translateX(0); }
+      90%  { transform: translateX(-5%); }
+      100% { transform: translateX(0); }
+    }
+    @keyframes door-close-right {
+      0%   { transform: translateX(100%); }
+      80%  { transform: translateX(0); }
+      90%  { transform: translateX(5%); }
+      100% { transform: translateX(0); }
+    }
+    @keyframes door-open-left {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
+    }
+    @keyframes door-open-right {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(100%); }
     }
     .door {
-      position: fixed; top: 0; width: 50%; height: 100vh;
+      position: fixed; top:0; width:50%; height:100vh;
       background: #222;
       background-image:
         linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%),
@@ -39,21 +55,17 @@ const config = {
       box-shadow: inset 0 0 100px #0099ff, 0 0 30px rgba(0,153,255,0.4);
       border-top: 4px solid #0099ff;
       border-bottom: 4px solid #0099ff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 2rem;
-      transition: transform 1s ease-in-out;
-      animation: flicker 3s infinite;
+      display: flex; flex-direction: column;
+      align-items: center; padding-top: 2rem;
       z-index: 9999;
     }
-    .door-left  { left: 0;  transform: translateX(-100%); }
-    .door-right { right:0;  transform: translateX(100%); }
+    .door-left  { left:0;  transform: translateX(-100%); }
+    .door-right { right:0; transform: translateX(100%); }
     .door-logo {
-      width: 120px; height: auto; margin-bottom: 0.5rem;
+      width: 140px; margin-bottom: 1rem;
     }
     .door-logo img {
-      max-width: 100%; display: block;
+      width: 100%; display: block;
     }
     .door-title {
       color: #0099ff;
@@ -70,18 +82,17 @@ const config = {
     document.body.style.overflow = "hidden";
     document.body.style.pointerEvents = "none";
 
-    // create doors
     const left  = document.createElement("div");
     const right = document.createElement("div");
     left.className  = "door door-left";
     right.className = "door door-right";
 
-    // logo + title area
+    // logo + title
     [left, right].forEach(d => {
       const logoWrap = document.createElement("div");
       logoWrap.className = "door-logo";
       const img = document.createElement("img");
-      img.src = "logo.png";          // set your logo path
+      img.src = "https://camcookie876.github.io/game/food-run/assets/images%20/camcookie-logo.gif";
       logoWrap.appendChild(img);
       d.appendChild(logoWrap);
 
@@ -94,39 +105,27 @@ const config = {
     document.body.appendChild(left);
     document.body.appendChild(right);
 
-    // initial position
+    // apply animations
     if (close) {
-      left.style.transform  = "translateX(-100%)";
-      right.style.transform = "translateX(100%)";
+      left.style.animation  = "door-close-left 1s forwards";
+      right.style.animation = "door-close-right 1s forwards";
     } else {
-      left.style.transform  = "translateX(0)";
-      right.style.transform = "translateX(0)";
+      left.style.animation  = "door-open-left 1s forwards";
+      right.style.animation = "door-open-right 1s forwards";
     }
-
-    // animate in or out
-    requestAnimationFrame(() => {
-      if (close) {
-        left.style.transform  = "translateX(0)";
-        right.style.transform = "translateX(0)";
-      } else {
-        left.style.transform  = "translateX(-100%)";
-        right.style.transform = "translateX(100%)";
-      }
-    });
 
     setTimeout(() => {
       if (!close) {
-        left.remove();
-        right.remove();
+        left.remove(); right.remove();
         document.documentElement.style.overflow = "";
         document.body.style.overflow = "";
         document.body.style.pointerEvents = "";
       }
-      if (callback) callback();
+      callback && callback();
     }, 1000);
   }
 
-  // 1) Department pages: slide doors closed then redirect
+  // 1) Department pages: doors close then redirect
   if (sectionKey) {
     const sec = sections[sectionKey];
     if (!sec) return;
@@ -138,7 +137,7 @@ const config = {
     return;
   }
 
-  // 2) error.html or 404.html: slide doors open to reveal content
+  // 2) error.html or 404.html: doors open to reveal content
   const errorName = new URL(errorPage).pathname.split("/").pop();
   if (pageName === errorName || pageName === "404.html") {
     // update maintenance message
@@ -150,7 +149,7 @@ const config = {
       for (let [name, sec] of Object.entries(sections)) {
         if (originalURL.startsWith(sec.rootURL)) {
           matched = name;
-          msg = `Camcookie ${name.charAt(0).toUpperCase() + name.slice(1)} is under maintenance.`;
+          msg = `Camcookie ${name.charAt(0).toUpperCase()+name.slice(1)} is under maintenance.`;
           break;
         }
       }
@@ -162,9 +161,7 @@ const config = {
       return window.location.replace(originalURL);
     }
 
-    // animate doors opening
+    // open doors
     animateDoors(false);
   }
-
-  // other pages → no action
 })();
