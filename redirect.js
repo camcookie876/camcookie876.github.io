@@ -1,78 +1,128 @@
 // redirect.js
-// One file for dept pages, 404.html & error.html.
-// Edit only the config block.
+// One file for department pages, 404.html & error.html.
+// Edit only the config block below.
 
 const config = {
   paramKey:   "from",
   errorPage:  "error.html",
+  // false→all departments closed, true→use each section.open
   globalClose:false,
   sections: {
     game:  { rootURL: "https://camcookie876.github.io/game/",  open: false },
     music: { rootURL: "https://camcookie876.github.io/music/", open: true  },
     find:  { rootURL: "https://camcookie876.github.io/find/",  open: false }
-    // add more as needed
   }
 };
 
-(function(){
-  function run() {
-    const scripts    = document.getElementsByTagName('script');
-    const me         = scripts[scripts.length - 1].src;
-    const wsParam    = new URL(me).searchParams.get("web");
-    const fullURL    = window.location.href;
-    const url        = new URL(fullURL);
-    const page       = url.pathname.split("/").pop();
-    const orig       = url.searchParams.get(config.paramKey) || "";
+;(function(){
+  const { paramKey, errorPage, globalClose, sections } = config;
+  const me       = document.currentScript.src;
+  const sectionKey = new URL(me).searchParams.get("web");
+  const fullURL  = window.location.href;
+  const url      = new URL(fullURL);
+  const pageName = url.pathname.split("/").pop();
+  const fromURL  = url.searchParams.get(paramKey) || "";
 
-    // 1) Department-page context
-    if (wsParam) {
-      const sec = config.sections[wsParam];
-      if (!sec) return;
-      if (!config.globalClose || !sec.open) {
-        const dest = new URL(config.errorPage, window.location.origin);
-        dest.searchParams.set(config.paramKey, fullURL);
-        return window.location.replace(dest);
-      }
-      return;
-    }
+  // Utility: add two sliding doors to the page
+  function injectDoors(initialLeftX, initialRightX, finalLeftX, finalRightX, onComplete){
+    // lock scrolling & clicks
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    document.body.style.pointerEvents = 'none';
 
-    // 2) Error or 404 context
-    if (page === config.errorPage || page === "404.html") {
-      const originalURL = orig || fullURL;
+    const left = document.createElement('div');
+    const right = document.createElement('div');
 
-      // On 404, skip if not in any sec AND globalClose==true
-      if (page === "404.html") {
-        let inDept = false;
-        for (let sec of Object.values(config.sections)) {
-          if (originalURL.startsWith(sec.rootURL)) {
-            inDept = true; break;
-          }
-        }
-        if (!inDept && config.globalClose) return;
-      }
+    Object.assign(left.style, {
+      position: 'fixed', top: '0', left: '0',
+      width: '50%', height: '100vh', background: '#222',
+      transform: `translateX(${initialLeftX})`,
+      transition: 'transform 1s ease-in-out',
+      zIndex: '9999'
+    });
+    Object.assign(right.style, {
+      position: 'fixed', top: '0', right: '0',
+      width: '50%', height: '100vh', background: '#222',
+      transform: `translateX(${initialRightX})`,
+      transition: 'transform 1s ease-in-out',
+      zIndex: '9999'
+    });
 
-      // Update maintenance-message
-      const h = document.getElementById("maintenance-message");
-      let msg = "Camcookie is under Maintenance.";
-      let match = null;
-      for (let [name, sec] of Object.entries(config.sections)) {
-        if (originalURL.startsWith(sec.rootURL)) {
-          match = name;
-          const label = name[0].toUpperCase() + name.slice(1);
-          msg = `Camcookie ${label} is under maintenance.`;
-          break;
-        }
-      }
-      if (h) h.textContent = msg;
+    document.body.appendChild(left);
+    document.body.appendChild(right);
 
-      // Auto-return when maintenance ends (globalClose==true AND sec.open==true)
-      if (config.globalClose && match && config.sections[match].open) {
-        window.location.replace(originalURL);
-      }
-    }
+    // trigger reflow then animate
+    requestAnimationFrame(() => {
+      left.style.transform = `translateX(${finalLeftX})`;
+      right.style.transform = `translateX(${finalRightX})`;
+    });
+
+    setTimeout(() => {
+      onComplete && onComplete();
+    }, 1000);
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", run);
-  } else run();
+  // 1) Department pages: ?web=…
+  if (sectionKey) {
+    const sec = sections[sectionKey];
+    if (!sec) return;
+
+    // need to redirect?
+    if (!globalClose || !sec.open) {
+      // animate doors closing, then redirect
+      const dest = new URL(errorPage, window.location.origin);
+      dest.searchParams.set(paramKey, fullURL);
+
+      injectDoors('-100%','100%','0','0', () => {
+        window.location.replace(dest.toString());
+      });
+    }
+    return;
+  }
+
+  // 2) Error page or 404.html
+  if (pageName === errorPage || pageName === '404.html') {
+    // run after DOM ready
+    const runError = () => {
+      const msgEl = document.getElementById('maintenance-message');
+      let message = "Camcookie is under Maintenance.";
+      let matched = null;
+
+      // if globalClose==false, always generic
+      if (globalClose) {
+        // detect department
+        for (let [name, sec] of Object.entries(sections)) {
+          if (fromURL.startsWith(sec.rootURL)) {
+            matched = name;
+            const label = name[0].toUpperCase() + name.slice(1);
+            message = `Camcookie ${label} is under maintenance.`;
+            break;
+          }
+        }
+      }
+      if (msgEl) msgEl.textContent = message;
+
+      // auto-return if section reopened *and* globalClose==true
+      if (globalClose && matched && sections[matched].open) {
+        window.location.replace(fromURL);
+        return;
+      }
+
+      // animate doors opening to reveal content
+      // doors start closed: transform(0), then open to offscreen
+      injectDoors('0','0','-100%','100%', () => {
+        // remove doors and re-enable scroll/click
+        const doors = document.querySelectorAll('body > div[style*="position: fixed"]');
+        doors.forEach(d => d.remove());
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+        document.body.style.pointerEvents = '';
+      });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', runError);
+    } else runError();
+  }
+  // 3) other pages → no action
 })();
