@@ -11,12 +11,12 @@ const config = {
 
   // false → everything closed (override per‐section)
   // true  → honor each section’s open flag
-  globalClose:false,
+  globalClose:true,
 
   // define each section by its ?web key:
   // rootURL needs the trailing slash
   sections: {
-    game:  { rootURL: "https://camcookie876.github.io/game/",  open: false },
+    game:  { rootURL: "https://camcookie876.github.io/game/",  open: true },
     music: { rootURL: "https://camcookie876.github.io/music/", open: true  },
     find:  { rootURL: "https://camcookie876.github.io/find/",  open: false }
   }

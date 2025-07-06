@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Camcookie Maze</title>
+  <style>
+    html,body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; background:#111; color:#eee; font-family:sans-serif; }
+    .hidden { display:none }
+    #login,#lobby { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; }
+    #logo { width:150px; margin-bottom:20px; }
+    button,input,select { padding:8px 12px; margin:5px; border:none; border-radius:4px; }
+    #shareLink { width:200px; }
+    canvas { display:block; width:100vw; height:100vh; background:#222; }
+    #mapContainer { position:relative; width:100%; height:100%; }
+    #leaderboard {
+      position:absolute; top:10px; right:10px;
+      background:rgba(0,0,0,0.6); padding:10px; max-width:200px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN SCREEN -->
+  <div id="login">
+    <img id="logo"
+      src="https://camcookie876.github.io/game/maze/camcookie-logo.png"
+      alt="Camcookie Games">
+    <input id="name" placeholder="Enter username"><br>
+    <button id="solo">Play Solo</button>
+    <button id="create">Create Multiplayer</button><br>
+    <input id="codeIn" placeholder="Or enter room code">
+    <button id="join">Join</button>
+    <p id="err"></p>
+  </div>
+
+  <!-- LOBBY SCREEN -->
+  <div id="lobby" class="hidden">
+    <h2>Room: <span id="roomCode"></span></h2>
+    <ul id="playersList"></ul>
+    <label>View:
+      <select id="viewMode">
+        <option value="play">Play</option>
+        <option value="map">Map</option>
+      </select>
+    </label>
+    <button id="start">Start Game</button><br>
+    <div id="qr"></div>
+    <p>Share link:</p>
+    <input id="shareLink" readonly>
+  </div>
+
+  <!-- GAME CANVAS (PLAY) -->
+  <canvas id="playCanvas" class="hidden"></canvas>
+
+  <!-- MAP VIEW -->
+  <div id="mapContainer" class="hidden">
+    <canvas id="mapCanvas"></canvas>
+    <div id="leaderboard"></div>
+  </div>
+
+  <!-- SOCKET.IO & QR LIB -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://camcookie876.github.io/game/maze/script.js"></script>
+</body>
+</html>
