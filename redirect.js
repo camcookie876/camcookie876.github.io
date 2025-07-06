@@ -1,11 +1,10 @@
 // redirect.js
-// One file for department pages, 404.html & error.html.
+// One file for department pages & shared error page.
 // Edit only the config block below.
 
 const config = {
   paramKey:   "from",
   errorPage:  "error.html",
-  // false→all departments closed, true→use each section.open
   globalClose:false,
   sections: {
     game:  { rootURL: "https://camcookie876.github.io/game/",  open: false },
@@ -16,113 +15,106 @@ const config = {
 
 ;(function(){
   const { paramKey, errorPage, globalClose, sections } = config;
-  const me       = document.currentScript.src;
-  const sectionKey = new URL(me).searchParams.get("web");
-  const fullURL  = window.location.href;
-  const url      = new URL(fullURL);
-  const pageName = url.pathname.split("/").pop();
-  const fromURL  = url.searchParams.get(paramKey) || "";
+  const me         = document.currentScript.src;
+  const wsParam    = new URL(me).searchParams.get("web");
+  const fullURL    = window.location.href;
+  const url        = new URL(fullURL);
+  const pageName   = url.pathname.split("/").pop();
+  const fromParam  = url.searchParams.get(paramKey) || "";
 
-  // Utility: add two sliding doors to the page
-  function injectDoors(initialLeftX, initialRightX, finalLeftX, finalRightX, onComplete){
-    // lock scrolling & clicks
+  // door animation with glow orbs
+  function injectDoors(close, callback) {
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
     document.body.style.pointerEvents = 'none';
 
-    const left = document.createElement('div');
+    const left  = document.createElement('div');
     const right = document.createElement('div');
-
-    Object.assign(left.style, {
-      position: 'fixed', top: '0', left: '0',
-      width: '50%', height: '100vh', background: '#222',
-      transform: `translateX(${initialLeftX})`,
-      transition: 'transform 1s ease-in-out',
-      zIndex: '9999'
+    [left, right].forEach(d => {
+      Object.assign(d.style, {
+        position: 'fixed', top: 0, width: '50%', height: '100vh',
+        background: '#111',
+        boxShadow: 'inset 0 0 60px #0099ff',
+        border: '2px solid #0099ff',
+        zIndex: 9999,
+        overflow: 'hidden',
+        display: 'flex', alignItems: 'center', justifyContent: 'center'
+      });
+      const orb = document.createElement('div');
+      Object.assign(orb.style, {
+        width: '60px', height: '60px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,153,255,0.8), transparent)',
+        boxShadow: '0 0 20px #0099ff',
+        animation: 'pulse 2s infinite'
+      });
+      d.appendChild(orb);
+      document.body.appendChild(d);
     });
-    Object.assign(right.style, {
-      position: 'fixed', top: '0', right: '0',
-      width: '50%', height: '100vh', background: '#222',
-      transform: `translateX(${initialRightX})`,
-      transition: 'transform 1s ease-in-out',
-      zIndex: '9999'
-    });
 
-    document.body.appendChild(left);
-    document.body.appendChild(right);
+    Object.assign(left.style,  { left: close ? '0' : '-100%', transition:'transform 1s ease-in-out' });
+    Object.assign(right.style, { right:'0', transform: close ? 'translateX(0)' : 'translateX(100%)', transition:'transform 1s ease-in-out' });
 
-    // trigger reflow then animate
+    // start closing or opening
     requestAnimationFrame(() => {
-      left.style.transform = `translateX(${finalLeftX})`;
-      right.style.transform = `translateX(${finalRightX})`;
+      if (close) {
+        left.style.transform  = 'translateX(0)';
+        right.style.transform = 'translateX(0)';
+      } else {
+        left.style.transform  = 'translateX(-100%)';
+        right.style.transform = 'translateX(100%)';
+      }
     });
 
     setTimeout(() => {
-      onComplete && onComplete();
+      if (!close) {
+        document.querySelectorAll('body > div[style*="box-shadow"]').forEach(d=>d.remove());
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+        document.body.style.pointerEvents = '';
+      }
+      callback && callback();
     }, 1000);
   }
 
-  // 1) Department pages: ?web=…
-  if (sectionKey) {
-    const sec = sections[sectionKey];
+  // 1) department pages context
+  if (wsParam) {
+    const sec = sections[wsParam];
     if (!sec) return;
-
-    // need to redirect?
     if (!globalClose || !sec.open) {
-      // animate doors closing, then redirect
       const dest = new URL(errorPage, window.location.origin);
       dest.searchParams.set(paramKey, fullURL);
-
-      injectDoors('-100%','100%','0','0', () => {
-        window.location.replace(dest.toString());
-      });
+      injectDoors(true, () => window.location.replace(dest));
     }
     return;
   }
 
-  // 2) Error page or 404.html
+  // 2) error page context
   if (pageName === errorPage || pageName === '404.html') {
-    // run after DOM ready
-    const runError = () => {
-      const msgEl = document.getElementById('maintenance-message');
-      let message = "Camcookie is under Maintenance.";
-      let matched = null;
+    const originalURL = fromParam || fullURL;
+    const el = document.getElementById('maintenance-message');
+    let msg = "Camcookie is under Maintenance.";
+    let matched = null;
 
-      // if globalClose==false, always generic
-      if (globalClose) {
-        // detect department
-        for (let [name, sec] of Object.entries(sections)) {
-          if (fromURL.startsWith(sec.rootURL)) {
-            matched = name;
-            const label = name[0].toUpperCase() + name.slice(1);
-            message = `Camcookie ${label} is under maintenance.`;
-            break;
-          }
+    if (globalClose) {
+      for (let [name, sec] of Object.entries(sections)) {
+        if (originalURL.startsWith(sec.rootURL)) {
+          matched = name;
+          const label = name.charAt(0).toUpperCase() + name.slice(1);
+          msg = `Camcookie ${label} is under maintenance.`;
+          break;
         }
       }
-      if (msgEl) msgEl.textContent = message;
+    }
+    if (el) el.textContent = msg;
 
-      // auto-return if section reopened *and* globalClose==true
-      if (globalClose && matched && sections[matched].open) {
-        window.location.replace(fromURL);
-        return;
-      }
+    // auto-return when reopened
+    if (globalClose && matched && sections[matched].open) {
+      window.location.replace(originalURL);
+      return;
+    }
 
-      // animate doors opening to reveal content
-      // doors start closed: transform(0), then open to offscreen
-      injectDoors('0','0','-100%','100%', () => {
-        // remove doors and re-enable scroll/click
-        const doors = document.querySelectorAll('body > div[style*="position: fixed"]');
-        doors.forEach(d => d.remove());
-        document.documentElement.style.overflow = '';
-        document.body.style.overflow = '';
-        document.body.style.pointerEvents = '';
-      });
-    };
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', runError);
-    } else runError();
+    // animate doors opening
+    injectDoors(false);
   }
-  // 3) other pages → no action
 })();
