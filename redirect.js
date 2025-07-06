@@ -1,5 +1,5 @@
 // redirect.js
-// One file for dept pages & shared error.html (and 404.html).
+// One file for department pages & shared error.html (and 404.html).
 // Edit only the config block below.
 
 const config = {
@@ -15,26 +15,28 @@ const config = {
 
 ;(function(){
   const { paramKey, errorPage, globalClose, sections } = config;
-  const scriptSrc  = document.currentScript.src;
-  const sectionKey = new URL(scriptSrc).searchParams.get("web");
-  const fullURL    = window.location.href;
-  const url        = new URL(fullURL);
-  const pageName   = url.pathname.split("/").pop();
-  const fromParam  = url.searchParams.get(paramKey) || "";
+  const scriptSrc   = document.currentScript.src;
+  const sectionKey  = new URL(scriptSrc).searchParams.get("web");
+  const fullURL     = window.location.href;
+  const url         = new URL(fullURL);
+  const pageName    = url.pathname.split("/").pop();
+  const fromParam   = url.searchParams.get(paramKey) || "";
 
-  // inject door & bounce CSS
+  // inject industrial-door & bounce CSS
   const style = document.createElement("style");
   style.textContent = `
     @keyframes door-close-left {
       0%   { transform: translateX(-100%); }
-      80%  { transform: translateX(0); }
-      90%  { transform: translateX(-5%); }
+      70%  { transform: translateX(5%); }
+      85%  { transform: translateX(-3%); }
+      95%  { transform: translateX(2%); }
       100% { transform: translateX(0); }
     }
     @keyframes door-close-right {
       0%   { transform: translateX(100%); }
-      80%  { transform: translateX(0); }
-      90%  { transform: translateX(5%); }
+      70%  { transform: translateX(-5%); }
+      85%  { transform: translateX(3%); }
+      95%  { transform: translateX(-2%); }
       100% { transform: translateX(0); }
     }
     @keyframes door-open-left {
@@ -46,38 +48,31 @@ const config = {
       100% { transform: translateX(100%); }
     }
     .door {
-      position: fixed; top:0; width:50%; height:100vh;
+      position: fixed; top: 0; width: 50%; height: 100vh;
       background: #222;
       background-image:
         linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%),
         linear-gradient(-45deg, rgba(0,0,0,0.1) 25%, transparent 25%);
       background-size: 20px 20px;
-      box-shadow: inset 0 0 100px #0099ff, 0 0 30px rgba(0,153,255,0.4);
-      border-top: 4px solid #0099ff;
-      border-bottom: 4px solid #0099ff;
-      display: flex; flex-direction: column;
-      align-items: center; padding-top: 2rem;
-      z-index: 9999;
+      box-shadow: inset 0 0 120px #0099ff, 0 0 40px rgba(0,153,255,0.5);
+      border-top: 6px solid #0099ff;
+      border-bottom: 6px solid #0099ff;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; overflow: hidden;
     }
-    .door-left  { left:0;  transform: translateX(-100%); }
-    .door-right { right:0; transform: translateX(100%); }
+    .door-left  { left: 0;  transform: translateX(-100%); }
+    .door-right { right: 0; transform: translateX(100%); }
     .door-logo {
-      width: 140px; margin-bottom: 1rem;
+      width: 160px; height: auto;
     }
     .door-logo img {
-      width: 100%; display: block;
-    }
-    .door-title {
-      color: #0099ff;
-      font-family: sans-serif;
-      font-size: 1.2rem;
-      text-shadow: 0 0 8px #0099ff;
+      width: 100%; height: auto; display: block;
     }
   `;
   document.head.appendChild(style);
 
   function animateDoors(close, callback) {
-    // lock scroll & clicks
+    // lock all interaction
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
     document.body.style.pointerEvents = "none";
@@ -87,33 +82,29 @@ const config = {
     left.className  = "door door-left";
     right.className = "door door-right";
 
-    // logo + title
+    // logo only
     [left, right].forEach(d => {
-      const logoWrap = document.createElement("div");
-      logoWrap.className = "door-logo";
+      const wrap = document.createElement("div");
+      wrap.className = "door-logo";
       const img = document.createElement("img");
       img.src = "https://camcookie876.github.io/game/food-run/assets/images%20/camcookie-logo.gif";
-      logoWrap.appendChild(img);
-      d.appendChild(logoWrap);
-
-      const title = document.createElement("div");
-      title.className = "door-title";
-      title.textContent = "Camcookie";
-      d.appendChild(title);
+      wrap.appendChild(img);
+      d.appendChild(wrap);
     });
 
     document.body.appendChild(left);
     document.body.appendChild(right);
 
-    // apply animations
+    // choose animation & duration
     if (close) {
-      left.style.animation  = "door-close-left 1s forwards";
-      right.style.animation = "door-close-right 1s forwards";
+      left.style.animation  = "door-close-left 1.6s ease-in-out forwards";
+      right.style.animation = "door-close-right 1.6s ease-in-out forwards";
     } else {
-      left.style.animation  = "door-open-left 1s forwards";
-      right.style.animation = "door-open-right 1s forwards";
+      left.style.animation  = "door-open-left 1s ease-in-out forwards";
+      right.style.animation = "door-open-right 1s ease-in-out forwards";
     }
 
+    const duration = close ? 1600 : 1000;
     setTimeout(() => {
       if (!close) {
         left.remove(); right.remove();
@@ -122,10 +113,10 @@ const config = {
         document.body.style.pointerEvents = "";
       }
       callback && callback();
-    }, 1000);
+    }, duration);
   }
 
-  // 1) Department pages: doors close then redirect
+  // 1) Dept pages: doors close then redirect
   if (sectionKey) {
     const sec = sections[sectionKey];
     if (!sec) return;
@@ -137,10 +128,10 @@ const config = {
     return;
   }
 
-  // 2) error.html or 404.html: doors open to reveal content
+  // 2) error.html or 404.html: doors open then show content
   const errorName = new URL(errorPage).pathname.split("/").pop();
   if (pageName === errorName || pageName === "404.html") {
-    // update maintenance message
+    // set message
     const originalURL = fromParam || fullURL;
     const el = document.getElementById("maintenance-message");
     let msg = "Camcookie is under Maintenance.";
@@ -156,12 +147,11 @@ const config = {
     }
     if (el) el.textContent = msg;
 
-    // auto-return when reopened
+    // auto-return
     if (globalClose && matched && sections[matched].open) {
       return window.location.replace(originalURL);
     }
 
-    // open doors
     animateDoors(false);
   }
 })();
