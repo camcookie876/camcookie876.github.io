@@ -22,45 +22,83 @@ const config = {
   const pageName   = url.pathname.split("/").pop();
   const fromParam  = url.searchParams.get(paramKey) || "";
 
-  // inject door + button styles
+  // Inject industrial-door & logo styles
   const style = document.createElement("style");
   style.textContent = `
+    @keyframes door-slide { to { transform: translateX(0); } }
     .door {
-      position: fixed;
-      top: 0; width: 50%; height: 100vh;
-      background: #111;
-      box-shadow: inset 0 0 80px #0099ff, 0 0 20px rgba(0,153,255,0.5);
+      position: fixed; top: 0; width: 50%; height: 100vh;
+      background: #222;
+      background-image:
+        linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(0,0,0,0.1) 25%, transparent 25%);
+      background-size: 20px 20px;
+      box-shadow: inset 0 0 80px #0099ff, 0 0 30px rgba(0,153,255,0.5);
+      border-top: 4px solid #0099ff;
+      border-bottom:4px solid #0099ff;
       z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-around;
-      align-items: center;
+      display: flex; flex-direction: column;
+      align-items: center; padding-top: 2rem;
       transition: transform 1s ease-in-out;
     }
     .door-left  { left: 0;  transform: translateX(-100%); }
-    .door-right { right: 0; transform: translateX(100%); }
+    .door-right { right:0;  transform: translateX(100%); }
+    .door-logo {
+      width: 120px; height: auto;
+      margin-bottom: 1rem;
+    }
+    .door-logo img {
+      width: 100%; height: auto;
+      display: block;
+    }
+    .door-title {
+      color: #0099ff;
+      font-family: sans-serif;
+      font-size: 1rem;
+      text-shadow: 0 0 6px #0099ff;
+      margin-bottom: 2rem;
+    }
     .door-button {
-      width: 60px; height: 24px;
+      width: 70px; height: 28px;
       background: linear-gradient(145deg, #33b5ff, #0088cc);
       border: 2px solid #005f99;
       border-radius: 4px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.4);
-      cursor: default;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6),
+                  inset 0 1px 0 rgba(255,255,255,0.4);
+      margin: 0.5rem;
     }
   `;
   document.head.appendChild(style);
 
   function animateDoors(close, callback) {
+    // lock interaction
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
     document.body.style.pointerEvents = "none";
 
+    // create doors
     const left  = document.createElement("div");
     const right = document.createElement("div");
     left.className  = "door door-left";
     right.className = "door door-right";
 
-    // add buttons to each door
+    // logo area
+    [left, right].forEach(door => {
+      const logoDiv = document.createElement("div");
+      logoDiv.className = "door-logo";
+      // replace 'logo.png' with your actual logo path
+      const img = document.createElement("img");
+      img.src = "https://camcookie876.github.io/game/food-run/assets/images/camcookie-logo.gif";
+      logoDiv.appendChild(img);
+      door.appendChild(logoDiv);
+
+      const title = document.createElement("div");
+      title.className = "door-title";
+      title.textContent = "Camcookie"; 
+      door.appendChild(title);
+    });
+
+    // add control buttons
     for (let i = 0; i < 3; i++) {
       left.appendChild(document.createElement("div")).className  = "door-button";
       right.appendChild(document.createElement("div")).className = "door-button";
@@ -69,7 +107,16 @@ const config = {
     document.body.appendChild(left);
     document.body.appendChild(right);
 
-    // trigger slide
+    // start positions
+    if (close) {
+      left.style.transform  = "translateX(-100%)";
+      right.style.transform = "translateX(100%)";
+    } else {
+      left.style.transform  = "translateX(0)";
+      right.style.transform = "translateX(0)";
+    }
+
+    // animate in/out
     requestAnimationFrame(() => {
       if (close) {
         left.style.transform  = "translateX(0)";
@@ -82,8 +129,7 @@ const config = {
 
     setTimeout(() => {
       if (!close) {
-        left.remove();
-        right.remove();
+        left.remove(); right.remove();
         document.documentElement.style.overflow = "";
         document.body.style.overflow = "";
         document.body.style.pointerEvents = "";
@@ -92,7 +138,7 @@ const config = {
     }, 1000);
   }
 
-  // 1) Department pages: doors close then redirect
+  // 1) Dept pages: close doors then redirect
   if (sectionKey) {
     const sec = sections[sectionKey];
     if (!sec) return;
@@ -104,9 +150,10 @@ const config = {
     return;
   }
 
-  // 2) Error page or 404.html: doors open to reveal message
+  // 2) error.html or 404.html: open doors to reveal message
   const errorName = new URL(errorPage).pathname.split("/").pop();
   if (pageName === errorName || pageName === "404.html") {
+    // set message
     const originalURL = fromParam || fullURL;
     const el = document.getElementById("maintenance-message");
     let msg = "Camcookie is under Maintenance.";
@@ -122,10 +169,14 @@ const config = {
     }
     if (el) el.textContent = msg;
 
+    // auto-return when reopened
     if (globalClose && matched && sections[matched].open) {
       return window.location.replace(originalURL);
     }
 
+    // animate doors opening
     animateDoors(false);
   }
+
+  // 3) other pages: no action
 })();
