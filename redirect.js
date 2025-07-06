@@ -1,95 +1,78 @@
-//=======================================================
 // redirect.js
-// One file for all department pages, 404.html & error.html
-// Edit only the config block below.
-//=======================================================
+// One file for dept pages, 404.html & error.html.
+// Edit only the config block.
+
 const config = {
-  // query-param key carrying the original full URL
-  paramKey:    "from",
-
-  // your shared error page (must live at this URL)
-  errorPage:   "https://camcookie876.github.io/error.html",
-
-  // false → EVERYTHING is closed (override)
-  // true  → honor each section’s open flag
-  globalClose: false,
-
-  // define each department by its ?web key:
-  // rootURL must include trailing slash!
+  paramKey:   "from",
+  errorPage:  "error.html",
+  globalClose:false,
   sections: {
     game:  { rootURL: "https://camcookie876.github.io/game/",  open: false },
     music: { rootURL: "https://camcookie876.github.io/music/", open: true  },
     find:  { rootURL: "https://camcookie876.github.io/find/",  open: false }
-    // add more: blog, shop, docs, etc.
+    // add more as needed
   }
 };
-//=======================================================
 
-;(function(){
-  const { paramKey, errorPage, globalClose, sections } = config;
-  const scriptSrc = document.currentScript.src;
-  const wsParam   = new URL(scriptSrc).searchParams.get("web");
-  const fullURL   = window.location.href;
-  const url       = new URL(fullURL);
-  const pageName  = url.pathname.split("/").pop();
-  const fromParam = url.searchParams.get(paramKey);
+(function(){
+  function run() {
+    const scripts    = document.getElementsByTagName('script');
+    const me         = scripts[scripts.length - 1].src;
+    const wsParam    = new URL(me).searchParams.get("web");
+    const fullURL    = window.location.href;
+    const url        = new URL(fullURL);
+    const page       = url.pathname.split("/").pop();
+    const orig       = url.searchParams.get(config.paramKey) || "";
 
-  // 1) Department-page context (?web=…)
-  if (wsParam) {
-    const section = sections[wsParam];
-    if (!section) return;  // unrecognized section
-
-    // if globalClose==false (all closed) OR this section.open==false
-    if (!globalClose || !section.open) {
-      const dest = new URL(errorPage, window.location.origin);
-      dest.searchParams.set(paramKey, fullURL);
-      window.location.replace(dest);
+    // 1) Department-page context
+    if (wsParam) {
+      const sec = config.sections[wsParam];
+      if (!sec) return;
+      if (!config.globalClose || !sec.open) {
+        const dest = new URL(config.errorPage, window.location.origin);
+        dest.searchParams.set(config.paramKey, fullURL);
+        return window.location.replace(dest);
+      }
+      return;
     }
-    return;
-  }
 
-  // 2) 404 or shared error page context
-  if (pageName === errorPage || pageName === "404.html") {
-    // determine the original URL
-    const originalURL = fromParam || fullURL;
+    // 2) Error or 404 context
+    if (page === config.errorPage || page === "404.html") {
+      const originalURL = orig || fullURL;
 
-    // on 404.html, if NOT from any section AND globalClose==true → do nothing
-    if (pageName === "404.html") {
-      let isDept = false;
-      for (let sec of Object.values(sections)) {
+      // On 404, skip if not in any sec AND globalClose==true
+      if (page === "404.html") {
+        let inDept = false;
+        for (let sec of Object.values(config.sections)) {
+          if (originalURL.startsWith(sec.rootURL)) {
+            inDept = true; break;
+          }
+        }
+        if (!inDept && config.globalClose) return;
+      }
+
+      // Update maintenance-message
+      const h = document.getElementById("maintenance-message");
+      let msg = "Camcookie is under Maintenance.";
+      let match = null;
+      for (let [name, sec] of Object.entries(config.sections)) {
         if (originalURL.startsWith(sec.rootURL)) {
-          isDept = true;
+          match = name;
+          const label = name[0].toUpperCase() + name.slice(1);
+          msg = `Camcookie ${label} is under maintenance.`;
           break;
         }
       }
-      if (!isDept && globalClose) return;
-    }
+      if (h) h.textContent = msg;
 
-    // update the maintenance message
-    const el = document.getElementById("maintenance-message");
-    let message = "Camcookie is under Maintenance.";
-    let matched = null;
-
-    for (let [name, sec] of Object.entries(sections)) {
-      if (originalURL.startsWith(sec.rootURL)) {
-        matched = name;
-        const label = name.charAt(0).toUpperCase() + name.slice(1);
-        message = `Camcookie ${label} is under maintenance.`;
-        break;
+      // Auto-return when maintenance ends (globalClose==true AND sec.open==true)
+      if (config.globalClose && match && config.sections[match].open) {
+        window.location.replace(originalURL);
       }
-    }
-    if (el) el.textContent = message;
-
-    // auto-return once maintenance ends:
-    // only when globalClose==true AND this section.open==true
-    if (
-      globalClose &&
-      matched !== null &&
-      sections[matched].open
-    ) {
-      window.location.replace(originalURL);
     }
   }
 
-  // 3) all other pages → no action
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", run);
+  } else run();
 })();
