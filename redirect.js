@@ -22,10 +22,13 @@ const config = {
   const pageName   = url.pathname.split("/").pop();
   const fromParam  = url.searchParams.get(paramKey) || "";
 
-  // Inject industrial-door & logo styles
+  // inject industrial door & logo styles + subtle flicker
   const style = document.createElement("style");
   style.textContent = `
-    @keyframes door-slide { to { transform: translateX(0); } }
+    @keyframes flicker {
+      0%,100% { opacity: 1; }
+      50%     { opacity: 0.88; }
+    }
     .door {
       position: fixed; top: 0; width: 50%; height: 100vh;
       background: #222;
@@ -33,45 +36,36 @@ const config = {
         linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%),
         linear-gradient(-45deg, rgba(0,0,0,0.1) 25%, transparent 25%);
       background-size: 20px 20px;
-      box-shadow: inset 0 0 80px #0099ff, 0 0 30px rgba(0,153,255,0.5);
+      box-shadow: inset 0 0 100px #0099ff, 0 0 30px rgba(0,153,255,0.4);
       border-top: 4px solid #0099ff;
-      border-bottom:4px solid #0099ff;
-      z-index: 9999;
-      display: flex; flex-direction: column;
-      align-items: center; padding-top: 2rem;
+      border-bottom: 4px solid #0099ff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 2rem;
       transition: transform 1s ease-in-out;
+      animation: flicker 3s infinite;
+      z-index: 9999;
     }
     .door-left  { left: 0;  transform: translateX(-100%); }
     .door-right { right:0;  transform: translateX(100%); }
     .door-logo {
-      width: 120px; height: auto;
-      margin-bottom: 1rem;
+      width: 120px; height: auto; margin-bottom: 0.5rem;
     }
     .door-logo img {
-      width: 100%; height: auto;
-      display: block;
+      max-width: 100%; display: block;
     }
     .door-title {
       color: #0099ff;
       font-family: sans-serif;
-      font-size: 1rem;
-      text-shadow: 0 0 6px #0099ff;
-      margin-bottom: 2rem;
-    }
-    .door-button {
-      width: 70px; height: 28px;
-      background: linear-gradient(145deg, #33b5ff, #0088cc);
-      border: 2px solid #005f99;
-      border-radius: 4px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.6),
-                  inset 0 1px 0 rgba(255,255,255,0.4);
-      margin: 0.5rem;
+      font-size: 1.2rem;
+      text-shadow: 0 0 8px #0099ff;
     }
   `;
   document.head.appendChild(style);
 
   function animateDoors(close, callback) {
-    // lock interaction
+    // lock scroll & clicks
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
     document.body.style.pointerEvents = "none";
@@ -82,32 +76,25 @@ const config = {
     left.className  = "door door-left";
     right.className = "door door-right";
 
-    // logo area
-    [left, right].forEach(door => {
-      const logoDiv = document.createElement("div");
-      logoDiv.className = "door-logo";
-      // replace 'logo.png' with your actual logo path
+    // logo + title area
+    [left, right].forEach(d => {
+      const logoWrap = document.createElement("div");
+      logoWrap.className = "door-logo";
       const img = document.createElement("img");
-      img.src = "https://camcookie876.github.io/game/food-run/assets/images/camcookie-logo.gif";
-      logoDiv.appendChild(img);
-      door.appendChild(logoDiv);
+      img.src = "logo.png";          // set your logo path
+      logoWrap.appendChild(img);
+      d.appendChild(logoWrap);
 
       const title = document.createElement("div");
       title.className = "door-title";
-      title.textContent = "Camcookie"; 
-      door.appendChild(title);
+      title.textContent = "Camcookie";
+      d.appendChild(title);
     });
-
-    // add control buttons
-    for (let i = 0; i < 3; i++) {
-      left.appendChild(document.createElement("div")).className  = "door-button";
-      right.appendChild(document.createElement("div")).className = "door-button";
-    }
 
     document.body.appendChild(left);
     document.body.appendChild(right);
 
-    // start positions
+    // initial position
     if (close) {
       left.style.transform  = "translateX(-100%)";
       right.style.transform = "translateX(100%)";
@@ -116,7 +103,7 @@ const config = {
       right.style.transform = "translateX(0)";
     }
 
-    // animate in/out
+    // animate in or out
     requestAnimationFrame(() => {
       if (close) {
         left.style.transform  = "translateX(0)";
@@ -129,16 +116,17 @@ const config = {
 
     setTimeout(() => {
       if (!close) {
-        left.remove(); right.remove();
+        left.remove();
+        right.remove();
         document.documentElement.style.overflow = "";
         document.body.style.overflow = "";
         document.body.style.pointerEvents = "";
       }
-      callback && callback();
+      if (callback) callback();
     }, 1000);
   }
 
-  // 1) Dept pages: close doors then redirect
+  // 1) Department pages: slide doors closed then redirect
   if (sectionKey) {
     const sec = sections[sectionKey];
     if (!sec) return;
@@ -150,10 +138,10 @@ const config = {
     return;
   }
 
-  // 2) error.html or 404.html: open doors to reveal message
+  // 2) error.html or 404.html: slide doors open to reveal content
   const errorName = new URL(errorPage).pathname.split("/").pop();
   if (pageName === errorName || pageName === "404.html") {
-    // set message
+    // update maintenance message
     const originalURL = fromParam || fullURL;
     const el = document.getElementById("maintenance-message");
     let msg = "Camcookie is under Maintenance.";
@@ -162,7 +150,7 @@ const config = {
       for (let [name, sec] of Object.entries(sections)) {
         if (originalURL.startsWith(sec.rootURL)) {
           matched = name;
-          msg = `Camcookie ${name.charAt(0).toUpperCase()+name.slice(1)} is under maintenance.`;
+          msg = `Camcookie ${name.charAt(0).toUpperCase() + name.slice(1)} is under maintenance.`;
           break;
         }
       }
@@ -178,5 +166,5 @@ const config = {
     animateDoors(false);
   }
 
-  // 3) other pages: no action
+  // other pages → no action
 })();
