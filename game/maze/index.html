@@ -1,94 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Camcookie Maze</title>
   <style>
-    /* BASIC RESET */
-    * { box-sizing:border-box; margin:0; padding:0; }
-    html, body { width:100%; height:100%; overflow:hidden; font-family:Arial,sans-serif; }
-
-    /* FULLSCREEN SCREENS */
-    .screen {
-      position:absolute; top:0; left:0; width:100vw; height:100vh;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      background:linear-gradient(135deg,#667eea,#764ba2);
-      color:#fff; text-shadow:0 1px 2px rgba(0,0,0,0.5);
-      opacity:0; animation:fadeIn 0.6s forwards;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      background: #111;
+      color: #fff;
     }
-    .hidden { display:none!important; }
 
-    /* ANIMATIONS */
-    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-    @keyframes fadeOut { from{opacity:1} to{opacity:0} }
-    @keyframes pulse { 0%,100%{transform:scale(1)}50%{transform:scale(1.05)} }
-    @keyframes slideIn { from{transform:translateY(50px);opacity:0} to{transform:translateY(0);opacity:1} }
-
-    /* BUTTONS & INPUTS */
-    h1 { font-size:2.5rem; margin-bottom:1rem; animation:slideIn 0.6s ease; }
-    button {
-      background:#fff; color:#333; border:none; padding:1rem 2rem;
-      margin:0.5rem; border-radius:8px; font-size:1.1rem; cursor:pointer;
-      animation:pulse 2s infinite;
-      transition:transform .2s;
+    body, button, canvas, .screen {
+      user-select: none;
+      -webkit-user-select: none;
     }
-    button:hover { transform:scale(1.1); }
+
+    input, textarea, select {
+      user-select: text;
+    }
+
+    button, input, select {
+      font-size: 1rem;
+      padding: 0.8rem 1.2rem;
+      margin: 0.5rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
     input, select {
-      padding:.8rem 1rem; margin:.5rem;
-      border:none; border-radius:6px; font-size:1rem;
-      animation:slideIn .4s ease;
+      background: #fff;
+      color: #333;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
-    /* LOBBY CONTROLS */
-    #lobby-screen label, #lobby-screen ul { animation:slideIn .6s ease; }
-
-    /* CANVAS STYLES */
-    #play-screen, #map-screen { background:#222; }
-    canvas { display:block; width:100vw; height:100vh; }
-
-    /* LEVEL SPLASH */
-    #levelSplash {
-      position:absolute; top:40%; width:100%; text-align:center;
-      font-size:3rem; color:#ffe100; text-shadow:0 2px 4px rgba(0,0,0,0.7);
-      opacity:0; pointer-events:none;
+    input:focus, select:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px #ffe100;
     }
-    @keyframes splashIn { 0%{opacity:0;transform:scale(0.5)}50%{opacity:1;transform:scale(1.2)}100%{opacity:0;transform:scale(1)} }
 
-    /* LEADERBOARD */
+    .screen {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      text-align: center;
+      z-index: 10;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      background: #222;
+    }
+
     #leaderboard {
-      position:absolute; top:1rem; right:1rem;
-      background:rgba(0,0,0,0.6); padding:1rem; border-radius:8px;
-      color:#0f0; font-size:1rem; line-height:1.4;
-      animation:fadeIn .6s ease;
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(0,0,0,0.6);
+      padding: 1rem;
+      border-radius: 8px;
+      color: #0f0;
+      font-size: 1rem;
+      line-height: 1.4;
+      z-index: 20;
     }
 
-    /* MAINTENANCE */
-    /* (redirect.js will handle its own logic) */
+    #levelSplash {
+      position: absolute;
+      top: 40%;
+      width: 100%;
+      text-align: center;
+      font-size: 3rem;
+      color: #ffe100;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.7);
+      opacity: 0;
+      pointer-events: none;
+      animation: splashIn 1.2s ease-out;
+    }
+
+    @keyframes splashIn {
+      0% { opacity: 0; transform: scale(0.5); }
+      50% { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 0; transform: scale(1); }
+    }
   </style>
 </head>
 <body>
 
-  <!-- 1) CHOOSE SOLO / LIVE -->
+  <!-- CHOOSE SCREEN -->
   <div id="choose" class="screen">
     <h1>Camcookie Maze</h1>
     <button id="btn-solo">Play Solo</button>
     <button id="btn-live">Play Live</button>
   </div>
 
-  <!-- 2) LIVE LOGIN -->
+  <!-- LIVE LOGIN -->
   <div id="live-login" class="screen hidden">
     <h1>Live Room</h1>
-    <input id="live-name" placeholder="Your username"><br>
+    <input id="live-name" placeholder="Your username" />
+    <br />
     <button id="btn-create">Create Room</button>
-    <input id="live-code" placeholder="Room code">
+    <input id="live-code" placeholder="Room code" />
     <button id="btn-join">Join Room</button>
     <p id="live-err" style="color:#f88;"></p>
   </div>
 
-  <!-- 3) LOBBY -->
+  <!-- LOBBY -->
   <div id="lobby-screen" class="screen hidden">
     <h1>Room: <span id="room-code"></span></h1>
-    <ul id="players-list" style="list-style:none; margin:1rem 0;"></ul>
+    <ul id="players-list"></ul>
     <div>
       <label>View:
         <select id="view-mode">
@@ -97,29 +146,37 @@
         </select>
       </label>
       <label>Levels:
-        <input id="level-count" type="number" min="1" value="3" style="width:4rem;">
+        <input id="level-count" type="number" min="1" value="3" style="width:4rem;" />
       </label>
     </div>
     <button id="btn-start">Start Game</button>
-    <p style="margin-top:1rem;">Share Link:</p>
-    <input id="share-link" readonly style="width:80%; opacity:.8;">
+    <p>Share Link:</p>
+    <input id="share-link" readonly style="width:80%;" />
   </div>
 
-  <!-- 4) PLAY -->
+  <!-- PLAY -->
   <div id="play-screen" class="hidden">
     <canvas id="playCanvas"></canvas>
     <div id="levelSplash"></div>
   </div>
 
-  <!-- 5) MAP -->
+  <!-- MAP -->
   <div id="map-screen" class="hidden">
     <canvas id="mapCanvas"></canvas>
     <div id="leaderboard"></div>
   </div>
 
-  <!-- SOCKET.IO, MAINTENANCE & LOGIC -->
+  <!-- Scripts -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://camcookie876.github.io/redirect.js?web=game"></script>
   <script src="script.js"></script>
+  <script>
+    document.addEventListener('contextmenu', e => {
+      const tag = e.target.tagName.toLowerCase();
+      if (tag !== 'input' && tag !== 'textarea') {
+        e.preventDefault();
+      }
+    });
+  </script>
 </body>
 </html>

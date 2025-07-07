@@ -1,16 +1,27 @@
 // script.js
-const socket    = io('/game/maze');
-const qs        = s=>document.querySelector(s);
-let solo=false, isHost=false, room='', name='';
-let players={}, layouts=[], currentLevel=0, maxLevels=1;
-let tile, keys={}, speed=1;
 
+// --- SETUP & STATE ---
+const socket    = io('/game/maze');
+const qs        = s => document.querySelector(s);
+
+let solo       = false;
+let isHost     = false;
+let roomCode   = '';
+let userName   = '';
+let maxLevels  = 1;
+let currentLv  = 0;
+let layouts    = [];       // array of mazes
+let players    = {};       // id → { name, pos:{x,y}, score }
+let keys       = {};       // pressed keys
+const speed    = 1;        // movement per frame
+
+// --- UI ELEMENTS ---
 const screens = {
-  choose:      qs('#choose'),
-  liveLogin:   qs('#live-login'),
-  lobby:       qs('#lobby-screen'),
-  play:        qs('#play-screen'),
-  map:         qs('#map-screen')
+  choose:    qs('#choose'),
+  login:     qs('#live-login'),
+  lobby:     qs('#lobby-screen'),
+  play:      qs('#play-screen'),
+  map:       qs('#map-screen')
 };
 const elems = {
   btnSolo:     qs('#btn-solo'),
@@ -22,206 +33,286 @@ const elems = {
   codeIn:      qs('#live-code'),
   errLive:     qs('#live-err'),
   playersList: qs('#players-list'),
-  roomCode:    qs('#room-code'),
+  roomDisplay: qs('#room-code'),
   viewMode:    qs('#view-mode'),
   levelCount:  qs('#level-count'),
   shareLink:   qs('#share-link'),
-  playC:       qs('#playCanvas'),
-  mapC:        qs('#mapCanvas'),
+  playCanvas:  qs('#playCanvas'),
+  mapCanvas:   qs('#mapCanvas'),
   splash:      qs('#levelSplash'),
-  lbDiv:       qs('#leaderboard')
+  leaderboard: qs('#leaderboard')
 };
-const ctxPlay    = elems.playC.getContext('2d');
-const ctxMap     = elems.mapC.getContext('2d');
+const ctxPlay = elems.playCanvas.getContext('2d');
+const ctxMap  = elems.mapCanvas.getContext('2d');
 
-// UTILS
+// --- UTILS ---
 function show(id){ screens[id].classList.remove('hidden'); }
-function hide(...ids){ ids.forEach(i=>screens[i].classList.add('hidden')); }
-function error(msg){ elems.errLive.innerText = msg; setTimeout(()=>elems.errLive.innerText='',2000); }
-function resize(){
-  [elems.playC,elems.mapC].forEach(c=>{
-    c.width=innerWidth; c.height=innerHeight;
-  });
-  tile = Math.min(innerWidth,innerHeight)/25;
+function hide(...ids){ ids.forEach(i => screens[i].classList.add('hidden')); }
+function error(msg){
+  elems.errLive.innerText = msg;
+  setTimeout(() => elems.errLive.innerText = '', 2000);
 }
-window.onresize=resize; resize();
 
-// MAZE GENERATOR
-function generateMaze(r,c){
-  /* Classic DFS carve */
-  const grid = Array(r).fill().map(()=>Array(c).fill(0));
+// Resize canvases and compute tile size
+let tile;
+function resize(){
+  [elems.playCanvas, elems.mapCanvas].forEach(c => {
+    c.width  = window.innerWidth;
+    c.height = window.innerHeight;
+  });
+  tile = Math.min(window.innerWidth, window.innerHeight) / 25;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// --- MAZE GENERATOR (DFS) ---
+function generateMaze(rows, cols) {
+  const grid = Array(rows).fill().map(()=>Array(cols).fill(0));
   const vis  = JSON.parse(JSON.stringify(grid));
   const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
-  const shuffle=a=>a.sort(()=>0.5-Math.random());
-  function dfs(x,y){
-    vis[x][y]=true; grid[x][y]=1;
-    shuffle(dirs).forEach(([dx,dy])=>{
-      const nx=x+dx*2, ny=y+dy*2;
-      if(nx>=0&&nx<r&&ny>=0&&ny<c&&!vis[nx][ny]){
-        grid[x+dx][y+dy]=1; dfs(nx,ny);
+  function shuffle(arr){ arr.sort(()=>Math.random()-0.5); }
+  function carve(r, c) {
+    vis[r][c] = 1;
+    grid[r][c] = 1;
+    shuffle(dirs);
+    dirs.forEach(([dr,dc]) => {
+      const nr = r + dr*2, nc = c + dc*2;
+      if (nr>=0 && nr<rows && nc>=0 && nc<cols && !vis[nr][nc]) {
+        grid[r+dr][c+dc] = 1;
+        carve(nr, nc);
       }
     });
   }
-  dfs(0,0);
-  const walls=[];
-  for(let i=0;i<r;i++)for(let j=0;j<c;j++)
-    if(!grid[i][j]) walls.push({x:j,y:i});
+  carve(0, 0);
+  // walls = cells still 0
+  const walls = [];
+  for (let r=0; r<rows; r++){
+    for (let c=0; c<cols; c++){
+      if (!grid[r][c]) walls.push({ x:c, y:r });
+    }
+  }
   return walls;
 }
 
-// SCREEN FLOW
-elems.btnSolo.onclick = ()=>{
-  solo=true; startPlay();
-};
-elems.btnLive.onclick = ()=>{
-  hide('choose'); show('liveLogin');
-};
-elems.btnCreate.onclick = ()=>{
-  name=elems.nameIn.value.trim();
-  if(!name) return error('Enter username');
-  socket.emit('createRoom',name);
-};
-elems.btnJoin.onclick = ()=>{
-  name=elems.nameIn.value.trim();
-  room=elems.codeIn.value.trim().toUpperCase();
-  if(!name||!room) return error('both fields');
-  socket.emit('joinRoom',{code:room,name});
-};
+// --- SCREEN FLOW & EVENTS ---
 
-// LOBBY EVENTS
-socket.on('roomJoined', data=>{
-  isHost=true; room=data.code; players=data.players;
-  elems.roomCode.innerText=room; renderPlayers();
-  hide('liveLogin'); show('lobby');
-  // share link
-  elems.shareLink.value = `${location.origin}/game/maze/index.html?live=${room}&name=${name}`;
+// 1) Solo or Live choice
+elems.btnSolo.addEventListener('click', () => {
+  solo = true;
+  startPlay();
 });
-socket.on('playersUpdate',pls=>{ players=pls; renderPlayers(); });
-socket.on('hostChanged',id=>{ isHost=(id===socket.id); renderPlayers(); });
+elems.btnLive.addEventListener('click', () => {
+  hide('choose'); show('login');
+});
+
+// 2) Live login: create or join
+elems.btnCreate.addEventListener('click', () => {
+  userName = elems.nameIn.value.trim();
+  if (!userName) return error('Enter a username');
+  socket.emit('createRoom', userName);
+});
+elems.btnJoin.addEventListener('click', () => {
+  userName = elems.nameIn.value.trim();
+  roomCode = elems.codeIn.value.trim().toUpperCase();
+  if (!userName || !roomCode) return error('Name & code required');
+  socket.emit('joinRoom', { code: roomCode, name: userName });
+});
+
+// 3) Lobby events
+socket.on('roomJoined', data => {
+  isHost    = true;
+  roomCode  = data.code;
+  players   = data.players;
+  elems.roomDisplay.innerText = roomCode;
+  renderPlayers();
+  hide('login');
+  show('lobby');
+
+  // shareable link
+  elems.shareLink.value = `${location.origin}/game/maze/index.html?live=${roomCode}&name=${userName}`;
+});
+socket.on('playersUpdate', pls => {
+  players = pls;
+  renderPlayers();
+});
+socket.on('hostChanged', id => {
+  isHost = (id === socket.id);
+  renderPlayers();
+});
 
 function renderPlayers(){
-  elems.playersList.innerHTML='';
-  Object.entries(players).forEach(([id,p])=>{
-    const li=document.createElement('li');
-    li.innerHTML = p.name + (id===socket.id?' (you)':'');
-    if(isHost && id!==socket.id){
-      const b=document.createElement('button');
-      b.textContent='Kick'; b.onclick=()=>socket.emit('kick',{code:room,targetId:id});
-      li.appendChild(b);
+  elems.playersList.innerHTML = '';
+  Object.entries(players).forEach(([id, p]) => {
+    const li = document.createElement('li');
+    li.innerText = p.name + (id===socket.id ? ' (you)' : '');
+    if (isHost && id !== socket.id) {
+      const btn = document.createElement('button');
+      btn.innerText = 'Kick';
+      btn.addEventListener('click', () => {
+        socket.emit('kick', { code: roomCode, targetId: id });
+      });
+      li.appendChild(btn);
     }
     elems.playersList.appendChild(li);
   });
-  elems.btnStart.style.display = isHost?'inline-block':'none';
-  elems.levelCount.style.display = isHost?'inline-block':'none';
-  elems.viewMode.style.display  = isHost?'inline-block':'none';
+  // only host sees start & config
+  elems.btnStart.style.display   = isHost ? 'inline-block' : 'none';
+  elems.levelCount.style.display = isHost ? 'inline-block' : 'none';
+  elems.viewMode.style.display   = isHost ? 'inline-block' : 'none';
 }
 
-// START GAME
-elems.btnStart.onclick = ()=>{
-  if(!isHost) return;
-  maxLevels = parseInt(elems.levelCount.value)||1;
-  // pre-generate
-  layouts = Array.from({length:maxLevels},()=>generateMaze(25,25));
-  socket.emit('setView',{code:room,viewMode:elems.viewMode.value});
-  socket.emit('startGame',{code:room,maxLevels});
+// Host starts game
+elems.btnStart.addEventListener('click', () => {
+  if (!isHost) return;
+  maxLevels = parseInt(elems.levelCount.value) || 1;
+  // pre-generate all levels
+  layouts = Array.from({length: maxLevels}, () => generateMaze(25,25));
+  currentLv = 0;
+  socket.emit('setView', { code:roomCode, viewMode: elems.viewMode.value });
+  socket.emit('startGame', { code:roomCode, maxLevels });
   hide('lobby');
-  elems.viewMode.value==='play' ? startPlay() : startMap();
-};
+  if (elems.viewMode.value === 'play') startPlay();
+  else                                   startMap();
+});
 
-// DIRECT LINK JOIN
+// Direct-link join (index.html?live=CODE&name=NAME)
 (function(){
-  const u=new URL(location.href);
-  const live=u.searchParams.get('live');
-  if(live){
-    room=live; name=u.searchParams.get('name')||'Guest';
-    socket.emit('joinRoom',{code:room,name});
+  const params = new URLSearchParams(location.search);
+  const live = params.get('live');
+  const name = params.get('name');
+  if (live) {
+    roomCode = live;
+    userName = name || 'Guest';
+    socket.emit('joinRoom', { code:live, name:userName });
   }
 })();
 
-// PLAY MODE
+// --- PLAY MODE ---
+
 function startPlay(){
-  layouts = layouts.length? layouts : [generateMaze(25,25)];
-  players = solo? {me:{name:'You',pos:{x:0,y:0},score:0}} : players;
-  currentLevel = 0; showLevelSplash();
-  hide('choose','liveLogin','lobby','map'); show('play');
-  if(!solo) socket.emit('joinRoom',{code:room,name});
-  window.onkeydown=e=>keys[e.key]=true;
-  window.onkeyup=  e=>keys[e.key]=false;
-  requestAnimationFrame(playLoop);
-}
-socket.on('gameStarted', data=>{
-  players = data.players;
-  currentLevel = 0;
-  showLevelSplash();
-});
-socket.on('nextLevel', ()=>{ currentLevel++; showLevelSplash(); resetPositions(); });
-socket.on('levelComplete', ()=>{ /* can animate confetti here */ });
-
-// SHOW LEVEL SPLASH
-function showLevelSplash(){
-  elems.splash.textContent = `Level ${currentLevel+1}`;
-  elems.splash.style.animation = 'splashIn 1.2s ease-out';
-  setTimeout(()=> elems.splash.style.animation = '',1200);
-}
-
-function resetPositions(){
-  Object.values(players).forEach(p=>p.pos={x:0,y:0});
-}
-
-function playLoop(){
-  ctxPlay.clearRect(0,0,elems.playC.width,elems.playC.height);
-  // draw walls
-  ctxPlay.fillStyle='crimson';
-  layouts[currentLevel].forEach(o=>
-    ctxPlay.fillRect(o.x*tile,o.y*tile,tile,tile)
-  );
-  // move & emit
-  const me = solo? players.me : players[socket.id];
-  if(me){
-    if(keys['ArrowUp'])    me.pos.y-=speed;
-    if(keys['ArrowDown'])  me.pos.y+=speed;
-    if(keys['ArrowLeft'])  me.pos.x-=speed;
-    if(keys['ArrowRight']) me.pos.x+=speed;
-    if(!solo) socket.emit('playerMove',{code, pos:me.pos});
+  // if solo: generate one layout
+  if (solo) {
+    layouts = [ generateMaze(25,25) ];
+    players = { me: { name:'You', pos:{x:0,y:0}, score:0 } };
   }
-  // draw players
-  Object.values(players).forEach(p=>{
-    ctxPlay.fillStyle = (p===me?'dodgerblue':'orange');
-    ctxPlay.fillRect(p.pos.x*tile,p.pos.y*tile,tile*0.8,tile*0.8);
-  });
+  currentLv = 0;
+  displayLevelSplash(currentLv);
+  hide('choose','login','lobby','map');
+  show('play');
+  resetPositions();
+  if (!solo) socket.emit('joinRoom', { code:roomCode, name:userName });
+
+  // keyboard
+  window.addEventListener('keydown', e => keys[e.key] = true);
+  window.addEventListener('keyup',   e => keys[e.key] = false);
+
   requestAnimationFrame(playLoop);
 }
 
-// MAP MODE
+socket.on('gameStarted', data => {
+  players   = data.players;
+  currentLv = 0;
+  displayLevelSplash(currentLv);
+  resetPositions();
+});
+socket.on('nextLevel', () => {
+  currentLv++;
+  displayLevelSplash(currentLv);
+  resetPositions();
+});
+socket.on('levelComplete', () => {
+  // optional confetti or sound
+});
+
+// Level splash animation
+function displayLevelSplash(lv){
+  elems.splash.innerText = `Level ${lv+1}`;
+  elems.splash.style.animation = 'splashIn 1.2s ease-out';
+  setTimeout(() => {
+    elems.splash.style.animation = '';
+  }, 1200);
+}
+
+// Reset all player positions
+function resetPositions(){
+  Object.values(players).forEach(p => p.pos = { x:0, y:0 });
+}
+
+// Main play loop
+function playLoop(){
+  ctxPlay.clearRect(0,0,elems.playCanvas.width,elems.playCanvas.height);
+
+  // draw walls
+  ctxPlay.fillStyle = 'crimson';
+  layouts[currentLv].forEach(w => {
+    ctxPlay.fillRect(w.x*tile, w.y*tile, tile, tile);
+  });
+
+  // handle movement
+  const meKey = solo ? 'me' : socket.id;
+  const me    = players[meKey];
+  if (me) {
+    if (keys['ArrowUp'])    me.pos.y -= speed;
+    if (keys['ArrowDown'])  me.pos.y += speed;
+    if (keys['ArrowLeft'])  me.pos.x -= speed;
+    if (keys['ArrowRight']) me.pos.x += speed;
+    if (!solo) socket.emit('playerMove', { code:roomCode, pos:me.pos });
+  }
+
+  // draw players
+  Object.values(players).forEach(p => {
+    ctxPlay.fillStyle = (p === me) ? 'dodgerblue' : 'orange';
+    ctxPlay.fillRect(p.pos.x*tile, p.pos.y*tile, tile*0.8, tile*0.8);
+  });
+
+  requestAnimationFrame(playLoop);
+}
+
+// --- MAP MODE ---
+
 function startMap(){
-  show('map'); hide('choose','liveLogin','lobby','play');
-  if(!solo) socket.emit('joinRoom',{code:room,name});
+  resetPositions();
+  hide('choose','login','lobby','play');
+  show('map');
+  if (!solo) socket.emit('joinRoom', { code:roomCode, name:userName });
   requestAnimationFrame(mapLoop);
 }
-socket.on('playersUpdate',pls=>players=pls);
-socket.on('levelComplete', data=>{
-  // final ranking animation
-  const entries = data.leaderboard;
-  elems.lbDiv.innerHTML = '<h3>Final Standings</h3>';
-  entries.forEach((e,i)=>{
-    const d=document.createElement('div');
-    d.textContent=`${i+1}. ${e.name}`;
-    d.style.animation = `slideIn .4s ease ${(i+1)*.2}s forwards`;
-    elems.lbDiv.appendChild(d);
+
+socket.on('playersUpdate', pls => {
+  players = pls;
+});
+socket.on('levelComplete', data => {
+  // show final leaderboard animation
+  const lb = data.leaderboard;
+  elems.leaderboard.innerHTML = '<h3>Final Standings</h3>';
+  lb.forEach((p,i) => {
+    const d = document.createElement('div');
+    d.innerText = `${i+1}. ${p.name}`;
+    d.style.animation = `slideIn 0.4s ease ${i*0.2}s forwards`;
+    elems.leaderboard.appendChild(d);
   });
 });
 
 function mapLoop(){
-  ctxMap.clearRect(0,0,elems.mapC.width,elems.mapC.height);
-  ctxMap.fillStyle='crimson';
-  layouts[currentLevel].forEach(o=>
-    ctxMap.fillRect(o.x*tile,o.y*tile,tile,tile)
-  );
-  ctxMap.fillStyle='#0f0';
-  Object.values(players).forEach(p=>{
+  ctxMap.clearRect(0,0,elems.mapCanvas.width,elems.mapCanvas.height);
+
+  // draw walls
+  ctxMap.fillStyle = 'crimson';
+  layouts[currentLv].forEach(w => {
+    ctxMap.fillRect(w.x*tile, w.y*tile, tile, tile);
+  });
+
+  // draw players as dots
+  ctxMap.fillStyle = '#0f0';
+  Object.values(players).forEach(p => {
     ctxMap.beginPath();
-    ctxMap.arc(p.pos.x*tile+tile/2,p.pos.y*tile+tile/2,tile/3,0,2*Math.PI);
+    ctxMap.arc(
+      p.pos.x*tile + tile/2,
+      p.pos.y*tile + tile/2,
+      tile/3, 0, 2*Math.PI
+    );
     ctxMap.fill();
   });
+
   requestAnimationFrame(mapLoop);
 }
