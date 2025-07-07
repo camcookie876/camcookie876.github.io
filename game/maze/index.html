@@ -6,92 +6,78 @@
   <style>
     /* RESET & BASE */
     * { box-sizing:border-box; margin:0; padding:0 }
-    html,body { width:100%; height:100%; overflow:hidden; background:#111; color:#fff; font-family:sans-serif }
-    body.light { --bg:#f0f0f0; --fg:#111; --btn-bg:#fff; --btn-fg:#333 }
-    body.dark  { --bg:#000000; --fg:#eee; --btn-bg:#333; --btn-fg:#fff }
-    body.neon  { --bg:#111; --fg:#0f0; --btn-bg:#0f0; --btn-fg:#111 }
-    body, button, canvas, .screen { user-select:none }
-    input, select { user-select:text }
+    html,body { width:100%; height:100%; overflow:hidden; font-family:sans-serif; background:#111; color:#fff }
+    .screen {
+      position:absolute; top:0; left:0; width:100%; height:100%;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      background:linear-gradient(135deg,#667eea,#764ba2); text-align:center;
+      opacity:0; animation:fadeIn 0.5s forwards;
+    }
+    .hidden { display:none!important; }
+    @keyframes fadeIn { to { opacity:1 } }
+    @keyframes fadeOut { to { opacity:0 } }
 
-    /* BUTTONS & INPUTS */
+    h1 { font-size:2rem; margin-bottom:1rem; animation:slideIn .4s forwards; }
+    @keyframes slideIn { from{transform:translateY(-20px);opacity:0} to{transform:translateY(0);opacity:1} }
+
     button, input, select {
       font-size:1rem; padding:.6rem 1rem; margin:.4rem; border:none; border-radius:6px;
-      transition:transform .2s, box-shadow .2s; cursor:pointer;
+      cursor:pointer; transition:transform .2s;
     }
-    button { background:var(--btn-bg); color:var(--btn-fg) }
-    button:hover { transform:scale(1.05); box-shadow:0 3px 6px rgba(0,0,0,.3) }
-    input, select { background:#fff; color:#333; box-shadow:0 2px 4px rgba(0,0,0,.2) }
-    input:focus, select:focus { outline:none; box-shadow:0 0 0 2px #ffe100 }
-
-    /* SCREENS */
-    .screen {
-      position:absolute; top:0; left:0; width:100vw; height:100vh;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      background:linear-gradient(135deg,#667eea,#764ba2); text-align:center
-    }
-    .hidden { display:none!important }
-    h1 { font-size:2rem; margin-bottom:1rem }
-
-    /* CANVAS */
-    canvas {
-      background:var(--bg); display:block;
-      margin:auto; /* for centering within screen */
-    }
+    button:hover { transform:scale(1.05); }
+    input, select { background:#fff; color:#333; }
 
     /* SETTINGS BUTTON */
     #btn-settings {
-      position:absolute; top:1rem; left:1rem; font-size:1.2rem;
-      padding:.4rem .8rem; display:none; z-index:100;
+      position:absolute; top:1rem; right:1rem; font-size:1.2rem; padding:.4rem .8rem;
+      display:none; z-index:100; animation:fadeIn .5s forwards;
     }
 
     /* SETTINGS MODAL */
     #settingsModal.hidden { display:none }
     #settingsModal .modal-backdrop {
-      position:fixed; top:0; left:0; width:100vw; height:100vh;
+      position:fixed; top:0; left:0; width:100%; height:100%;
       background:rgba(0,0,0,.7); display:flex; align-items:center; justify-content:center;
-      z-index:200
+      z-index:200; animation:fadeIn .5s forwards;
     }
     #settingsModal .modal {
-      background:#222; padding:1.5rem; border-radius:8px; width:80vw; max-width:350px;
-      text-align:left; color:#fff
+      background:#222; padding:1.2rem; border-radius:8px;
+      width:80%; max-width:320px; color:#fff;
+      transform:scale(0.8); animation:scaleIn .4s forwards;
     }
-    #settingsModal .modal h2 { margin-bottom:.5rem }
-    #settingsModal .modal label { display:block; margin:.5rem 0 }
+    @keyframes scaleIn { to { transform:scale(1) } }
+    #settingsModal h2 { margin-bottom:.6rem; }
+    #settingsModal label { display:block; margin:.5rem 0; }
+    #settingsModal button { margin-top:.8rem; }
 
-    /* OVERLAYS */
-    #timerDisplay, #fpsCounter, #levelSplash, #leaderboard {
-      position:absolute; z-index:50; padding:.4rem .8rem; border-radius:4px;
-    }
-    #timerDisplay { top:1rem; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.6); }
-    #fpsCounter  { top:1rem; right:1rem; background:rgba(0,0,0,.6); color:#ff0; }
+    /* CANVASES & OVERLAYS */
+    #playCanvas, #mapCanvas { background:#0099ff; display:block; margin:auto; }
     #levelSplash {
-      top:40%; width:100%; text-align:center; font-size:2.5rem; color:#ffe100;
-      opacity:0; pointer-events:none; animation:splashIn 1.2s ease-out
+      position:absolute; top:40%; width:100%; text-align:center; font-size:2.5rem;
+      color:#ffe100; opacity:0; pointer-events:none; animation:splashIn 1.2s ease-out;
+      z-index:50;
     }
-    @keyframes splashIn {
-      0%{opacity:0;transform:scale(0.5)}50%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:scale(1)}
+    @keyframes splashIn {0%{opacity:0;transform:scale(.5)}50%{opacity:1;transform:scale(1.1)}100%{opacity:0}}
+    #timerDisplay, #fpsCounter, #leaderboard {
+      position:absolute; z-index:50; padding:.4rem .8rem; background:rgba(0,0,0,.6);
+      border-radius:4px; font-size:.9rem; animation:fadeIn .5s forwards;
     }
-    #leaderboard {
-      top:1rem; right:1rem; background:rgba(0,0,0,.6); color:#0f0; max-width:200px
-    }
+    #timerDisplay { top:1rem; left:50%; transform:translateX(-50%); }
+    #fpsCounter  { top:1rem; right:1rem; color:#ff0; }
+    #leaderboard { top:1rem; right:1rem; color:#0f0; max-width:200px; overflow:auto; }
 
-    /* SOLO CONTROLS */
-    #solo-controls { margin-bottom:1rem }
-    #solo-controls label { display:inline-block; margin:.3rem }
+    /* INVALID QR */
+    #invalid-qr { animation:shake 0.6s; }
+    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
 
-    /* LIVE LOGIN COLOR PICKER */
-    #live-color { margin-left:.5rem }
+    /* QUIRING CODE ENTRY */
+    #invalid-qr input{ width:60%; }
 
-    /* QR JOIN HINT */
-    #qr-hint {
-      position:absolute; bottom:1rem; left:50%; transform:translateX(-50%);
-      background:rgba(255,255,255,.2); padding:.4rem .8rem; border-radius:4px;
-      font-size:.9rem
-    }
-
+    /* LOBBY QR CODE */
+    #qr-code { margin:1rem; }
   </style>
 </head>
-<body class="light">
+<body>
 
   <!-- SETTINGS BUTTON -->
   <button id="btn-settings">⚙️</button>
@@ -101,8 +87,8 @@
     <div class="modal-backdrop"></div>
     <div class="modal">
       <h2>Settings (Admin Only)</h2>
-      <label>Maze Color:
-        <input type="color" id="setting-maze-color" value="#222222" />
+      <label>Border Color:
+        <input type="color" id="setting-border-color" value="#222222" />
       </label>
       <label>Theme:
         <select id="setting-theme">
@@ -119,56 +105,60 @@
 
   <!-- 1) CHOOSE SCREEN -->
   <div id="choose" class="screen">
-    <div id="solo-controls">
-      <label>Maze Color:
-        <input type="color" id="solo-maze-color" value="#222222" />
-      </label>
-      <label>Your Color:
-        <input type="color" id="solo-player-color" value="#00AAFF" />
-      </label>
-    </div>
     <h1>Camcookie Maze</h1>
     <button id="btn-solo">Play Solo</button>
     <button id="btn-live">Play Live</button>
   </div>
 
-  <!-- 2) LIVE LOGIN -->
-  <div id="live-login" class="screen hidden">
-    <h1>Join Live Game</h1>
-    <input id="live-name" placeholder="Username" />
+  <!-- 2A) LIVE: CREATE ROOM -->
+  <div id="live-create" class="screen hidden">
+    <h1>Create Room</h1>
+    <input id="live-name-create" placeholder="Username" />
     <label>Your Color:
-      <input type="color" id="live-color" value="#FF5555" />
+      <input type="color" id="live-color-create" value="#FF5555" />
     </label>
-    <div id="qr-hint">Scan QR or use “Join Code” button below</div>
-    <button id="btn-create">Create Room</button>
-    <button id="btn-qr-join">Join via QR</button>
-    <button id="btn-join-code">Join via Code</button>
-    <div id="join-code-entry" class="hidden">
-      <input id="live-code" placeholder="Room Code" />
-      <button id="btn-join">Join Room</button>
+    <button id="btn-create">Create</button>
+    <button id="btn-to-join">Join a Room</button>
+    <p id="live-err-create" style="color:#f88"></p>
+  </div>
+
+  <!-- 2B) LIVE: JOIN ROOM -->
+  <div id="live-join" class="screen hidden">
+    <h1>Join Room</h1>
+    <input id="live-name-join" placeholder="Username" />
+    <label>Your Color:
+      <input type="color" id="live-color-join" value="#55FF55" />
+    </label>
+    <button id="btn-qr-join">Scan QR (or click)</button>
+    <div id="invalid-qr" class="screen hidden">
+      <h1>Invalid QR Code</h1>
+      <p>Enter join code below:</p>
+      <input id="invalid-code-input" placeholder="Room Code" />
+      <button id="invalid-join-btn">Join</button>
     </div>
-    <p id="live-err" style="color:#f88"></p>
+    <div id="join-code-entry">
+      <input id="live-code" placeholder="Room Code" />
+      <button id="btn-join">Join</button>
+    </div>
+    <button id="btn-to-create">Create Instead</button>
+    <p id="live-err-join" style="color:#f88"></p>
   </div>
 
   <!-- 3) LOBBY SCREEN -->
   <div id="lobby-screen" class="screen hidden">
     <h1>Room: <span id="room-code"></span></h1>
+    <div id="qr-code"></div>
+    <p>Join Code: <span id="room-code-copy"></span></p>
     <ul id="players-list"></ul>
     <div>
       <label>View:
-        <select id="view-mode">
-          <option value="play">Play</option>
-          <option value="map">Map</option>
-        </select>
+        <select id="view-mode"><option>Play</option><option>Map</option></select>
       </label>
       <label>Levels:
         <input type="number" id="level-count" min="1" value="3" style="width:4rem" />
       </label>
     </div>
     <button id="btn-start">Start Game</button>
-    <p style="font-size:.9rem; margin-top:.5rem;">
-      Only admin (creator) can share code. Codes Reset at midnight UTC.
-    </p>
   </div>
 
   <!-- 4) PLAY SCREEN -->
@@ -185,13 +175,15 @@
     <div id="leaderboard"></div>
   </div>
 
-  <!-- Scripts -->
+  <!-- LIBRARIES -->
   <script src="https://camcookie876.github.io/game/maze/socket.io.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://camcookie876.github.io/game/maze/redirect.js?web=game"></script>
   <script src="https://camcookie876.github.io/game/maze/script.js"></script>
   <script>
-    document.addEventListener('contextmenu', e => {
-      if (!['input','textarea','select'].includes(e.target.tagName.toLowerCase()))
+    // disable outside right-click
+    document.addEventListener('contextmenu', e=>{
+      if(!['input','textarea','select'].includes(e.target.tagName.toLowerCase()))
         e.preventDefault();
     });
   </script>
