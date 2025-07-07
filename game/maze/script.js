@@ -73,11 +73,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const socket = io('/game/maze');
 
   // ——— UTILS ———
-  function show(...ids) {
-    ids.forEach(id => screens[id].classList.remove('hidden'));
+  function show(...keys) {
+    keys.forEach(key => {
+      if (screens[key]) screens[key].classList.remove('hidden');
+    });
   }
-  function hide(...ids) {
-    ids.forEach(id => screens[id].classList.add('hidden'));
+  function hide(...keys) {
+    keys.forEach(key => {
+      if (screens[key]) screens[key].classList.add('hidden');
+    });
   }
   function error(msg) {
     elems.errLive.innerText = msg;
@@ -376,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(mapLoop);
   }
 
-  socket.on('playersUpdate', pls => players = pls);
+  // Removed duplicate 'playersUpdate' event listener to prevent conflicts.
   socket.on('levelComplete', data => {
     // final leaderboard
     elems.leaderboard.innerHTML = '<h3>Final Standings</h3>';
