@@ -4,50 +4,12 @@
   <meta charset="UTF-8" />
   <title>Camcookie Search</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-    input[type="text"] { width: 100%; padding: 12px; font-size: 1em; margin-bottom: 10px; }
-    .result { border: 1px solid #ccc; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
-    .vaka { background-color: #000; color: lime; padding: 5px 10px; border-radius: 5px; cursor: pointer; float: right; }
+    body { font-family: sans-serif; max-width: 800px; background-color: #0099ff; }
+    h1 { color: #fff; text-align: center; }
   </style>
 </head>
 <body>
-  <h1>Camcookie Search</h1>
-  <input id="searchInput" placeholder="Search Camcookie data..." />
-  <span class="vaka" onclick="toggleVaka()">🧠 VAKA Mode: <span id="vakaStatus">OFF</span></span>
-  <div id="results"></div>
-
-  <script>
-    let data = [];
-    let vakaMode = false;
-
-    function toggleVaka() {
-      vakaMode = !vakaMode;
-      document.getElementById("vakaStatus").innerText = vakaMode ? "ON" : "OFF";
-      if (vakaMode) alert("VAKA Mode is ON. The full web crawler must be run from GitHub or Python.");
-    }
-
-    async function loadJSON() {
-      const res = await fetch('data/crawled_pages.json');
-      data = await res.json();
-    }
-
-    document.getElementById("searchInput").addEventListener("input", function() {
-      const query = this.value.toLowerCase();
-      const container = document.getElementById("results");
-      const filtered = data.filter(item =>
-        item.title.toLowerCase().includes(query) ||
-        item.preview.toLowerCase().includes(query)
-      );
-      container.innerHTML = filtered.map(item => `
-        <div class="result">
-          <h3><a href="${item.url}" target="_blank">${item.title}</a></h3>
-          <p>${item.preview}</p>
-        </div>
-      `).join('') || '<p>No results found.</p>';
-    });
-
-    loadJSON();
-  </script>
+<h1>Browser is down</h1>
 <script src="https://camcookie876.github.io/redirect.js?web=find"></script>
 </body>
 </html>

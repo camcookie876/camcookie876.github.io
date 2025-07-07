@@ -176,10 +176,11 @@
   </div>
 
   <!-- LIBRARIES -->
-  <script src="https://camcookie876.github.io/game/maze/socket.io.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://camcookie876.github.io/game/maze/redirect.js?web=game"></script>
+  <!-- replace socket.io.min.js with PeerJS -->
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  <script src="https://camcookie876.github.io/redirect.js?web=game"></script>
   <script src="https://camcookie876.github.io/game/maze/script.js"></script>
+
   <script>
     // disable outside right-click
     document.addEventListener('contextmenu', e=>{
