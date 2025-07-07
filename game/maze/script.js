@@ -232,24 +232,95 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // PLAY LOOP
-  function playLoop(){
-    ctxPlay.clearRect(0,0,E.playC.width,E.playC.height);
-    ctxPlay.fillStyle='crimson';
-    layouts[curLv].forEach(w=>ctxPlay.fillRect(w.x*tile,w.y*tile,tile,tile));
+// In your script.js, inside DOMContentLoaded:
 
-    const meKey=solo?'me':socket.id; const me=players[meKey];
-    if(me){
-      if(keys['ArrowUp'])    me.pos.y-=speed;
-      if(keys['ArrowDown'])  me.pos.y+=speed;
-      if(keys['ArrowLeft'])  me.pos.x-=speed;
-      if(keys['ArrowRight']) me.pos.x+=speed;
-      if(!solo) socket.emit('playerMove',{code:room,pos:me.pos});
+// --- Helper: collision check ---
+function collidesWithWall(x, y) {
+  const px = x * tile, py = y * tile, size = tile * 0.8;
+  for (const w of layouts[curLv]) {
+    const wx = w.x * tile, wy = w.y * tile;
+    if (px < wx + tile && px + size > wx &&
+        py < wy + tile && py + size > wy) {
+      return true;
     }
+  }
+  return false;
+}
 
-    Object.values(players).forEach(p=>{
-      ctxPlay.fillStyle=(p===me?'dodgerblue':'orange');
-      ctxPlay.fillRect(p.pos.x*tile,p.pos.y*tile,tile*0.8,tile*0.8);
+// --- Setup WASD & touch controls ---
+function setupControls() {
+  // WASD support
+  window.addEventListener('keydown', e => {
+    if (['w','a','s','d'].includes(e.key.toLowerCase())) {
+      const map = { w:'ArrowUp', a:'ArrowLeft', s:'ArrowDown', d:'ArrowRight' };
+      keys[ map[e.key.toLowerCase()] ] = true;
+    }
+  });
+  window.addEventListener('keyup', e => {
+    if (['w','a','s','d'].includes(e.key.toLowerCase())) {
+      const map = { w:'ArrowUp', a:'ArrowLeft', s:'ArrowDown', d:'ArrowRight' };
+      keys[ map[e.key.toLowerCase()] ] = false;
+    }
+  });
+
+  // On-screen touch
+  if ('ontouchstart' in window) {
+    const tc = document.querySelector('#touch-controls');
+    tc.classList.remove('hidden');
+    ['up','down','left','right'].forEach(dir => {
+      const btn = document.querySelector('#btn-' + dir);
+      const key = dir === 'up'? 'ArrowUp'
+                : dir === 'down'? 'ArrowDown'
+                : dir === 'left'? 'ArrowLeft'
+                : 'ArrowRight';
+      btn.addEventListener('touchstart', e => { keys[key] = true; e.preventDefault(); });
+      btn.addEventListener('touchend',   e => { keys[key] = false; e.preventDefault(); });
     });
+  }
+}
+
+// Call once inside your DOMContentLoaded, before playLoop():
+setupControls();
+
+// --- Modified playLoop with collision ---
+function playLoop() {
+  ctxPlay.clearRect(0,0,E.playC.width,E.playC.height);
+  // draw walls
+  ctxPlay.fillStyle = 'crimson';
+  layouts[curLv].forEach(w =>
+    ctxPlay.fillRect(w.x*tile, w.y*tile, tile, tile)
+  );
+
+  // movement with collision
+  const meKey = solo ? 'me' : socket.id;
+  const me    = players[meKey];
+  if (me) {
+    let nx = me.pos.x, ny = me.pos.y;
+    if (keys['ArrowUp'])    ny -= speed;
+    if (keys['ArrowDown'])  ny += speed;
+    if (keys['ArrowLeft'])  nx -= speed;
+    if (keys['ArrowRight']) nx += speed;
+    // only move if no wall collision
+    if (!collidesWithWall(nx, ny)) {
+      me.pos.x = nx;
+      me.pos.y = ny;
+      if (!solo) socket.emit('playerMove', { code: room, pos: me.pos });
+    }
+  }
+
+  // draw players
+  Object.values(players).forEach(p => {
+    ctxPlay.fillStyle = (p === me) ? 'dodgerblue' : 'orange';
+    ctxPlay.fillRect(
+      p.pos.x*tile, p.pos.y*tile,
+      tile*0.8, tile*0.8
+    );
+  });
+
+  // (…rest of your hint arrow, FPS, etc.…)
+
+  requestAnimationFrame(playLoop);
+}
 
     // hint arrow
     if(settings.hints && me){
