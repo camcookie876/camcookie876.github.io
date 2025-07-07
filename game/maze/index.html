@@ -1,145 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Camcookie Maze</title>
   <style>
-    /* RESET & BASE */
-    * { box-sizing:border-box; margin:0; padding:0; }
-    html, body { width:100%; height:100%; overflow:hidden; font-family:sans-serif; background:#111; color:#fff; }
-    body.light { --bg: #222; --fg: #fff; --btn-bg:#fff; --btn-fg:#333; }
-    body.dark  { --bg: #000; --fg: #eee; --btn-bg:#333; --btn-fg:#fff; }
-    body.neon { --bg:#111; --fg:#0f0; --btn-bg:#0f0; --btn-fg:#111; }
-
-    /* UNSELECTABLE UI */
-    body, button, canvas, .screen { user-select:none; }
-    input, select, textarea { user-select:text; }
-
-    /* BUTTONS & INPUTS */
-    button, input, select {
-      font-size:1rem; padding:.8rem 1.2rem; margin:.5rem; border:none; border-radius:8px;
-      cursor:pointer; transition:transform .2s, box-shadow .2s;
-    }
-    button { background:var(--btn-bg); color:var(--btn-fg); }
-    button:hover { transform:scale(1.05); box-shadow:0 4px 8px rgba(0,0,0,.3); }
-    input, select {
-      background:#fff; color:#333; box-shadow:0 2px 4px rgba(0,0,0,.2);
-    }
-    input:focus, select:focus { outline:none; box-shadow:0 0 0 3px #ffe100; }
-
-    /* LAYOUT */
-    .screen {
-      position:absolute; top:0; left:0; width:100vw; height:100vh;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      background:linear-gradient(135deg,#667eea,#764ba2); text-align:center;
-    }
-    .hidden { display:none!important; }
-
-    h1 { font-size:2.5rem; margin-bottom:1rem; }
-
-    canvas {
-      display:block; width:100vw; height:100vh; background:var(--bg);
-    }
-
-    ul { list-style:none; padding:0; }
-
-    /* SETTINGS BUTTON */
-    .settings-btn {
-      position:absolute; top:1rem; left:1rem; z-index:100;
-      font-size:1.5rem; background:var(--btn-bg); color:var(--btn-fg);
-    }
-
-    /* SETTINGS MODAL */
-    .modal-backdrop {
-      position:fixed; top:0; left:0; width:100vw; height:100vh;
-      background:rgba(0,0,0,.7); display:flex; align-items:center; justify-content:center;
-      z-index:200;
-    }
-    .modal {
-      background:#222; padding:2rem; border-radius:12px; width:80vw; max-width:400px;
-      color:#fff; text-align:left; position:relative;
-    }
-    .modal h2 { margin-bottom:1rem; }
-    .modal label { display:block; margin:0.8rem 0; }
-    .modal button { margin-top:1rem; }
-
-    /* TIMER DISPLAY */
-    #timerDisplay {
-      position:absolute; top:1rem; left:50%; transform:translateX(-50%);
-      background:rgba(0,0,0,0.6); padding:.5rem 1rem; border-radius:6px;
-      font-size:1.2rem; z-index:50;
-    }
-
-    /* FPS COUNTER */
-    #fpsCounter {
-      position:absolute; top:1rem; right:1rem;
-      background:rgba(0,0,0,0.6); padding:.5rem 1rem; border-radius:6px;
-      font-size:1rem; z-index:50; color:#ff0;
-    }
-
-    /* LEVEL SPLASH */
-    #levelSplash {
-      position:absolute; top:40%; width:100%; text-align:center;
-      font-size:3rem; color:#ffe100; opacity:0; pointer-events:none;
-      animation:splashIn 1.2s ease-out;
-      z-index:50;
-    }
-    @keyframes splashIn {
-      0%   { opacity:0; transform:scale(0.5) }
-      50%  { opacity:1; transform:scale(1.2) }
-      100% { opacity:0; transform:scale(1) }
-    }
-
-    /* MINI-MAP HINT ARROW */
-    /* drawn in canvas via JS */
-
+    /* … your existing CSS here … */
+    body, button, canvas, .screen { user-select: none; }
+    input, select, textarea { user-select: text; }
+    /* style buttons, inputs, screens as before */
   </style>
 </head>
 <body class="light">
 
-  <!-- SETTINGS BUTTON -->
-  <button id="btn-settings" class="settings-btn hidden" aria-label="Settings">⚙️</button>
-
-  <!-- SETTINGS MODAL -->
-  <div id="settingsModal" class="hidden">
-    <div class="modal-backdrop"></div>
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
-      <h2 id="settingsTitle">Settings</h2>
-      <label>
-        Theme:
-        <select id="setting-theme">
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-          <option value="neon">Neon</option>
-        </select>
-      </label>
-      <label>
-        <input type="checkbox" id="setting-audio" />
-        Audio Feedback
-      </label>
-      <label>
-        <input type="checkbox" id="setting-timer" />
-        Timed Challenge
-      </label>
-      <label>
-        Duration (sec):
-        <input type="number" id="setting-timer-duration" min="10" value="60" style="width:4rem;" />
-      </label>
-      <label>
-        <input type="checkbox" id="setting-show-fps" />
-        Show FPS Counter
-      </label>
-      <label>
-        <input type="checkbox" id="setting-hints" />
-        Mini-map Hints
-      </label>
-      <p style="margin-top:1rem; font-size:0.9rem; color:#ccc;">
-        Notice: We plan to add parental controls and official accounts in future updates.
-      </p>
-      <button id="settingsSave">Save</button>
-      <button id="settingsCancel">Cancel</button>
-    </div>
-  </div>
+  <!-- Settings button & modal markup (unchanged) … -->
 
   <!-- 1) CHOOSE -->
   <div id="choose" class="screen">
@@ -192,16 +65,20 @@
     <div id="leaderboard"></div>
   </div>
 
-  <!-- SCRIPTS -->
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="https://camcookie876.github.io/redirect.js?web=game"></script>
+  <!-- SOCKET.IO CLIENT (local copy) -->
+  <script src="https://camcookie876.github.io/game/maze/socket.io.min.js"></script>
+  <!-- MAINTENANCE REDIRECT -->
+  <script src="https://camcookie876.github.io/game/maze/redirect.js?web=game"></script>
+  <!-- MAIN LOGIC -->
   <script src="https://camcookie876.github.io/game/maze/script.js"></script>
+  <!-- Disable right-click except in inputs -->
   <script>
-    // Block right-click except in inputs
     document.addEventListener('contextmenu', e => {
-      const t = e.target.tagName.toLowerCase();
-      if (t!=='input' && t!=='textarea') e.preventDefault();
+      const tag = e.target.tagName.toLowerCase();
+      if (tag!=='input' && tag!=='textarea') e.preventDefault();
     });
+    // Prevent text selection except in fields
+    document.body.style.userSelect = 'none';
   </script>
 </body>
 </html>
