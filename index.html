@@ -1,109 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Camcookie</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            background: #fff;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .logo {
-            font-size: 3rem;
-            font-weight: bold;
-            color: #4285f4;
-            margin-bottom: 40px;
-            letter-spacing: 2px;
-        }
-        .waffle-container {
-            position: absolute;
-            top: 32px;
-            right: 32px;
-        }
-        .waffle {
-            width: 40px;
-            height: 40px;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            gap: 4px;
-            cursor: pointer;
-            background: transparent;
-            border: none;
-            padding: 0;
-        }
-        .waffle-dot {
-            width: 8px;
-            height: 8px;
-            background: #5f6368;
-            border-radius: 50%;
-            margin: auto;
-        }
-        .waffle-menu {
-            display: none;
-            position: absolute;
-            top: 70px;
-            right: 0;
-            background: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(60,64,67,.15);
-            min-width: 180px;
-            z-index: 100;
-            padding: 16px 0;
-        }
-        .waffle-menu a {
-            display: flex;
-            align-items: center;
-            padding: 12px 24px;
-            color: #222;
-            text-decoration: none;
-            font-size: 1rem;
-            transition: background 0.2s;
-        }
-        .waffle-menu a:hover {
-            background: #f1f3f4;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Camcookie Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --main-blue: #0099ff;
+      --bg: #f0f8ff;
+      --popup-bg: white;
+      --shadow: rgba(0, 0, 0, 0.2);
+      --text: #333;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .waffle-button {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 3px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    .waffle-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--main-blue);
+      border-radius: 50%;
+    }
+
+    .waffle-menu {
+      position: fixed;
+      top: 60px;
+      right: 16px;
+      width: 300px;
+      max-height: 400px;
+      background: var(--popup-bg);
+      box-shadow: 0 2px 12px var(--shadow);
+      border-radius: 8px;
+      display: none;
+      flex-wrap: wrap;
+      padding: 12px;
+      gap: 12px;
+      overflow-y: auto;
+      z-index: 999;
+    }
+
+    .waffle-menu::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .waffle-menu::-webkit-scrollbar-thumb {
+      background-color: var(--main-blue);
+      border-radius: 4px;
+    }
+
+    .app-item {
+      width: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text);
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .app-item img {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 4px;
+      border-radius: 8px;
+    }
+  </style>
 </head>
 <body>
-    <div class="waffle-container">
-        <button class="waffle" id="waffleBtn" aria-label="Open menu">
-            <div class="waffle-dot"></div>
-            <div class="waffle-dot"></div>
-            <div class="waffle-dot"></div>
-            <div class="waffle-dot"></div>
-            <div class="waffle-dot"></div>
-            <div class="waffle-dot"></div>
-            <div class="waffle-dot"></div>
-            <div class="waffle-dot"></div>
-            <div class="waffle-dot"></div>
-        </button>
-        <div class="waffle-menu" id="waffleMenu">
-            <a href="https://camcookie876.github.io/game/">Games</a>
-            <a href="https://camcookie876.github.io/music/">Music</a>
-            <a href="https://camcookie876.github.io/camcookiebot/">Find</a>
-            <a href="https://camcookie876.github.io/PlayConect.html">Play Conect</a>
-        </div>
-    </div>
-    <div class="logo">Camcookie</div>
-    <script>
-        const waffleBtn = document.getElementById('waffleBtn');
-        const waffleMenu = document.getElementById('waffleMenu');
-        document.addEventListener('click', function(e) {
-            if (waffleBtn.contains(e.target)) {
-                waffleMenu.style.display = waffleMenu.style.display === 'block' ? 'none' : 'block';
-            } else {
-                waffleMenu.style.display = 'none';
-            }
-        });
-    </script>
+
+  <div class="waffle-button" onclick="toggleMenu()">
+    <div class="waffle-dot"></div>
+    <div class="waffle-dot"></div>
+    <div class="waffle-dot"></div>
+    <div class="waffle-dot"></div>
+    <div class="waffle-dot"></div>
+    <div class="waffle-dot"></div>
+    <div class="waffle-dot"></div>
+    <div class="waffle-dot"></div>
+    <div class="waffle-dot"></div>
+  </div>
+
+  <div class="waffle-menu" id="waffleMenu">
+    <div class="app-item"><img src="https://camcookie876.github.io/camcookie.png" alt="TV">TV</div>
+    <!-- Add more app tiles as needed -->
+  </div>
+
+  <script>
+    const menu = document.getElementById("waffleMenu");
+    function toggleMenu() {
+      menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+    }
+  </script>
+
 </body>
 </html>
