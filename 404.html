@@ -4,25 +4,70 @@ permalink: /404.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>404! (Error)</title>
-    <style>
-        body {
-            margin: 0;
-            background: #0099ff;
-            font-family: 'Segoe UI', sans-serif;
-            text-align: center;
-            overflow: auto;
-        }
-        h1 {
-            margin-top: 30px;
-            font-size: 2.2em;
-            color: #fff;
-        }
-    </style>
+  <meta charset="utf-8">
+  <title>404 · Camcookie</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: "Segoe UI", sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      text-align: center;
+    }
+    .box {
+      max-width: 600px;
+      padding: 2em;
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 0.2em;
+      color: #58a6ff;
+    }
+    p {
+      margin: 0.5em 0;
+      font-size: 1.1em;
+    }
+    .url {
+      margin-top: 1em;
+      padding: 0.5em 1em;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      font-family: monospace;
+      word-break: break-all;
+    }
+    a {
+      display: inline-block;
+      margin-top: 1.5em;
+      padding: 0.6em 1.2em;
+      background: #238636;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    a:hover {
+      background: #2ea043;
+    }
+  </style>
 </head>
 <body>
-    <h1>404 - Page Not Found</h1>
-    <p></p>Sorry, but the page you wer trying to reatch dos not exist. <br>It may have be moved, deleted or it dident exist in the first place.
+  <div class="box">
+    <h1>Camcookie 404</h1>
+    <p>Sorry, this page could not be found.</p>
+    <p>You tried to visit:</p>
+    <div class="url" id="url"></div>
+    <a href="/">Back to Home</a>
+  </div>
+
+  <script>
+    // Show the current URL that failed
+    document.getElementById('url').textContent = window.location.href;
+  </script>
 </body>
 </html>
