@@ -54,20 +54,39 @@ permalink: /404.html
     a:hover {
       background: #2ea043;
     }
+
+    /* bottom bar */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #161b22;
+      border-top: 1px solid #30363d;
+      color: #8b949e;
+      text-align: center;
+      padding: 0.5em;
+      font-size: 0.9em;
+    }
   </style>
 </head>
 <body>
   <div class="box">
-    <h1>Camcookie 404</h1>
+    <h1>404</h1>
     <p>Sorry, this page could not be found.</p>
     <p>You tried to visit:</p>
     <div class="url" id="url"></div>
     <a href="/">Back to Home</a>
   </div>
 
+  <!-- bottom div -->
+<div class="bottom-bar">
+  © <span id="year"></span> Camcookie · All rights reserved
+</div>
+
   <script>
-    // Show the current URL that failed
-    document.getElementById('url').textContent = window.location.href;
+  document.getElementById("year").textContent = new Date().getFullYear();
+  document.getElementById('url').textContent = window.location.href;
   </script>
 </body>
 </html>
