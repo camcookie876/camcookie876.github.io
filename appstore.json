@@ -5,8 +5,7 @@
   "name": "Camcookie Appstore",
   "description": "The official Camcookie appstore. Made for Raspberry PI OS",
   "install": [
-    "wget https://camcookie876.github.io/camcookie-appstore.py -O $HOME/camcookie-appstore.py",
-    "chmod +x $HOME/camcookie-appstore.py"
+    "curl -sSL https://camcookie876.github.io/install-appstore.sh | bash"
   ],
   "launch": "python3 $HOME/camcookie-appstore.py",
   "version": "1.0",
