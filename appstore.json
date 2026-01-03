@@ -1,17 +1,17 @@
 {
   "apps": [
-    {
-      "id": "appstore",
-      "name": "Camcookie Appstore",
-      "description": "The official Camcookie OS appstore.",
-      "install": [
-        "wget https://camcookie876.github.io/camcookie-appstore.py -O /home/pi/camcookie-appstore.py",
-        "chmod +x /home/pi/camcookie-appstore.py"
-      ],
-      "launch": "python3 /home/pi/camcookie-appstore.py",
-      "version": "1.0",
-      "files": []
-    },
+{
+  "id": "appstore",
+  "name": "Camcookie Appstore",
+  "description": "The official Camcookie appstore. Made for Raspberry PI OS",
+  "install": [
+    "wget https://camcookie876.github.io/camcookie-appstore.py -O $HOME/camcookie-appstore.py",
+    "chmod +x $HOME/camcookie-appstore.py"
+  ],
+  "launch": "python3 $HOME/camcookie-appstore.py",
+  "version": "1.0",
+  "files": []
+},
     {
       "id": "camcookie-actions",
       "name": "Camcookie Actions",

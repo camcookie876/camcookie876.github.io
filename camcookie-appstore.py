@@ -8,7 +8,8 @@ import os
 import sys
 
 APPSTORE_URL = "https://camcookie876.github.io/appstore.json"
-LOCAL_DB = os.path.expanduser("~/.camcookie_installed.json")
+HOME = os.path.expanduser("~")
+LOCAL_DB = os.path.join(HOME, ".camcookie_installed.json")
 
 # ---------- Installed versions database ----------
 
@@ -25,6 +26,16 @@ def save_local_versions(db):
     with open(LOCAL_DB, "w") as f:
         json.dump(db, f)
 
+# ---------- Expand $HOME in commands ----------
+
+def expand_home(text):
+    if isinstance(text, str):
+        return text.replace("$HOME", HOME)
+    return text
+
+def expand_list(cmds):
+    return [expand_home(c) for c in cmds]
+
 # ---------- Remote catalog ----------
 
 def load_catalog():
@@ -37,13 +48,12 @@ def load_catalog():
 def create_files(app):
     files = app.get("files", [])
     for file in files:
-        path = file["path"]
+        path = expand_home(file["path"])
         content = file["content"]
         try:
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, "w") as f:
                 f.write(content)
-            # Make scripts executable by default
             os.chmod(path, 0o755)
         except Exception as e:
             messagebox.showerror("Error", f"Failed to write file {path}:\n{e}")
@@ -54,7 +64,8 @@ def install_app(app):
     create_files(app)
 
     try:
-        for cmd in app["install"]:
+        cmds = expand_list(app["install"])
+        for cmd in cmds:
             subprocess.run(cmd, shell=True, check=True)
 
         local_versions[app["id"]] = app["version"]
@@ -71,7 +82,8 @@ def install_app(app):
 
 def launch_app(app):
     try:
-        subprocess.Popen(app["launch"], shell=True)
+        launch_cmd = expand_home(app["launch"])
+        subprocess.Popen(launch_cmd, shell=True)
     except Exception as e:
         messagebox.showerror("Error", f"Launch failed:\n{e}")
 
@@ -82,12 +94,10 @@ def handle_install(app):
     remote_version = app["version"]
     local_version = local_versions.get(app_id)
 
-    # Not installed at all
     if local_version is None:
         install_app(app)
         return
 
-    # Already same version
     if local_version == remote_version:
         messagebox.showinfo(
             "Installed",
@@ -95,7 +105,6 @@ def handle_install(app):
         )
         return
 
-    # Version conflict: your B + C choice
     choice = messagebox.askyesno(
         "Version Conflict",
         f"{app['name']} has a different version installed.\n\n"
@@ -132,10 +141,12 @@ def check_self_update(apps):
             f"Available: {remote_version}\n\n"
             "Updating now..."
         )
-        # Force-update without version prompts
+
         create_files(appstore_entry)
+
         try:
-            for cmd in appstore_entry["install"]:
+            cmds = expand_list(appstore_entry["install"])
+            for cmd in cmds:
                 subprocess.run(cmd, shell=True, check=True)
 
             local_versions["appstore"] = remote_version
@@ -144,7 +155,6 @@ def check_self_update(apps):
             messagebox.showerror("Error", f"Failed to update Appstore:\n{e}")
             sys.exit(1)
 
-        # Restart the Appstore
         os.execv(sys.executable, ["python3"] + sys.argv)
 
 # ---------- Main ----------
@@ -152,7 +162,6 @@ def check_self_update(apps):
 def main():
     global local_versions
 
-    # Ensure local DB exists
     if not os.path.exists(LOCAL_DB):
         with open(LOCAL_DB, "w") as f:
             f.write("{}")
@@ -166,7 +175,6 @@ def main():
         messagebox.showerror("Error", f"Failed to load app catalog:\n{e}")
         return
 
-    # Self-update check first
     check_self_update(apps)
 
     root = tk.Tk()
@@ -182,9 +190,7 @@ def main():
 
     scroll_frame.bind(
         "<Configure>",
-        lambda e: canvas.configure(
-            scrollregion=canvas.bbox("all")
-        )
+        lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
     )
 
     canvas.create_window((0, 0), window=scroll_frame, anchor="nw")
