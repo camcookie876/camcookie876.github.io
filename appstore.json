@@ -1,12 +1,12 @@
 {
   "apps": [
 {
-  "id": "appstore",
-  "name": "Camcookie Appstore",
-  "description": "The official Camcookie appstore. Made for Raspberry PI OS",
-  "install": [
-    "curl -sSL https://camcookie876.github.io/install-appstore.sh | bash"
-  ],
+  "id": "myapp",
+  "name": "My App",
+  "creator": "Camcookie INC",
+  "description": "A cool app.",
+  "icon": "https://camcookie876.github.io/icons/myapp.png",
+  "install": [curl -sSL https://camcookie876.github.io/install-appstore.sh | bash],
   "launch": "python3 $HOME/camcookie-appstore.py",
   "version": "1.0",
   "files": []
