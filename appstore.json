@@ -10,54 +10,6 @@
   "launch": "python3 $HOME/camcookie-appstore.py",
   "version": "1.0",
   "files": []
-},
-    {
-      "id": "camcookie-actions",
-      "name": "Camcookie Actions",
-      "description": "Offline voice assistant for Raspberry Pi.",
-      "install": [
-        "sudo apt update",
-        "sudo apt install -y camcookie-actions"
-      ],
-      "launch": "camcookie-actions",
-      "version": "1.0",
-      "files": []
-    },
-    {
-      "id": "camcookie-books",
-      "name": "Camcookie Books",
-      "description": "Read Camcookie Books online.",
-      "install": [],
-      "launch": "xdg-open https://camcookieb.github.io/",
-      "version": "1.0",
-      "files": []
-    },
-    {
-      "id": "camcookie-docs",
-      "name": "Camcookie DOCS",
-      "description": "Documentation for Camcookie OS.",
-      "install": [],
-      "launch": "xdg-open https://camcookie876.github.io/DOCS/",
-      "version": "1.0",
-      "files": []
-    },
-    {
-      "id": "camcookie-music",
-      "name": "Camcookie Music",
-      "description": "Listen to Camcookie Music.",
-      "install": [],
-      "launch": "xdg-open https://camcookiem.github.io/",
-      "version": "1.0",
-      "files": []
-    },
-    {
-      "id": "camcookie-games",
-      "name": "Camcookie Games",
-      "description": "Play Camcookie Games online.",
-      "install": [],
-      "launch": "xdg-open https://camcookieg.github.io/",
-      "version": "1.0",
-      "files": []
-    }
+}
   ]
 }
