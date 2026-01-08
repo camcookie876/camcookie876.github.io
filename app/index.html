@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <title>Camcookie Browser</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      /* Shared tokens */
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+      --transition-fast: 0.15s ease-out;
+      --transition-med: 0.25s ease-out;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    /* Dark theme */
+    :root[data-theme="dark"] {
+      --bg: #05060a;
+      --bg-alt: #0b0d14;
+      --accent: #ffb347;
+      --accent-soft: rgba(255, 179, 71, 0.15);
+      --accent-strong: #ff8c00;
+      --text: #f5f5f5;
+      --text-muted: #9a9fb5;
+      --danger: #ff4d4d;
+      --tab-bg: #111320;
+      --tab-bg-active: #1a1d30;
+      --border-subtle: #27293a;
+      --shadow-soft: 0 14px 30px rgba(0, 0, 0, 0.45);
+      --chip-bg: rgba(0, 0, 0, 0.4);
+      --toolbar-bg: linear-gradient(180deg, #090b14, #05060a);
+      --tabsbar-bg: linear-gradient(180deg, #05060a, #090b14);
+      --header-bg: linear-gradient(90deg, #05060a, #101325);
+      --content-bg: radial-gradient(circle at top, #15182a 0, #05060a 55%);
+      --webview-bg: #05060a;
+    }
+
+    /* Light theme */
+    :root[data-theme="light"] {
+      --bg: #f5f5f8;
+      --bg-alt: #ffffff;
+      --accent: #ff9f1c;
+      --accent-soft: rgba(255, 159, 28, 0.12);
+      --accent-strong: #ff8c00;
+      --text: #111111;
+      --text-muted: #666b79;
+      --danger: #e63946;
+      --tab-bg: #e6e7f0;
+      --tab-bg-active: #ffffff;
+      --border-subtle: #d0d2dd;
+      --shadow-soft: 0 14px 30px rgba(15, 23, 42, 0.12);
+      --chip-bg: rgba(255, 255, 255, 0.9);
+      --toolbar-bg: linear-gradient(180deg, #f9fafb, #eceef5);
+      --tabsbar-bg: linear-gradient(180deg, #f3f4f8, #e3e5f0);
+      --header-bg: linear-gradient(90deg, #f3f4f8, #e4e6f3);
+      --content-bg: radial-gradient(circle at top, #ffffff 0, #eceff5 55%);
+      --webview-bg: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    .app-shell {
+      width: min(1180px, 100vw);
+      height: min(720px, 100vh);
+      background: linear-gradient(145deg, var(--bg), var(--bg-alt));
+      border-radius: 22px;
+      box-shadow: var(--shadow-soft);
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      position: relative;
+    }
+
+    @media (max-width: 800px) {
+      .app-shell {
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        border: none;
+      }
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px 6px;
+      background: var(--header-bg);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+      position: relative;
+    }
+
+    @media (max-width: 600px) {
+      .app-header {
+        padding: 6px 8px;
+      }
+    }
+
+    .window-buttons {
+      display: flex;
+      gap: 6px;
+      margin-right: 4px;
+    }
+
+    .window-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .window-dot.close {
+      background: #ff5f57;
+    }
+
+    .window-dot.minimize {
+      background: #febc2e;
+    }
+
+    .window-dot.maximize {
+      background: #28c940;
+    }
+
+    .app-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-right: auto;
+    }
+
+    @media (max-width: 480px) {
+      .app-title span:nth-child(2) {
+        display: none; /* hide "Camcookie Browser" text on tiny screens */
+      }
+    }
+
+    .logo-chip {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 25%, #fff7e6 0, #ffb347 35%, #ff8c00 65%, #b84700 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #2c1800;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      flex-shrink: 0;
+    }
+
+    .app-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 179, 71, 0.7);
+      color: var(--accent);
+      background: radial-gradient(circle at 0 0, var(--accent-soft), transparent 60%);
+    }
+
+    @media (max-width: 600px) {
+      .app-badge {
+        display: none;
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    @media (max-width: 600px) {
+      .header-actions {
+        gap: 4px;
+      }
+    }
+
+    .header-pill {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .header-pill span.key {
+      padding: 2px 5px;
+      border-radius: 6px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      font-size: 10px;
+      color: var(--text);
+    }
+
+    @media (max-width: 600px) {
+      .header-pill {
+        display: none; /* hide shortcuts on mobile */
+      }
+    }
+
+    .header-toggle {
+      width: 38px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.14);
+      display: flex;
+      align-items: center;
+      padding: 0 2px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .header-toggle-***** {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 179, 71, 0.35);
+      transform: translateX(0);
+      transition: transform var(--transition-fast);
+    }
+
+    .header-toggle.on .header-toggle-***** {
+      transform: translateX(16px);
+    }
+
+    /* Theme toggle pill */
+
+    .theme-pill {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.14);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .theme-pill span.icon {
+      font-size: 12px;
+    }
+
+    @media (max-width: 480px) {
+      .theme-pill span.label {
+        display: none;
+      }
+    }
+
+    /* Tabs bar */
+
+    .tabs-bar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 6px 2px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+      background: var(--tabsbar-bg);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      position: relative;
+    }
+
+    .tabs-bar::-webkit-scrollbar {
+      height: 3px;
+    }
+
+    .tabs-bar::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.18);
+      border-radius: 999px;
+    }
+
+    .tab {
+      min-width: 120px;
+      max-width: 260px;
+      flex: 0 0 auto;
+      background: var(--tab-bg);
+      border-radius: 12px 12px 0 0;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      border: 1px solid var(--border-subtle);
+      border-bottom: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      position: relative;
+      transition: background var(--transition-fast), transform var(--transition-fast),
+        color var(--transition-fast), border-color var(--transition-fast);
+    }
+
+    .tab:hover {
+      background: rgba(0, 0, 0, 0.04);
+      color: var(--text);
+    }
+
+    .tab.active {
+      background: var(--tab-bg-active);
+      color: var(--text);
+      border-color: rgba(255, 179, 71, 0.6);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      transform: translateY(1px);
+    }
+
+    .tab-favicon {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      background: radial-gradient(circle at 20% 20%, #fff7e6 0, #ffb347 40%, #ff8c00 75%, #b84700 100%);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #2c1800;
+    }
+
+    .tab-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .tab-close {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      opacity: 0;
+      transition: background var(--transition-fast), opacity var(--transition-fast),
+        color var(--transition-fast), transform var(--transition-fast);
+      flex-shrink: 0;
+    }
+
+    .tab:hover .tab-close,
+    .tab.active .tab-close {
+      opacity: 1;
+    }
+
+    @media (max-width: 600px) {
+      .tab-close {
+        opacity: 1; /* always visible on mobile for easier tapping */
+      }
+    }
+
+    .tab-close:hover {
+      background: rgba(0, 0, 0, 0.08);
+      color: var(--text);
+      transform: scale(1.05);
+    }
+
+    .tab-new {
+      flex: 0 0 auto;
+      width: 30px;
+      height: 26px;
+      border-radius: 999px;
+      border: 1px dashed rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 18px;
+      cursor: pointer;
+      margin-left: 2px;
+      background: rgba(255, 255, 255, 0.6);
+      transition: background var(--transition-fast), border-color var(--transition-fast),
+        color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    :root[data-theme="dark"] .tab-new {
+      background: rgba(0, 0, 0, 0.25);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .tab-new:hover {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    /* Toolbar / URL bar */
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      background: var(--toolbar-bg);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    @media (max-width: 600px) {
+      .toolbar {
+        flex-wrap: wrap;
+        row-gap: 6px;
+      }
+    }
+
+    .nav-buttons {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav-button {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--text-muted);
+      background: var(--chip-bg);
+      cursor: pointer;
+      transition: background var(--transition-fast), color var(--transition-fast),
+        border-color var(--transition-fast), transform var(--transition-fast),
+        opacity var(--transition-fast);
+      flex-shrink: 0;
+    }
+
+    .nav-button.disabled {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .nav-button:hover:not(.disabled) {
+      background: rgba(0, 0, 0, 0.04);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    .address-bar-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    @media (max-width: 600px) {
+      .address-bar-container {
+        order: 2;
+        width: 100%;
+      }
+    }
+
+    .address-bar {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: radial-gradient(circle at 0 0, var(--accent-soft), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(255, 255, 255, 0.06), transparent 40%);
+      border-radius: 999px;
+      border: 1px solid rgba(255, 179, 71, 0.28);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02);
+      min-width: 0;
+    }
+
+    .address-prefix {
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.04);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    :root[data-theme="dark"] .address-prefix {
+      background: rgba(0, 0, 0, 0.4);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .address-prefix span.lock {
+      font-size: 12px;
+    }
+
+    .address-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 13px;
+      font-family: var(--font-sans);
+      padding: 4px 2px;
+      min-width: 0;
+    }
+
+    .address-input::placeholder {
+      color: rgba(100, 100, 100, 0.6);
+    }
+
+    :root[data-theme="dark"] .address-input::placeholder {
+      color: rgba(245, 245, 245, 0.5);
+    }
+
+    .address-status {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 480px) {
+      .address-status span {
+        display: none; /* keep just the dot on very small screens */
+      }
+    }
+
+    .status-indicator {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #4cd964;
+      box-shadow: 0 0 8px rgba(76, 217, 100, 0.6);
+      transition: background var(--transition-fast), box-shadow var(--transition-fast),
+        transform var(--transition-fast);
+    }
+
+    .status-indicator.blocked {
+      background: var(--danger);
+      box-shadow: 0 0 8px rgba(230, 57, 70, 0.6);
+      transform: scale(1.05);
+    }
+
+    .go-button {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: #2c1800;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 6px 14px rgba(255, 140, 0, 0.3);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast),
+        filter var(--transition-fast);
+      flex-shrink: 0;
+    }
+
+    .go-button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      box-shadow: 0 10px 22px rgba(255, 140, 0, 0.4);
+    }
+
+    .go-button:active {
+      transform: translateY(0);
+      box-shadow: 0 3px 8px rgba(255, 140, 0, 0.3);
+    }
+
+    @media (max-width: 480px) {
+      .go-button span {
+        display: none;
+      }
+    }
+
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    @media (max-width: 600px) {
+      .toolbar-right {
+        order: 1;
+        margin-left: auto;
+      }
+    }
+
+    .chip {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--chip-bg);
+      white-space: nowrap;
+    }
+
+    .chip .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 6px rgba(255, 179, 71, 0.7);
+    }
+
+    @media (max-width: 480px) {
+      .chip span {
+        display: none;
+      }
+    }
+
+    .profile-chip {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 20% 20%, #fff7e6 0, #ffb347 35%, #ff8c00 70%, #b84700 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #2c1800;
+      font-size: 14px;
+      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      cursor: default;
+      flex-shrink: 0;
+    }
+
+    /* Content area */
+
+    .content {
+      flex: 1;
+      display: flex;
+      background: var(--content-bg);
+      position: relative;
+      min-height: 0;
+    }
+
+    .webview-area {
+      flex: 1;
+      border-top: 1px solid rgba(0, 0, 0, 0.04);
+      background: var(--webview-bg);
+      position: relative;
+      overflow: hidden;
+      border-radius: 18px 18px 0 0;
+      margin: 8px 10px 10px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+      min-width: 0;
+      min-height: 0;
+    }
+
+    @media (max-width: 800px) {
+      .webview-area {
+        margin: 4px 6px 6px;
+        border-radius: 12px;
+      }
+    }
+
+    iframe#webview {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: var(--webview-bg);
+    }
+
+    .webview-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      background: radial-gradient(circle at center, var(--accent-soft), transparent 70%);
+      opacity: 0;
+      transition: opacity var(--transition-med);
+      padding: 12px;
+    }
+
+    .webview-overlay.visible {
+      opacity: 1;
+    }
+
+    .webview-overlay-inner {
+      text-align: center;
+      max-width: 360px;
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+      color: #111;
+    }
+
+    :root[data-theme="dark"] .webview-overlay-inner {
+      background: rgba(0, 0, 0, 0.7);
+      border-color: rgba(255, 255, 255, 0.12);
+      color: var(--text);
+    }
+
+    .overlay-title {
+      font-size: 16px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .overlay-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      white-space: pre-wrap;
+    }
+
+    .overlay-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(0, 0, 0, 0.14);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    :root[data-theme="dark"] .overlay-tag {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .overlay-tag span.badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--danger);
+      box-shadow: 0 0 6px rgba(230, 57, 70, 0.7);
+    }
+
+    /* Side panel */
+
+    .side-panel {
+      width: 220px;
+      border-left: 1px solid rgba(0, 0, 0, 0.08);
+      background: linear-gradient(180deg, var(--bg-alt), var(--bg));
+      padding: 10px 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    @media (max-width: 900px) {
+      .side-panel {
+        display: none;
+      }
+    }
+
+    .side-section {
+      background: radial-gradient(circle at 0 0, var(--accent-soft), transparent 55%);
+      border-radius: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      padding: 8px 10px;
+    }
+
+    .side-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .side-section-header span.label {
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .side-section-header span.pill {
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 179, 71, 0.5);
+      color: var(--accent);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .side-session-list {
+      max-height: 120px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .session-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      padding: 4px 4px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: background var(--transition-fast), color var(--transition-fast),
+        transform var(--transition-fast);
+    }
+
+    .session-item:hover {
+      background: rgba(0, 0, 0, 0.04);
+      color: var(--text);
+      transform: translateX(2px);
+    }
+
+    .session-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #ffb347, #ff8c00);
+      flex-shrink: 0;
+    }
+
+    .session-url {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .session-count {
+      font-size: 10px;
+      opacity: 0.6;
+    }
+
+    .side-footer {
+      margin-top: auto;
+      font-size: 10px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .side-footer strong {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .side-footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .side-footer-pill {
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px dashed rgba(0, 0, 0, 0.2);
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+  </style>
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Header -->
+    <div class="app-header">
+      <div class="window-buttons">
+        <div class="window-dot close"></div>
+        <div class="window-dot minimize"></div>
+        <div class="window-dot maximize"></div>
+      </div>
+
+      <div class="app-title">
+        <div class="logo-chip">C</div>
+        <span>Camcookie Browser</span>
+        <span class="app-badge">Camcookie‑only, tabbed web</span>
+      </div>
+
+      <div class="header-actions">
+        <div class="header-pill">
+          <span>Tabs</span>
+          <span class="key">Ctrl+T</span>
+        </div>
+        <div class="header-pill">
+          <span>Restore</span>
+          <span class="key">Ctrl+R</span>
+        </div>
+        <div class="theme-pill" id="themeToggle">
+          <span class="icon" id="themeIcon">🌙</span>
+          <span class="label" id="themeLabel">Dark</span>
+        </div>
+        <div class="header-toggle" id="privacyToggle" title="Camcookie-only shield">
+          <div class="header-toggle-*****"></div>
+        </div>
+        <div class="header-pill" id="newCamcookieTabBtn" style="cursor:pointer;">
+  <span>Camcookie</span>
+  <span class="key">Tab</span>
+</div>
+        <div class="header-pill" id="installBtn" style="cursor:pointer;">
+  <span>Install</span>
+  <span class="key">PWA</span>
+</div>
+      </div>
+    </div>
+
+    <!-- Tabs bar -->
+    <div class="tabs-bar" id="tabsBar">
+      <!-- Tabs dynamically injected here -->
+      <div class="tab-new" id="newTabBtn" title="New tab (Ctrl+T)">+</div>
+    </div>
+
+    <!-- Toolbar / URL bar -->
+    <div class="toolbar">
+      <div class="nav-buttons">
+        <button class="nav-button" id="backBtn" title="Back">⟵</button>
+        <button class="nav-button" id="forwardBtn" title="Forward">⟶</button>
+      </div>
+
+      <div class="address-bar-container">
+        <div class="address-bar">
+          <div class="address-prefix">
+            <span class="lock">🔒</span>
+            <span>.camcookie</span>
+          </div>
+          <input
+            id="addressInput"
+            class="address-input"
+            placeholder="Enter a Camcookie URL (e.g. https://camcookie765.github.io)"
+          />
+          <div class="address-status">
+            <div class="status-indicator" id="statusIndicator"></div>
+            <span id="statusText">Camcookie‑only mode</span>
+          </div>
+        </div>
+        <button class="go-button" id="goBtn">
+          <span>Go</span> ⏎
+        </button>
+      </div>
+
+      <div class="toolbar-right">
+        <div class="chip">
+          <div class="dot"></div>
+          <span id="sessionChip">Session: 0 tabs</span>
+        </div>
+        <div class="profile-chip">^_^</div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <div class="webview-area">
+        <iframe id="webview" src="about:blank"></iframe>
+
+        <!-- Overlay for blocked / empty states -->
+        <div class="webview-overlay" id="overlay">
+          <div class="webview-overlay-inner">
+            <div class="overlay-title" id="overlayTitle">
+              Welcome to Camcookie Browser
+            </div>
+            <div class="overlay-subtitle" id="overlaySubtitle">
+              Type or paste any Camcookie URL above to get started.
+            </div>
+            <div class="overlay-tag">
+              <span class="badge-dot"></span>
+              <span id="overlayTagText">Camcookie‑only shield is on</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Side panel (hidden on mobile) -->
+      <div class="side-panel">
+        <div class="side-section">
+          <div class="side-section-header">
+            <span class="label">Current session</span>
+            <span class="pill">Live</span>
+          </div>
+          <div class="side-session-list" id="sessionList">
+            <!-- Filled in JS -->
+          </div>
+        </div>
+
+        <div class="side-section">
+          <div class="side-section-header">
+            <span class="label">Camcookie rules</span>
+            <span class="pill">Locked</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px;">
+            <div>• Only URLs containing <strong>camcookie</strong> are allowed.</div>
+            <div>• Non‑Camcookie URLs show a friendly shield overlay.</div>
+            <div>• Tabs, history, and last session are saved locally.</div>
+          </div>
+        </div>
+
+        <div class="side-footer">
+          <div class="side-footer-row">
+            <span>Camcookie Engine</span>
+            <span class="side-footer-pill">LocalStorage‑powered</span>
+          </div>
+          <div class="side-footer-row">
+            <span><strong>Tip:</strong> Middle‑click a tab to close it</span>
+            <span>v0.2</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+const allowedOrigins = [
+  "https://camcookie876.github.io",
+  "https://camcookieb.github.io",
+  "https://camcookieg.github.io",
+  "https://camcookiea.github.io",
+  "https://camcookiem.github.io"
+];
+
+window.addEventListener("message", (event) => {
+  if (!allowedOrigins.includes(event.origin)) return;
+
+  const data = event.data;
+
+  if (data.type === "camcookie-open-tab") {
+    createTab({
+      url: data.url,
+      title: data.title || "Camcookie Site"
+    });
+  }
+});
+document.getElementById("newCamcookieTabBtn").addEventListener("click", () => {
+  // Create a new tab that loads your main site
+  createTab({
+    url: "https://camcookie876.github.io/",
+    title: "Camcookie Home"
+  });
+
+  // Focus the address bar for convenience
+  addressInput.focus();
+});
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+};
+let deferredPrompt;
+
+// Listen for the browser saying “this can be installed”
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();          // Stop automatic mini-infobar
+  deferredPrompt = e;          // Save the event for later
+
+  // Show the header install button
+  const installBtn = document.getElementById("installBtn");
+  installBtn.style.display = "flex";
+
+  installBtn.onclick = async () => {
+    installBtn.style.display = "none";   // Hide button after click
+    deferredPrompt.prompt();             // Show real install prompt
+
+    const result = await deferredPrompt.userChoice;
+    console.log("Install result:", result.outcome);
+
+    deferredPrompt = null;
+  };
+});
+
+// Hide button if already installed
+window.addEventListener("appinstalled", () => {
+  console.log("Camcookie Browser installed!");
+  const installBtn = document.getElementById("installBtn");
+  installBtn.style.display = "none";
+});
+    // --------------------------
+    // Core state
+    // --------------------------
+
+    const STORAGE_KEY = "camcookie_browser_tabs_v1";
+    const SETTINGS_KEY = "camcookie_browser_settings_v1";
+
+    /**
+     * Tab object:
+     * {
+     *   id: 'tab-<timestamp>',
+     *   title: 'Camcookie Home',
+     *   url: 'https://camcookie.app/home',
+     *   history: ['https://camcookie.app/home'],
+     *   historyIndex: 0,
+     *   createdAt: <timestamp>
+     * }
+     */
+
+    let tabs = [];
+    let activeTabId = null;
+    let settings = {
+      privacyShield: true,
+      homepage: "https://camcookie876.github.io/",
+      theme: "dark" // "dark" or "light"
+    };
+
+    // --------------------------
+    // DOM references
+    // --------------------------
+
+    const tabsBarEl = document.getElementById("tabsBar");
+    const newTabBtn = document.getElementById("newTabBtn");
+    const addressInput = document.getElementById("addressInput");
+    const goBtn = document.getElementById("goBtn");
+    const backBtn = document.getElementById("backBtn");
+    const forwardBtn = document.getElementById("forwardBtn");
+    const webview = document.getElementById("webview");
+    const overlay = document.getElementById("overlay");
+    const overlayTitle = document.getElementById("overlayTitle");
+    const overlaySubtitle = document.getElementById("overlaySubtitle");
+    const overlayTagText = document.getElementById("overlayTagText");
+    const statusIndicator = document.getElementById("statusIndicator");
+    const statusText = document.getElementById("statusText");
+    const sessionList = document.getElementById("sessionList");
+    const sessionChip = document.getElementById("sessionChip");
+    const privacyToggle = document.getElementById("privacyToggle");
+    const themeToggle = document.getElementById("themeToggle");
+    const themeIcon = document.getElementById("themeIcon");
+    const themeLabel = document.getElementById("themeLabel");
+    const rootEl = document.documentElement;
+
+    // --------------------------
+    // Utilities
+    // --------------------------
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ tabs, activeTabId }));
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      updateSessionChip();
+      renderSessionList();
+    }
+
+    function loadState() {
+      try {
+        const storedTabs = localStorage.getItem(STORAGE_KEY);
+        if (storedTabs) {
+          const parsed = JSON.parse(storedTabs);
+          if (parsed && Array.isArray(parsed.tabs)) {
+            tabs = parsed.tabs;
+            activeTabId = parsed.activeTabId || (tabs[0] && tabs[0].id) || null;
+          }
+        }
+
+        const storedSettings = localStorage.getItem(SETTINGS_KEY);
+        if (storedSettings) {
+          const parsedSettings = JSON.parse(storedSettings);
+          settings = { ...settings, ...parsedSettings };
+        }
+      } catch (e) {
+        console.warn("Failed to load Camcookie Browser state", e);
+      }
+    }
+
+    function createTab(options = {}) {
+      const id = "tab-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+      const url = options.url || "";
+      const title = options.title || (url || "New Camcookie Tab");
+      const history = url ? [url] : [];
+      const historyIndex = url ? 0 : -1;
+
+      const tab = {
+        id,
+        title,
+        url,
+        history,
+        historyIndex,
+        createdAt: Date.now()
+      };
+
+      tabs.push(tab);
+      activeTabId = id;
+      renderTabs();
+      applyActiveTab();
+      saveState();
+
+      return tab;
+    }
+
+    function closeTab(tabId) {
+      const idx = tabs.findIndex((t) => t.id === tabId);
+      if (idx === -1) return;
+
+      const wasActive = tabId === activeTabId;
+      tabs.splice(idx, 1);
+
+      if (tabs.length === 0) {
+        activeTabId = null;
+        webview.src = "about:blank";
+        showOverlay(
+          "No tabs open",
+          "Click the + button or press Ctrl+T to open a new Camcookie tab.",
+          "Camcookie‑only shield is on"
+        );
+      } else if (wasActive) {
+        const newIdx = Math.max(0, idx - 1);
+        activeTabId = tabs[newIdx].id;
+        applyActiveTab();
+      }
+
+      renderTabs();
+      saveState();
+    }
+
+    function getActiveTab() {
+      return tabs.find((t) => t.id === activeTabId) || null;
+    }
+
+    function isCamcookieURL(url) {
+      if (!url) return false;
+      const normalized = url.trim().toLowerCase();
+      return normalized.includes("camcookie");
+    }
+
+    function normalizeURL(value) {
+      let url = value.trim();
+      if (!url) return "";
+      if (!/^https?:\/\//i.test(url) && !url.startsWith("about:")) {
+        url = "https://" + url;
+      }
+      return url;
+    }
+
+    // --------------------------
+    // Theme handling
+    // --------------------------
+
+    function applyTheme(theme) {
+      const t = theme === "light" ? "light" : "dark";
+      settings.theme = t;
+      rootEl.setAttribute("data-theme", t);
+      if (t === "dark") {
+        themeIcon.textContent = "🌙";
+        themeLabel.textContent = "Dark";
+      } else {
+        themeIcon.textContent = "☀️";
+        themeLabel.textContent = "Light";
+      }
+    }
+
+    function toggleTheme() {
+      const next = settings.theme === "dark" ? "light" : "dark";
+      applyTheme(next);
+      saveState();
+    }
+
+    // --------------------------
+    // Rendering
+    // --------------------------
+
+    function renderTabs() {
+      const existingNewTabBtn = document.getElementById("newTabBtn");
+      tabsBarEl.innerHTML = "";
+
+      tabs.forEach((tab) => {
+        const el = document.createElement("div");
+        el.className = "tab" + (tab.id === activeTabId ? " active" : "");
+        el.dataset.id = tab.id;
+
+        const favicon = document.createElement("div");
+        favicon.className = "tab-favicon";
+        favicon.textContent = "C";
+
+        const title = document.createElement("div");
+        title.className = "tab-title";
+        title.textContent = tab.title || "Camcookie";
+
+        const close = document.createElement("div");
+        close.className = "tab-close";
+        close.textContent = "×";
+
+        close.addEventListener("click", (e) => {
+          e.stopPropagation();
+          closeTab(tab.id);
+        });
+
+        el.addEventListener("click", () => {
+          if (activeTabId !== tab.id) {
+            activeTabId = tab.id;
+            renderTabs();
+            applyActiveTab();
+            saveState();
+          }
+        });
+
+        // Middle‑click to close (desktop)
+        el.addEventListener("auxclick", (e) => {
+          if (e.button === 1) {
+            e.preventDefault();
+            closeTab(tab.id);
+          }
+        });
+
+        el.appendChild(favicon);
+        el.appendChild(title);
+        el.appendChild(close);
+        tabsBarEl.appendChild(el);
+      });
+
+      // Re‑append new tab button
+      tabsBarEl.appendChild(existingNewTabBtn);
+      updateSessionChip();
+    }
+
+    function updateSessionChip() {
+      sessionChip.textContent = `Session: ${tabs.length} tab${tabs.length === 1 ? "" : "s"}`;
+    }
+
+    function renderSessionList() {
+      if (!sessionList) return; // side panel hidden on small screens
+      sessionList.innerHTML = "";
+
+      if (!tabs.length) {
+        const empty = document.createElement("div");
+        empty.style.fontSize = "11px";
+        empty.style.color = "var(--text-muted)";
+        empty.textContent = "No tabs yet. Open one to see it here.";
+        sessionList.appendChild(empty);
+        return;
+      }
+
+      tabs
+        .slice()
+        .sort((a, b) => a.createdAt - b.createdAt)
+        .forEach((tab, idx) => {
+          const item = document.createElement("div");
+          item.className = "session-item";
+          item.title = tab.url || "Empty Camcookie tab";
+
+          const dot = document.createElement("div");
+          dot.className = "session-dot";
+
+          const url = document.createElement("div");
+          url.className = "session-url";
+          url.textContent = tab.url || tab.title || "Blank tab";
+
+          const count = document.createElement("div");
+          count.className = "session-count";
+          count.textContent = `#${idx + 1}`;
+
+          item.appendChild(dot);
+          item.appendChild(url);
+          item.appendChild(count);
+
+          item.addEventListener("click", () => {
+            activeTabId = tab.id;
+            renderTabs();
+            applyActiveTab();
+            saveState();
+          });
+
+          sessionList.appendChild(item);
+        });
+    }
+
+    function applyActiveTab() {
+      const tab = getActiveTab();
+      if (!tab) {
+        addressInput.value = "";
+        updateNavButtons(null);
+        showOverlay(
+          "Welcome to Camcookie Browser",
+          "Type or paste any Camcookie URL above to get started.",
+          "Camcookie‑only shield is on"
+        );
+        return;
+      }
+
+      addressInput.value = tab.url || "";
+      updateNavButtons(tab);
+
+      if (!tab.url) {
+        webview.src = "about:blank";
+        showOverlay(
+          "New Camcookie tab",
+          "Enter a Camcookie URL to begin. Only camcookie domains are allowed.",
+          "Camcookie‑only shield is on"
+        );
+      } else if (settings.privacyShield && !isCamcookieURL(tab.url)) {
+        webview.src = "about:blank";
+        showBlockedOverlay(tab.url);
+      } else {
+        hideOverlay();
+        webview.src = tab.url;
+      }
+
+      updateStatusForURL(tab.url);
+    }
+
+    function updateNavButtons(tab) {
+      if (!tab) {
+        backBtn.classList.add("disabled");
+        forwardBtn.classList.add("disabled");
+        return;
+      }
+      const hasBack = tab.historyIndex > 0;
+      const hasForward = tab.historyIndex < tab.history.length - 1;
+
+      backBtn.classList.toggle("disabled", !hasBack);
+      forwardBtn.classList.toggle("disabled", !hasForward);
+    }
+
+    function showOverlay(title, subtitle, tagText) {
+      overlayTitle.textContent = title;
+      overlaySubtitle.textContent = subtitle;
+      overlayTagText.textContent = tagText;
+      overlay.classList.add("visible");
+    }
+
+    function hideOverlay() {
+      overlay.classList.remove("visible");
+    }
+
+    function showBlockedOverlay(url) {
+      showOverlay(
+        "Blocked by Camcookie‑only shield",
+        `This URL is not part of Camcookie:\n\n${url}`,
+        "Only Camcookie URLs are allowed"
+      );
+      statusIndicator.classList.add("blocked");
+      statusText.textContent = "Blocked (non‑Camcookie URL)";
+    }
+
+    function updateStatusForURL(url) {
+      if (!url) {
+        statusIndicator.classList.remove("blocked");
+        statusText.textContent = "Camcookie‑only mode";
+        return;
+      }
+      if (isCamcookieURL(url)) {
+        statusIndicator.classList.remove("blocked");
+        statusText.textContent = "Camcookie URL secured";
+      } else {
+        if (settings.privacyShield) {
+          statusIndicator.classList.add("blocked");
+          statusText.textContent = "Blocked (non‑Camcookie URL)";
+        } else {
+          statusIndicator.classList.remove("blocked");
+          statusText.textContent = "Non‑Camcookie (shield disabled)";
+        }
+      }
+    }
+
+    // --------------------------
+    // Navigation logic
+    // --------------------------
+
+    function navigateTo(inputValue) {
+      const tab = getActiveTab();
+      if (!tab) return;
+
+      const normalized = normalizeURL(inputValue);
+      tab.url = normalized;
+
+      if (!normalized) {
+        applyActiveTab();
+        saveState();
+        return;
+      }
+
+      if (settings.privacyShield && !isCamcookieURL(normalized)) {
+        updateStatusForURL(normalized);
+        showBlockedOverlay(normalized);
+        webview.src = "about:blank";
+      } else {
+        if (tab.historyIndex < tab.history.length - 1) {
+          tab.history = tab.history.slice(0, tab.historyIndex + 1);
+        }
+        tab.history.push(normalized);
+        tab.historyIndex = tab.history.length - 1;
+
+        tab.title = deriveTitleFromURL(normalized);
+
+        hideOverlay();
+        webview.src = normalized;
+        updateStatusForURL(normalized);
+      }
+
+      renderTabs();
+      updateNavButtons(tab);
+      saveState();
+    }
+
+    function deriveTitleFromURL(url) {
+      try {
+        const u = new URL(url);
+        const hostname = u.hostname.replace("www.", "");
+        const path = u.pathname.replace(/^\/+/, "");
+        if (!path) return hostname;
+        const trimmed = path.length > 24 ? path.slice(0, 24) + "…" : path;
+        return hostname + " / " + trimmed;
+      } catch (e) {
+        return url;
+      }
+    }
+
+    function navigateHistory(direction) {
+      const tab = getActiveTab();
+      if (!tab) return;
+      if (direction === -1 && tab.historyIndex > 0) {
+        tab.historyIndex -= 1;
+      } else if (direction === 1 && tab.historyIndex < tab.history.length - 1) {
+        tab.historyIndex += 1;
+      } else {
+        return;
+      }
+
+      const targetURL = tab.history[tab.historyIndex];
+      tab.url = targetURL;
+
+      if (settings.privacyShield && !isCamcookieURL(targetURL)) {
+        showBlockedOverlay(targetURL);
+        webview.src = "about:blank";
+      } else {
+        hideOverlay();
+        webview.src = targetURL;
+      }
+
+      addressInput.value = targetURL;
+      updateStatusForURL(targetURL);
+      updateNavButtons(tab);
+      renderTabs();
+      saveState();
+    }
+
+    // --------------------------
+    // Events
+    // --------------------------
+
+    newTabBtn.addEventListener("click", () => {
+      createTab();
+      addressInput.focus();
+    });
+
+    goBtn.addEventListener("click", () => {
+      navigateTo(addressInput.value);
+    });
+
+    addressInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        navigateTo(addressInput.value);
+      }
+    });
+
+    addressInput.addEventListener("input", () => {
+      updateStatusForURL(addressInput.value);
+    });
+
+    backBtn.addEventListener("click", () => {
+      navigateHistory(-1);
+    });
+
+    forwardBtn.addEventListener("click", () => {
+      navigateHistory(1);
+    });
+
+    privacyToggle.addEventListener("click", () => {
+      settings.privacyShield = !settings.privacyShield;
+      privacyToggle.classList.toggle("on", !settings.privacyShield);
+      if (settings.privacyShield) {
+        statusText.textContent = "Camcookie‑only mode";
+        overlayTagText.textContent = "Camcookie‑only shield is on";
+      } else {
+        statusText.textContent = "Shield disabled (dev mode)";
+        overlayTagText.textContent = "Shield disabled – dev mode";
+        statusIndicator.classList.remove("blocked");
+      }
+      const tab = getActiveTab();
+      if (tab && tab.url) {
+        updateStatusForURL(tab.url);
+        applyActiveTab();
+      }
+      saveState();
+    });
+
+    themeToggle.addEventListener("click", () => {
+      toggleTheme();
+    });
+
+    // Keyboard shortcuts (desktop)
+    document.addEventListener("keydown", (e) => {
+      const isCtrl = e.ctrlKey || e.metaKey;
+
+      if (isCtrl && e.key.toLowerCase() === "t") {
+        e.preventDefault();
+        createTab();
+        addressInput.focus();
+      }
+
+      if (isCtrl && e.key.toLowerCase() === "r") {
+        e.preventDefault();
+        loadState();
+        renderTabs();
+        applyActiveTab();
+      }
+
+      if (e.key === "Escape") {
+        addressInput.blur();
+      }
+    });
+
+    // --------------------------
+    // Initial load
+    // --------------------------
+
+    (function init() {
+      loadState();
+
+      applyTheme(settings.theme);
+
+      if (!tabs.length) {
+        createTab({ url: settings.homepage, title: "Camcookie Home" });
+      } else {
+        renderTabs();
+        applyActiveTab();
+      }
+
+      privacyToggle.classList.toggle("on", !settings.privacyShield);
+      renderSessionList();
+      updateSessionChip();
+    })();
+  </script>
+</body>
+</html>
