@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Connecting to Camcookie Games…</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      padding: 40px;
+      text-align: center;
+      color: #333;
+    }
+    .box {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      max-width: 420px;
+      margin: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .error {
+      color: #d00;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>Connecting to Camcookie Games…</h2>
+
+  <!-- Message shown if JavaScript is disabled -->
+  <noscript>
+    <p class="error">JavaScript is required to continue.</p>
+    <p>Please enable JavaScript and try again.</p>
+  </noscript>
+
+  <p id="status">Checking login data…</p>
+</div>
+
+<script>
+  const status = document.getElementById("status");
+  const params = new URLSearchParams(location.search);
+
+  const token = params.get("token");
+  const id = params.get("id");
+  const username = params.get("username");
+
+  // Validate required fields
+  if (!token || !id || !username) {
+    status.innerHTML = `
+      <span class="error">Missing login information.</span><br>
+      This link is invalid or incomplete.<br><br>
+      Please sign in again at:<br>
+      <a href="https://camcookie876.github.io/connect/26/?redirect=https://camcookie876.github.io/gamesconnect/">Camcookie Connect 26</a>
+    `;
+    throw new Error("Missing required parameters");
+  }
+
+  // Forward to Camcookie Games
+  const redirectURL =
+    "https://camcookieg.github.io/auth/26/" +
+    `?token=${encodeURIComponent(token)}` +
+    `&id=${encodeURIComponent(id)}` +
+    `&username=${encodeURIComponent(username)}`;
+
+  status.textContent = "Redirecting…";
+  location.href = redirectURL;
+</script>
+
+</body>
+</html>

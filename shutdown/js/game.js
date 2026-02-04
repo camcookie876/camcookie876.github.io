@@ -1,4 +1,4 @@
-const SHUTDOWN = "yes";  // <-- flip to "yes" / "no" when needed
+const SHUTDOWN = "no";  // <-- flip to "yes" / "no" when needed
 
 if (SHUTDOWN === "yes") {
   if (!window.location.pathname.includes("https://camcookie876.github.io/shutdown/games/")) {
