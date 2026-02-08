@@ -1,3 +1,7 @@
+//========================================
+//Topbar
+//========================================
+
 // Main navigation links
 const mainLinks = [
   { name: "DOCS", url: "https://camcookie876.github.io/DOCS/" },
@@ -7,16 +11,27 @@ const mainLinks = [
   { name: "Connect", url: "https://camcookie876.github.io/connect/" }
 ];
 
-// Insert main links into top bar
+// Insert main links into the top bar inside a single <h1>
 const linkContainer = document.querySelector(".Topbar-links");
-mainLinks.forEach(link => {
+const h1 = document.createElement("h1");
+
+mainLinks.forEach((link, i) => {
   const a = document.createElement("a");
   a.href = link.url;
   a.textContent = link.name;
-  linkContainer.appendChild(a);
+  a.className = "Topbarlink";
+  h1.appendChild(a);
+
+  // Add separators except after the last link
+  if (i < mainLinks.length - 1) {
+    const separator = document.createTextNode(" | ");
+    h1.appendChild(separator);
+  }
 });
 
-// Insert links into mobile dropdown
+linkContainer.appendChild(h1);
+
+// Insert links into the mobile dropdown
 const dropdown = document.querySelector(".Topbar-dropdown");
 mainLinks.forEach(link => {
   const a = document.createElement("a");
@@ -25,7 +40,7 @@ mainLinks.forEach(link => {
   dropdown.appendChild(a);
 });
 
-// Toggle dropdown
+// Toggle dropdown on hamburger click
 document.querySelector(".Topbar-menu-btn").addEventListener("click", () => {
   dropdown.style.display =
     dropdown.style.display === "flex" ? "none" : "flex";
