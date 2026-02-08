@@ -94,7 +94,9 @@ document.addEventListener("DOMContentLoaded", () => {
     { name: "Music", url: "https://camcookiem.github.io/" },
     { name: "Games", url: "https://camcookieg.github.io/" },
     { name: "Books", url: "https://camcookieb.github.io/" },
-    { name: "Connect", url: "https://camcookie876.github.io/connect/" }
+    { name: "Connect", url: "https://camcookie876.github.io/connect/" },
+    { name: "PI", url: "https://camcookie876.github.io/PI/" },
+    { name: "Github", url: "https://github.com/camcookie876" }
   ];
 
   const linkContainer = document.querySelector(".Topbar-links");
