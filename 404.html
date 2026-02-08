@@ -3,89 +3,29 @@ permalink: /404.html
 ---
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>404 · Camcookie</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: "Segoe UI", sans-serif;
-      background: #0d1117;
-      color: #c9d1d9;
-      text-align: center;
-    }
-    .box {
-      max-width: 600px;
-      padding: 2em;
-    }
-    h1 {
-      font-size: 2.5em;
-      margin-bottom: 0.2em;
-      color: #58a6ff;
-    }
-    p {
-      margin: 0.5em 0;
-      font-size: 1.1em;
-    }
-    .url {
-      margin-top: 1em;
-      padding: 0.5em 1em;
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      font-family: monospace;
-      word-break: break-all;
-    }
-    a {
-      display: inline-block;
-      margin-top: 1.5em;
-      padding: 0.6em 1.2em;
-      background: #238636;
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      font-weight: 600;
-    }
-    a:hover {
-      background: #2ea043;
-    }
-
-    /* bottom bar */
-    .bottom-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: #161b22;
-      border-top: 1px solid #30363d;
-      color: #8b949e;
-      text-align: center;
-      padding: 0.5em;
-      font-size: 0.9em;
-    }
-  </style>
+    <head>
+      <link rel="icon" href="/logo.png"><head>
+  <meta charset="UTF-8">
+  <title>Camcookie - 404</title>
+<link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <div class="box">
-    <h1>404</h1>
+<div class="Topbar"><h1>
+<a class="Topbarlink" href="https://camcookie876.github.io/">Camcookie</a> | 
+<a class="Topbarlink" href="https://camcookie876.github.io/DOCS/">DOCS</a> | 
+<a class="Topbarlink" href="https://camcookiem.github.io/">Music</a> | 
+<a class="Topbarlink" href="https://camcookieg.github.io/">Games</a> | 
+<a class="Topbarlink" href="https://camcookieb.github.io/">Books</a> | 
+<a class="Topbarlink" href="https://camcookie876.github.io/connect/">Connect</a>
+</h1></div>
+<center><h1 class="header">404</h1></center>
+<div class="content">
     <p>Sorry, this page could not be found.</p>
-    <p>You tried to visit:</p>
-    <div class="url" id="url"></div>
-    <a href="/">Back to Home</a>
-  </div>
-
-  <!-- bottom div -->
-<div class="bottom-bar">
-  © <span id="year"></span> Camcookie · All rights reserved
+    <p>You tried to visit: <div id="url"></div></p>
+    <a class="links" href="/">Back to Home</a>
 </div>
-
+<p>Copyright 2025 by Camcookie</p>
   <script>
-  document.getElementById("year").textContent = new Date().getFullYear();
   document.getElementById('url').textContent = window.location.href;
   </script>
 </body>

@@ -1,75 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+    <head>
+      <link rel="icon" href="/logo.png"><head>
   <meta charset="UTF-8">
   <title>Connecting to Camcookie Games…</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f7f7f7;
-      padding: 40px;
-      text-align: center;
-      color: #333;
-    }
-    .box {
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      max-width: 420px;
-      margin: auto;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .error {
-      color: #d00;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-  </style>
+<link rel="stylesheet" href="/styles.css">
 </head>
-
 <body>
+<div class="Topbar"><h1>
+<a class="Topbarlink" href="https://camcookie876.github.io/">Camcookie</a> | 
+<a class="Topbarlink" href="https://camcookie876.github.io/DOCS/">Camcookie DOCS</a> | 
+<a class="Topbarlink" href="https://camcookiem.github.io/">Music</a> | 
+<a class="Topbarlink" href="https://camcookieg.github.io/">Games</a> | 
+<a class="Topbarlink" href="https://camcookieb.github.io/">Books</a> | 
+<a class="Topbarlink" href="https://camcookie876.github.io/connect/">Connect</a>
+</h1></div>
+<center><h1 class="header">Camcookie</h1></center>
+<div class="content">
 
-<div class="box">
   <h2>Connecting to Camcookie Games…</h2>
 
-  <!-- Message shown if JavaScript is disabled -->
   <noscript>
     <p class="error">JavaScript is required to continue.</p>
     <p>Please enable JavaScript and try again.</p>
   </noscript>
 
-  <p id="status">Checking login data…</p>
-</div>
+  <p id="status">Reading login data…</p>
 
+</div>
+<p>Copyright 2025 by Camcookie</p>
 <script>
   const status = document.getElementById("status");
-  const params = new URLSearchParams(location.search);
 
-  const token = params.get("token");
-  const id = params.get("id");
-  const username = params.get("username");
+  // Read Connect 26 session
+  const session = localStorage.getItem("sb-bafcfszceittoberpgdz-auth-token");
 
-  // Validate required fields
-  if (!token || !id || !username) {
+  if (!session) {
     status.innerHTML = `
-      <span class="error">Missing login information.</span><br>
-      This link is invalid or incomplete.<br><br>
-      Please sign in again at:<br>
-      <a href="https://camcookie876.github.io/connect/26/?redirect=https://camcookie876.github.io/gamesconnect/">Camcookie Connect 26</a>
+      <span class="error">No login session found.</span><br>
+      Please sign in again.<br><br>
+      <a href="https://camcookie876.github.io/connect/26/">Camcookie Connect 26</a>
     `;
-    throw new Error("Missing required parameters");
+    throw new Error("No session");
   }
 
-  // Forward to Camcookie Games
-  const redirectURL =
-    "https://camcookieg.github.io/auth/26/" +
+  let data;
+  try {
+    data = JSON.parse(session);
+  } catch (e) {
+    status.innerHTML = `
+      <span class="error">Corrupted login session.</span><br>
+      Please sign in again.
+    `;
+    throw e;
+  }
+
+  const token = data.access_token;
+  const id = data.user?.id;
+
+  if (!token || !id) {
+    status.innerHTML = `
+      <span class="error">Missing login information.</span><br>
+      Please sign in again.<br><br>
+      <a href="https://camcookie876.github.io/connect/26/">Camcookie Connect 26</a>
+    `;
+    throw new Error("Missing token or id");
+  }
+
+  // Redirect to Camcookie Games
+  const url =
+    "https://camcookieg.github.io/auth/receive.html" +
     `?token=${encodeURIComponent(token)}` +
-    `&id=${encodeURIComponent(id)}` +
-    `&username=${encodeURIComponent(username)}`;
+    `&id=${encodeURIComponent(id)}`;
 
   status.textContent = "Redirecting…";
-  location.href = redirectURL;
+  location.href = url;
 </script>
-
 </body>
 </html>
