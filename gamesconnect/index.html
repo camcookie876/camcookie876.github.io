@@ -9,22 +9,16 @@
 <body>
 <div class="Topbar"><div class="Topbar-inner"><a href="https://camcookie876.github.io/" class="Topbar-logo"><img src="https://camcookie876.github.io/logo.png" alt="Camcookie Logo"></a><div class="Topbar-links"><noscript><a href="/links">Links</a></noscript></div><div class="Topbar-right"><div class="Topbar-menu-btn">|||</div></div></div><div class="Topbar-dropdown"></div></div><script src="/script.js"></script>
 
-<center><h1 class="header">Camcookie</h1></center>
+<center><h1 class="header">Connecting to Camcookie Games...</h1></center>
+
 <div class="content">
-
-  <h2>Connecting to Camcookie Games…</h2>
-
   <noscript>
     <p class="error">JavaScript is required to continue.</p>
     <p>Please enable JavaScript and try again.</p>
   </noscript>
-
   <p id="status">Reading login data…</p>
 
 </div>
-
-<div data-camcookie-ad style="margin: 20px;"></div>
-<script src="https://camcookie876.github.io/ads/ads.js"></script>
 
 <p>Copyright 2025 by Camcookie</p>
 <script>
@@ -37,7 +31,7 @@
     status.innerHTML = `
       <span class="error">No login session found.</span><br>
       Please sign in again.<br><br>
-      <a href="https://camcookie876.github.io/connect/26/">Camcookie Connect 26</a>
+      <a href="https://camcookie876.github.io/connect/26/?redirect=https://camcookie876.github.io/gamesconnect">Camcookie Connect 26</a>
     `;
     throw new Error("No session");
   }
@@ -67,7 +61,7 @@
 
   // Redirect to Camcookie Games
   const url =
-    "https://camcookieg.github.io/auth/receive.html" +
+    "https://camcookieg.github.io/auth/26/" +
     `?token=${encodeURIComponent(token)}` +
     `&id=${encodeURIComponent(id)}`;
 
