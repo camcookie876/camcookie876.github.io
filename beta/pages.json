@@ -1,0 +1,45 @@
+{
+  "home": {
+    "url": "/",
+    "title": "Home - Camcookie",
+    "html": "
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" href="/logo.png">
+    <meta charset="UTF-8">
+    <title>Home - Camcookie</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+<body>
+
+<center><h1 class="header">Camcookie</h1></center>
+<div class="content">
+<p>Camcookie BETA</p>
+<p>This is the BETA version of the Camcookie Website. Functions are comming soon!
+</div>
+
+<p>Copyright 2025 by Camcookie</p>
+</body>
+</html>
+    "
+  },
+
+  "books": {
+    "url": "/books",
+    "title": "Books - Camcookie",
+    "html": "<h1>Books</h1><p>Explore all Camcookie books here.</p><ul><li><a href='/series'>Series</a></li><li><a href='/about'>About Camcookie</a></li></ul>"
+  },
+
+  "series": {
+    "url": "/series",
+    "title": "Series - Camcookie",
+    "html": "<h1>Series</h1><p>All Camcookie series will appear here.</p><p>Example: <a href='/'>Return Home</a></p>"
+  },
+
+  "about": {
+    "url": "/about",
+    "title": "About - Camcookie",
+    "html": "<h1>About Camcookie</h1><p>Camcookie is a creative universe built by Camden.</p><p>Learn more on the homepage.</p>"
+  }
+}
