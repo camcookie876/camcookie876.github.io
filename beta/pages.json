@@ -2,7 +2,7 @@
   "home": {
     "url": "/",
     "title": "Home - Camcookie",
-    "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<link rel=\"icon\" href=\"/logo.png\">\n<meta charset=\"UTF-8\">\n<title>Home - Camcookie</title>\n<link rel=\"stylesheet\" href=\"/styles.css\">\n</head>\n<body>\n<center><h1 class=\"header\">Camcookie</h1></center>\n<div class=\"content\">\n<p>Camcookie BETA</p>\n<p>This is the BETA version of the Camcookie Website. Functions are comming soon!</p>\n</div>\n<p>Copyright 2025 by Camcookie</p>\n</body>\n</html>"
+    "html": "<center><h1 style="color: #0099ff;">Camcookie</h1><p>This is a beta version of the Cacookie Website! Comming soon!</style>"
   },
 
   "books": {
