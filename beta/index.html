@@ -1,51 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Camcookie</title>
-
   <style>
-    body {
-      margin: 0;
-      font-family: system-ui, sans-serif;
-      background: #ffffff;
-    }
+/* Remove all default spacing */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-    /* Topbar */
-    #topbar {
-      width: 100%;
-      height: 60px;
-      background: #0099ff;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      box-sizing: border-box;
-    }
+body {
+  font-family: system-ui, sans-serif;
+  background: #ffffff;
+  height: 100vh;
+  overflow: hidden; /* Only one scrollbar */
+}
 
-    #topbar .brand {
-      font-size: 22px;
-      font-weight: 700;
-    }
+/* Topbar */
+#topbar {
+  width: 100%;
+  height: 60px;
+  background: #0099ff;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
 
-    #topbar .nav a {
-      color: white;
-      text-decoration: none;
-      margin-left: 20px;
-      font-weight: 500;
-    }
+#topbar .brand {
+  font-size: 22px;
+  font-weight: 700;
+}
 
-    #topbar .nav a:hover {
-      text-decoration: underline;
-    }
+#topbar .nav a {
+  color: white;
+  text-decoration: none;
+  margin-left: 20px;
+  font-weight: 500;
+}
 
-    /* Content area */
-    #app {
-      padding: 20px;
-      height: calc(100vh - 60px);
-      overflow-y: auto;
-    }
+#topbar .nav a:hover {
+  text-decoration: underline;
+}
+
+/* Content area */
+#app {
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  padding: 20px;
+}
   </style>
 </head>
 
@@ -67,66 +73,65 @@
 
   <script>
     const STORAGE_KEY = "current_page";
-    let pages = {};
-    let currentPage = null;
+let pages = {};
+let currentPage = null;
 
-    // Load JSON pages
-    async function loadPages() {
-      const res = await fetch("pages.json");
-      pages = await res.json();
-    }
+// Load JSON pages
+async function loadPages() {
+  const res = await fetch("pages.json");
+  pages = await res.json();
+}
 
-    // Render a page by key
-    function renderPage(key, push = true) {
-      const page = pages[key];
-      if (!page) return;
+// Render a page by key
+function renderPage(key, push = true) {
+  const page = pages[key];
+  if (!page) return;
 
-      currentPage = key;
-      localStorage.setItem(STORAGE_KEY, key);
+  currentPage = key;
+  localStorage.setItem(STORAGE_KEY, key);
 
-      document.title = page.title;
-      document.getElementById("app").innerHTML = page.html;
+  document.title = page.title;
+  document.getElementById("app").innerHTML = page.html;
 
-      if (push) {
-        history.pushState({ page: key }, page.title, page.url);
-      }
+  if (push) {
+    history.pushState({ page: key }, page.title, page.url);
+  }
 
-      interceptLinks();
-    }
+  interceptLinks();
+}
 
-    // Intercept internal links
-    function interceptLinks() {
-      document.querySelectorAll("a[href]").forEach(a => {
-        const href = a.getAttribute("href");
+// Intercept internal links
+function interceptLinks() {
+  document.querySelectorAll("a[href]").forEach(a => {
+    const href = a.getAttribute("href");
 
-        if (href.startsWith("/")) {
-          a.addEventListener("click", e => {
-            e.preventDefault();
+    if (href.startsWith("/")) {
+      a.addEventListener("click", e => {
+        e.preventDefault();
 
-            const key = Object.keys(pages).find(k => pages[k].url === href);
-            if (key) renderPage(key);
-          });
-        }
+        const key = Object.keys(pages).find(k => pages[k].url === href);
+        if (key) renderPage(key);
       });
     }
+  });
+}
 
-    // Back/forward buttons
-    window.onpopstate = (e) => {
-      if (e.state?.page) {
-        renderPage(e.state.page, false);
-      }
-    };
+// Back/forward buttons
+window.onpopstate = (e) => {
+  if (e.state?.page) {
+    renderPage(e.state.page, false);
+  }
+};
 
-    // Initialize
-    (async () => {
-      await loadPages();
+// Initialize
+(async () => {
+  await loadPages();
 
-      const saved = localStorage.getItem(STORAGE_KEY);
-      const start = saved && pages[saved] ? saved : "home";
+  const saved = localStorage.getItem(STORAGE_KEY);
+  const start = saved && pages[saved] ? saved : "home";
 
-      renderPage(start, false);
-    })();
+  renderPage(start, false);
+})();
   </script>
-
 </body>
 </html>
