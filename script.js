@@ -1,11 +1,21 @@
 const PADGE_FILE = '/padge.json';
-const NAV_LINKS = [
+const isDOCS = window.location.pathname.startsWith('/DOCS/');
+const NAV_LINKS = isDOCS ? [
+  { name: 'Home', url: '/' },
+  { name: 'DOCS', url: '/DOCS/' },
+  { name: 'Music', url: '/DOCS/music/' },
+  { name: 'Arduino', url: '/DOCS/arduino/' },
+  { name: 'Books', url: '/books/' },
+  { name: 'Games', url: '/games/' },
+  { name: 'Connect', url: '/connect/' }
+] : [
   { name: 'Home', url: '/' },
   { name: 'DOCS', url: '/DOCS/' },
   { name: 'Music', url: 'https://camcookiem.github.io/' },
   { name: 'Books', url: '/books/' },
   { name: 'Games', url: 'https://camcookieg.github.io/' },
   { name: 'Connect', url: '/connect/' },
+  { name: 'Links', url: '/links/' }
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -27,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const brand = document.createElement('a');
     brand.className = 'site-brand';
     brand.href = '/';
-    brand.innerHTML = '<img src="/logo.png" alt="Camcookie Logo"> <span>Camcookie</span>';
+    brand.innerHTML = isDOCS ? '<img src="/DOCS/logo.png" alt="Camcookie DOCS"> <span>Camcookie DOCS</span>' : '<img src="/logo.png" alt="Camcookie Logo"> <span>Camcookie</span>';
 
     const nav = document.createElement('nav');
     nav.className = 'site-nav';
@@ -104,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <span>All rights reserved.</span>
       </div>
       <div class="footer-meta">
-        <span>Browse docs, music, books, games, and more from one place.</span>
+        <span>This site is made by a 12 year old and AI. It is also BETA.</span>
       </div>
     `;
     return footer;
@@ -127,7 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const menu = document.createElement('div');
     menu.id = 'customMenu';
     menu.innerHTML = `
-      <div class="menu-item" data-action="home">Home</div>
+      <div class="menu-item" data-action="home">Go Home</div>
+      <div class="menu-item" data-action="top">Camcookie</div>
       <div class="menu-item" data-action="search">Search</div>
       <div class="menu-item" data-action="print">Print</div>
     `;

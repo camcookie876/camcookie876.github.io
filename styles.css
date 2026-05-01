@@ -279,6 +279,12 @@ a:hover {
   .site-menu-toggle {
     display: inline-flex;
   }
+  .search-control {
+    max-width: none;
+  }
+  .search-control input {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
 }
 
 @media (max-width: 640px) {
@@ -300,6 +306,21 @@ a:hover {
   }
   .site-footer {
     flex-direction: column;
+  }
+  .page-content,
+  .content {
+    padding: 18px;
+    margin: 0 12px;
+    border-radius: 18px;
+  }
+  .link-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+  }
+  .links {
+    min-width: 120px;
+    padding: 10px 14px;
+    font-size: 0.9rem;
   }
 }
 
