@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<html lang="en"><head><meta charset="UTF-8"><title>Camcookie Security - UNO R3 - Camcookie DOCS</title>
+    <meta name="description" content="Detailed Camcookie UNO R3 security project guide with wiring and code."><link rel="stylesheet" href="https://camcookie876.github.io/DOCS/styles.css"></head><body><noscript><div class="noscript-warning"><h3>⚠️ JavaScript Required</h3><p>Camcookie DOCS needs JavaScript to run search, theme toggle, and page features.</p></div></noscript>
+
+<main>
+  <h1>Camcookie Security – UNO R3</h1>
+  <div data-camcookie-ad class="ad-slot"></div>
+
+  <div class="warning">
+    <h3>🚧 IN PROGRESS 🚧</h3>
+    <p>The code and functions may not fully work correctly. It may go off randomly.</p>
+    <p>This currently only works on Microsoft Edge on a PC. It will not work on mobile devices.</p>
+  </div>
+
+  <div class="description-box">
+
+    <h2>1. Upload the Arduino Code</h2>
+    <p>
+      Add the <code>.ino</code> code from  
+      <a href="https://camcookie876.github.io/DOCS/arduino/1/code/code.txt">
+        https://camcookie876.github.io/DOCS/arduino/1/code/code.txt
+      </a>  
+      to your Arduino UNO R3.
+    </p>
+
+    <h2>2. Connect the Wires</h2>
+
+    <h3>🟦 Ultrasonic Sensor (HC‑SR04)</h3>
+    <table border="1">
+      <tr><th>Sensor Pin</th><th>Arduino Pin</th></tr>
+      <tr><td>VCC</td><td>5V</td></tr>
+      <tr><td>GND</td><td>GND</td></tr>
+      <tr><td>TRIG</td><td>D8</td></tr>
+      <tr><td>ECHO</td><td>D9</td></tr>
+    </table>
+
+    <h3>🌗 LDR (Light Sensor)</h3>
+    <p>Use a voltage divider: LDR + 10kΩ resistor</p>
+    <pre>
+5V ---- LDR ----+---- A0
+                |
+                10kΩ
+                |
+               GND
+    </pre>
+
+    <h3>🔘 Arm / Disarm Button</h3>
+    <p>(Using internal pull‑up resistor)</p>
+    <table border="1">
+      <tr><th>Button Pin</th><th>Arduino Pin</th></tr>
+      <tr><td>One side</td><td>D2</td></tr>
+      <tr><td>Other side</td><td>GND</td></tr>
+    </table>
+
+    <h3>🔊 Buzzer</h3>
+    <table border="1">
+      <tr><th>Buzzer Pin</th><th>Arduino Pin</th></tr>
+      <tr><td>+</td><td>D6</td></tr>
+      <tr><td>–</td><td>GND</td></tr>
+    </table>
+
+    <h3>💡 LEDs</h3>
+
+    <p><strong>Green LED (Armed)</strong></p>
+    <table border="1">
+      <tr><th>LED Pin</th><th>Arduino Pin</th></tr>
+      <tr><td>Anode</td><td>D10 (through 220Ω)</td></tr>
+      <tr><td>Cathode</td><td>GND</td></tr>
+    </table>
+
+    <p><strong>Red LED (Alarm)</strong></p>
+    <table border="1">
+      <tr><th>LED Pin</th><th>Arduino Pin</th></tr>
+      <tr><td>Anode</td><td>D11 (through 220Ω)</td></tr>
+      <tr><td>Cathode</td><td>GND</td></tr>
+    </table>
+
+    <h2>3. Place the Ultrasonic Sensor</h2>
+    <p>
+      Put the HC‑SR04 wherever you want to detect motion.  
+      <strong>Warning:</strong> It will not detect far‑away motion.
+    </p>
+
+    <h2>4. Connect Your Arduino to Your PC</h2>
+    <p>
+      Then open  
+      <a href="https://unoserial.oneapp.dev/">https://unoserial.oneapp.dev/</a>
+    </p>
+
+    <h2>5. Click “Connect”</h2>
+    <p>Select <strong>Arduino UNO</strong> in the popup.</p>
+
+    <h2>6. Enjoy!</h2>
+    <p>Your Camcookie Security UNO R3 system is now active.</p>
+
+  </div>
+</main>
+  <script src="https://camcookie876.github.io/DOCS/script.js"></script>
+  <script src="https://camcookie876.github.io/ads/ads.js"></script>
+</body>
+</html>

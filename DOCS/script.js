@@ -3,10 +3,10 @@ const NAV_LINKS = [
   { name: 'Home', url: '/' },
   { name: 'DOCS', url: '/DOCS/' },
   { name: 'Music', url: '/DOCS/music/' },
+  { name: 'Arduino', url: '/DOCS/arduino/' },
   { name: 'Books', url: '/books/' },
   { name: 'Games', url: '/games/' },
-  { name: 'Connect', url: '/connect/' },
-  { name: 'Links', url: '/links/' }
+  { name: 'Connect', url: '/connect/' }
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const brand = document.createElement('a');
     brand.className = 'site-brand';
     brand.href = '/';
-    brand.innerHTML = '<img src="/logo.png" alt="Camcookie Logo"> <span>Camcookie</span>';
+    brand.innerHTML = '<img src="/DOCS/logo.png" alt="Camcookie DOCS"> <span>Camcookie DOCS</span>';
 
     const nav = document.createElement('nav');
     nav.className = 'site-nav';
@@ -52,13 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsBox.classList.remove('show');
         return;
       }
-
       const matches = pageIndex.filter(page => {
         return page.title.toLowerCase().includes(query) ||
           page.description.toLowerCase().includes(query) ||
           page.path.toLowerCase().includes(query);
       }).slice(0, 8);
-
       if (matches.length === 0) {
         resultsBox.innerHTML = '<div class="result-empty">No results found</div>';
       } else {
@@ -79,19 +77,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    const themeButton = document.createElement('button');
+    themeButton.className = 'theme-button';
+    themeButton.type = 'button';
+    themeButton.textContent = 'Toggle theme';
+    themeButton.addEventListener('click', () => {
+      document.body.classList.toggle('theme-light');
+    });
+
     inner.appendChild(brand);
     inner.appendChild(nav);
     inner.appendChild(search);
+    inner.appendChild(themeButton);
 
-    const mobileToggle = document.createElement('button');
-    mobileToggle.className = 'site-menu-toggle';
-    mobileToggle.type = 'button';
-    mobileToggle.textContent = 'Menu';
-    mobileToggle.addEventListener('click', () => {
-      bar.classList.toggle('menu-open');
-    });
-
-    inner.appendChild(mobileToggle);
     bar.appendChild(inner);
     return bar;
   }
@@ -102,11 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
     footer.innerHTML = `
       <div class="footer-copy">
         <strong>Copyright © 2025 Camcookie.</strong>
-        <span>All rights reserved. Designed for a clean, professional blue-on-white experience.</span>
+        <span>Camcookie DOCS is maintained with clean navigation and intelligent page search.</span>
       </div>
       <div class="footer-meta">
-        <span>Page search powered by <a href="/padge.json">padge.json</a>.</span>
-        <span>Browse docs, music, books, games, and more from one place.</span>
+        <span>Page index powered by <a href="/padge.json">padge.json</a>.</span>
+        <span>Search across documentation and pages from the top bar.</span>
       </div>
     `;
     return footer;
@@ -115,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadPageIndex() {
     try {
       const response = await fetch(PADGE_FILE, { cache: 'no-store' });
-      if (!response.ok) throw new Error('Page index not available');
+      if (!response.ok) throw new Error('Page index unavailable');
       const json = await response.json();
       if (Array.isArray(json.pages)) {
         pageIndex.push(...json.pages);
@@ -150,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     menu.addEventListener('click', (event) => {
       const action = event.target.dataset.action;
       if (!action) return;
-      if (action === 'home') window.location.href = '/';
+      if (action === 'home') window.location.href = '/DOCS/';
       if (action === 'top') window.location.href = '/';
       if (action === 'search') document.querySelector('.search-control input')?.focus();
       if (action === 'print') window.print();

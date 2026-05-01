@@ -1,0 +1,27 @@
+[
+  {
+    "title": "Home",
+    "url": "https://camcookie876.github.io/DOCS/",
+    "info": "Camcookie DOCS Homepage"
+  },
+  {
+    "title": "Camcookie Music",
+    "url": "https://camcookie876.github.io/DOCS/music/",
+    "info": "Camcookie Music"
+  },
+  {
+    "title": "Archive Radio",
+    "url": "https://camcookie876.github.io/DOCS/music/1",
+    "info": "Camcookie Music - Archive Radio"
+  },
+  {
+    "title": "Camcookie Arduino",
+    "url": "https://camcookie876.github.io/DOCS/arduino/",
+    "info": "Camcookie Arduino"
+  },
+  {
+    "title": "Camcookie Security - UNO R3",
+    "url": "https://camcookie876.github.io/DOCS/arduino/1/",
+    "info": "Camcookie Security - UNO R3"
+  }
+]

@@ -1,0 +1,109 @@
+{
+  "site": "camcookie876.github.io",
+  "version": "1.0.0",
+  "rootUrl": "https://camcookie876.github.io/",
+  "pages": [
+    {
+      "path": "index.html",
+      "url": "https://camcookie876.github.io/",
+      "title": "Home - Camcookie",
+      "description": "Camcookie homepage with quick access to docs, music, books, games, and Connect." 
+    },
+    {
+      "path": "404.html",
+      "url": "https://camcookie876.github.io/404.html",
+      "title": "404 - Camcookie",
+      "description": "Page not found. Use the site navigation or search to find the page you need." 
+    },
+    {
+      "path": "links/index.html",
+      "url": "https://camcookie876.github.io/links/",
+      "title": "Links - Camcookie",
+      "description": "A central directory of Camcookie site links for quick navigation." 
+    },
+    {
+      "path": "books/index.html",
+      "url": "https://camcookie876.github.io/books/",
+      "title": "Books - Camcookie Books",
+      "description": "Browse Camcookie's book collection and navigate to series and author pages." 
+    },
+    {
+      "path": "books/series/index.html",
+      "url": "https://camcookie876.github.io/books/series/",
+      "title": "Series - Books - Camcookie Books",
+      "description": "Explore Camcookie book series with the latest story pages and author details." 
+    },
+    {
+      "path": "books/series/camcookie/index.html",
+      "url": "https://camcookie876.github.io/books/series/camcookie/",
+      "title": "Camcookie - Series - Books - Camcookie Books",
+      "description": "Camcookie book series overview, including the Fall of the Firewall story." 
+    },
+    {
+      "path": "books/series/camcookie/fallofthefirewall/index.html",
+      "url": "https://camcookie876.github.io/books/series/camcookie/fallofthefirewall/",
+      "title": "Fall of the Firewall - Camcookie - Series - Books - Camcookie Books",
+      "description": "Book page for Camcookie: Fall of the Firewall, complete with author and story details." 
+    },
+    {
+      "path": "books/author/index.html",
+      "url": "https://camcookie876.github.io/books/author/",
+      "title": "Author - Books - Camcookie Books",
+      "description": "Find Camcookie book authors and access their published works." 
+    },
+    {
+      "path": "books/author/microsoft-copilot/index.html",
+      "url": "https://camcookie876.github.io/books/author/microsoft-copilot/",
+      "title": "Microsoft Copilot (Open AI) - Author - Books - Camcookie Books",
+      "description": "Author page for Microsoft Copilot, showing Camcookie books by that author." 
+    },
+    {
+      "path": "DOCS/index.html",
+      "url": "https://camcookie876.github.io/DOCS/",
+      "title": "Camcookie DOCS",
+      "description": "Camcookie documentation hub for music, Arduino, and site tools." 
+    },
+    {
+      "path": "DOCS/music/index.html",
+      "url": "https://camcookie876.github.io/DOCS/music/",
+      "title": "Music - Camcookie DOCS",
+      "description": "Camcookie Music documentation page with access to Archive Radio and music features." 
+    },
+    {
+      "path": "DOCS/music/1/index.html",
+      "url": "https://camcookie876.github.io/DOCS/music/1/",
+      "title": "Archive Radio - Music - Camcookie DOCS",
+      "description": "Archive Radio page for Camcookie Music with instructions and navigation." 
+    },
+    {
+      "path": "DOCS/arduino/index.html",
+      "url": "https://camcookie876.github.io/DOCS/arduino/",
+      "title": "UNO R3 - Camcookie DOCS",
+      "description": "Camcookie Arduino documentation landing page for UNO R3 resources." 
+    },
+    {
+      "path": "DOCS/arduino/1/index.html",
+      "url": "https://camcookie876.github.io/DOCS/arduino/1/",
+      "title": "Camcookie Security - UNO R3 - Camcookie DOCS",
+      "description": "Detailed Camcookie UNO R3 security project guide with wiring and code." 
+    },
+    {
+      "path": "games/index.html",
+      "url": "https://camcookie876.github.io/games/",
+      "title": "Games - Camcookie",
+      "description": "Placeholder page for Camcookie Games content and site navigation." 
+    },
+    {
+      "path": "connect/index.html",
+      "url": "https://camcookie876.github.io/connect/",
+      "title": "Camcookie Connect",
+      "description": "Placeholder page for Camcookie Connect and related services." 
+    },
+    {
+      "path": "connect/26/books/index.html",
+      "url": "https://camcookie876.github.io/connect/26/books/",
+      "title": "Connect 26 Books - Camcookie",
+      "description": "Connect 26 Books placeholder page with links to book content." 
+    }
+  ]
+}
