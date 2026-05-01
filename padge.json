@@ -10,12 +10,6 @@
       "description": "Camcookie homepage with quick access to docs, music, books, games, and Connect." 
     },
     {
-      "path": "404.html",
-      "url": "https://camcookie876.github.io/404.html",
-      "title": "404 - Camcookie",
-      "description": "Page not found. Use the site navigation or search to find the page you need." 
-    },
-    {
       "path": "links/index.html",
       "url": "https://camcookie876.github.io/links/",
       "title": "Links - Camcookie",

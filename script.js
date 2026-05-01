@@ -2,11 +2,10 @@ const PADGE_FILE = '/padge.json';
 const NAV_LINKS = [
   { name: 'Home', url: '/' },
   { name: 'DOCS', url: '/DOCS/' },
-  { name: 'Music', url: '/DOCS/music/' },
+  { name: 'Music', url: 'https://camcookiem.github.io/' },
   { name: 'Books', url: '/books/' },
-  { name: 'Games', url: '/games/' },
+  { name: 'Games', url: 'https://camcookieg.github.io/' },
   { name: 'Connect', url: '/connect/' },
-  { name: 'Links', url: '/links/' }
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -102,10 +101,9 @@ document.addEventListener('DOMContentLoaded', () => {
     footer.innerHTML = `
       <div class="footer-copy">
         <strong>Copyright © 2025 Camcookie.</strong>
-        <span>All rights reserved. Designed for a clean, professional blue-on-white experience.</span>
+        <span>All rights reserved.</span>
       </div>
       <div class="footer-meta">
-        <span>Page search powered by <a href="/padge.json">padge.json</a>.</span>
         <span>Browse docs, music, books, games, and more from one place.</span>
       </div>
     `;
@@ -129,8 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const menu = document.createElement('div');
     menu.id = 'customMenu';
     menu.innerHTML = `
-      <div class="menu-item" data-action="home">Go Home</div>
-      <div class="menu-item" data-action="top">Camcookie</div>
+      <div class="menu-item" data-action="home">Home</div>
       <div class="menu-item" data-action="search">Search</div>
       <div class="menu-item" data-action="print">Print</div>
     `;
