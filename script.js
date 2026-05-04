@@ -1,6 +1,7 @@
 const PADGE_FILE = '/padge.json';
 const isDOCS = window.location.pathname.startsWith('/DOCS/');
-const NAV_LINKS = isDOCS ? [
+
+const mainLinks = isDOCS ? [
   { name: 'Home', url: '/' },
   { name: 'DOCS', url: '/DOCS/' },
   { name: 'Music', url: '/DOCS/music/' },
@@ -20,12 +21,63 @@ const NAV_LINKS = isDOCS ? [
 
 document.addEventListener('DOMContentLoaded', () => {
   const pageIndex = [];
-  const topbar = createTopbar();
-  const footer = createFooter();
-  document.body.prepend(topbar);
-  document.body.appendChild(footer);
+  
+  // Initialize topbar
+  initTopbar();
+  
+  // Initialize footer
+  initFooter();
+  
+  // Load page index and init context menu
   loadPageIndex();
   initContextMenu();
+
+  function initTopbar() {
+    const navContainer = document.querySelector('.site-nav');
+    const dropdown = document.querySelector('.site-dropdown');
+    const menuBtn = document.querySelector('.site-menu-btn');
+
+    if (!navContainer && !dropdown) {
+      // Topbar doesn't exist, create it
+      const topbar = createTopbar();
+      document.body.prepend(topbar);
+      return;
+    }
+
+    // Desktop links
+    if (navContainer) {
+      mainLinks.forEach(link => {
+        const a = document.createElement('a');
+        a.href = link.url;
+        a.textContent = link.name;
+        navContainer.appendChild(a);
+      });
+    }
+
+    // Mobile dropdown
+    if (dropdown) {
+      mainLinks.forEach(link => {
+        const a = document.createElement('a');
+        a.href = link.url;
+        a.textContent = link.name;
+        dropdown.appendChild(a);
+      });
+    }
+
+    // Toggle dropdown
+    if (menuBtn && dropdown) {
+      menuBtn.addEventListener('click', () => {
+        dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.site-topbar')) {
+          dropdown.style.display = 'none';
+        }
+      });
+    }
+  }
 
   function createTopbar() {
     const bar = document.createElement('div');
@@ -37,131 +89,88 @@ document.addEventListener('DOMContentLoaded', () => {
     const brand = document.createElement('a');
     brand.className = 'site-brand';
     brand.href = '/';
-    brand.innerHTML = isDOCS ? '<img src="/DOCS/logo.png" alt="Camcookie DOCS"> <span>Camcookie DOCS</span>' : '<img src="/logo.png" alt="Camcookie Logo"> <span>Camcookie</span>';
+    brand.innerHTML = isDOCS 
+      ? '<img src="/DOCS/logo.png" alt="Camcookie DOCS"> <span>Camcookie DOCS</span>' 
+      : '<img src="/logo.png" alt="Camcookie Logo"> <span>Camcookie</span>';
 
     const nav = document.createElement('nav');
     nav.className = 'site-nav';
-    NAV_LINKS.forEach(link => {
+    
+    mainLinks.forEach(link => {
       const a = document.createElement('a');
       a.href = link.url;
       a.textContent = link.name;
       nav.appendChild(a);
     });
 
-    const search = document.createElement('div');
-    search.className = 'search-control';
-    search.innerHTML = '<input type="search" placeholder="Search pages..." aria-label="Search pages"><div class="search-results"></div>';
-    const searchInput = search.querySelector('input');
-    const resultsBox = search.querySelector('.search-results');
+    const menuBtn = document.createElement('button');
+    menuBtn.className = 'site-menu-btn';
+    menuBtn.setAttribute('aria-label', 'Menu');
+    menuBtn.setAttribute('title', 'Menu');
+    menuBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>';
 
-    searchInput.addEventListener('input', () => {
-      const query = searchInput.value.trim().toLowerCase();
-      resultsBox.innerHTML = '';
-      if (!query || pageIndex.length === 0) {
-        resultsBox.classList.remove('show');
-        return;
-      }
-
-      const matches = pageIndex.filter(page => {
-        return page.title.toLowerCase().includes(query) ||
-          page.description.toLowerCase().includes(query) ||
-          page.path.toLowerCase().includes(query);
-      }).slice(0, 8);
-
-      if (matches.length === 0) {
-        resultsBox.innerHTML = '<div class="result-empty">No results found</div>';
-      } else {
-        matches.forEach(page => {
-          const item = document.createElement('a');
-          item.href = page.url;
-          item.className = 'search-result';
-          item.innerHTML = `<strong>${page.title}</strong><span>${page.description}</span>`;
-          resultsBox.appendChild(item);
-        });
-      }
-      resultsBox.classList.add('show');
-    });
-
-    document.addEventListener('click', (event) => {
-      if (!search.contains(event.target)) {
-        resultsBox.classList.remove('show');
-      }
+    const dropdown = document.createElement('div');
+    dropdown.className = 'site-dropdown';
+    
+    mainLinks.forEach(link => {
+      const a = document.createElement('a');
+      a.href = link.url;
+      a.textContent = link.name;
+      dropdown.appendChild(a);
     });
 
     inner.appendChild(brand);
     inner.appendChild(nav);
-    inner.appendChild(search);
+    inner.appendChild(menuBtn);
+    inner.appendChild(dropdown);
+    
+    bar.appendChild(inner);
 
-    const mobileToggle = document.createElement('button');
-    mobileToggle.className = 'site-menu-toggle';
-    mobileToggle.type = 'button';
-    mobileToggle.textContent = 'Menu';
-    mobileToggle.addEventListener('click', () => {
-      bar.classList.toggle('menu-open');
+    // Toggle dropdown
+    menuBtn.addEventListener('click', () => {
+      dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
     });
 
-    inner.appendChild(mobileToggle);
-    bar.appendChild(inner);
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.site-topbar')) {
+        dropdown.style.display = 'none';
+      }
+    });
+
     return bar;
   }
 
-  function createFooter() {
+  function initFooter() {
+    const existingFooter = document.querySelector('.footer');
+    if (existingFooter) return;
+
     const footer = document.createElement('footer');
-    footer.className = 'site-footer';
+    footer.className = 'footer';
     footer.innerHTML = `
-      <div class="footer-copy">
-        <strong>Copyright © 2025 Camcookie.</strong>
-        <span>All rights reserved.</span>
-      </div>
-      <div class="footer-meta">
-        <span>This site is made by a 12 year old and AI. It is also BETA.</span>
-      </div>
+      <p>&copy; 2024 Camcookie. All rights reserved.</p>
+      <p><a href="/links/">Links</a> | <a href="/DOCS/">Docs</a></p>
     `;
-    return footer;
+    document.body.appendChild(footer);
   }
 
-  async function loadPageIndex() {
-    try {
-      const response = await fetch(PADGE_FILE, { cache: 'no-store' });
-      if (!response.ok) throw new Error('Page index not available');
-      const json = await response.json();
-      if (Array.isArray(json.pages)) {
-        pageIndex.push(...json.pages);
-      }
-    } catch (error) {
-      console.warn('Could not load page index:', error);
-    }
+  function loadPageIndex() {
+    fetch(PADGE_FILE)
+      .then(response => response.json())
+      .then(data => {
+        if (data.pages && Array.isArray(data.pages)) {
+          pageIndex.push(...data.pages);
+        }
+      })
+      .catch(error => console.error('Error loading page index:', error));
   }
 
   function initContextMenu() {
-    const menu = document.createElement('div');
-    menu.id = 'customMenu';
-    menu.innerHTML = `
-      <div class="menu-item" data-action="home">Go Home</div>
-      <div class="menu-item" data-action="top">Camcookie</div>
-      <div class="menu-item" data-action="search">Search</div>
-      <div class="menu-item" data-action="print">Print</div>
-    `;
-    document.body.appendChild(menu);
-
-    document.addEventListener('contextmenu', (event) => {
-      event.preventDefault();
-      menu.style.left = event.pageX + 'px';
-      menu.style.top = event.pageY + 'px';
-      menu.style.display = 'block';
-    });
-
-    document.addEventListener('click', () => {
-      menu.style.display = 'none';
-    });
-
-    menu.addEventListener('click', (event) => {
-      const action = event.target.dataset.action;
-      if (!action) return;
-      if (action === 'home') window.location.href = '/';
-      if (action === 'top') window.location.href = '/';
-      if (action === 'search') document.querySelector('.search-control input')?.focus();
-      if (action === 'print') window.print();
+    document.addEventListener('contextmenu', (e) => {
+      const target = e.target;
+      if (target.tagName === 'A' || target.closest('a')) {
+        return;
+      }
     });
   }
 });
