@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Shape Catch — Camcookie Games</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f1216;
+      --panel: #171b21;
+      --accent: #7bdff2;
+      --accent2: #f7aef8;
+      --accent3: #ffd166;
+      --text: #e7eaf0;
+      --bad: #ff6b6b;
+      --good: #6ef3a5;
+      --brand: #7bdff2;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--bg); font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--text); }
+    .wrap { display: grid; place-items: center; height: 100%; }
+
+    .hud {
+      position: fixed; top: 12px; left: 12px; right: 12px; z-index: 10;
+      display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+    }
+    .stats {
+      display: flex; gap: 14px; background: var(--panel); border: 1px solid #222832; padding: 8px 12px; border-radius: 10px;
+    }
+    .stats .item { display: flex; gap: 6px; align-items: center; }
+    .hearts { display: flex; gap: 6px; align-items: center; }
+    .hearts svg { filter: drop-shadow(0 1px 2px #0006); }
+    .brand {
+      display: inline-flex; align-items: center; gap: 8px; margin-left: 12px; padding: 6px 10px;
+      border-radius: 8px; border: 1px solid #223041; background: #14202b;
+    }
+    .brand .name {
+      font-weight: 800; letter-spacing: 0.3px;
+      background: linear-gradient(90deg, var(--brand), var(--accent2), var(--accent3));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .btns { display: flex; gap: 10px; flex-wrap: wrap; }
+    button {
+      background: #202630; color: var(--text); border: 1px solid #2a313c;
+      padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 600;
+    }
+    button:hover { background: #252c37; }
+    button.primary { background: linear-gradient(135deg, #2a394a, #243244); border: 1px solid #2f3b49; }
+
+    .stage {
+      width: 100%;
+      max-width: 900px;
+      aspect-ratio: 16 / 10;
+      background: radial-gradient(1000px 600px at 70% 20%, #13181f, #0f1216);
+      border: 2px solid #1f2530; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+      position: relative; overflow: hidden;
+    }
+    .overlay {
+      position: absolute; inset: 0; display: grid; place-items: center; z-index: 4;
+      background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.55));
+      opacity: 0; pointer-events: none; transition: opacity .25s ease;
+    }
+    .overlay.show { opacity: 1; pointer-events: auto; }
+    .card {
+      background: var(--panel); border: 1px solid #2a303a; padding: 20px; border-radius: 12px; max-width: 560px;
+      text-align: center;
+    }
+    .title {
+      font-weight: 800; letter-spacing: 0.3px; font-size: 26px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      margin-bottom: 12px;
+    }
+    .desc { opacity: 0.9; margin-bottom: 10px; }
+    .subline { opacity: 0.8; font-size: 14px; margin-top: 6px; }
+    .legend { display: flex; gap: 16px; justify-content: center; margin: 12px 0 18px; flex-wrap: wrap; }
+    .legend .badge { display: inline-flex; gap: 8px; align-items: center; background: #1d232d; border: 1px solid #2a303a; padding: 6px 10px; border-radius: 8px; }
+
+    .confetti, .fireworks, .trail {
+      position: absolute; inset: 0; pointer-events: none; z-index: 3;
+    }
+
+    .cursor {
+      position: fixed; width: 12px; height: 12px; border-radius: 50%;
+      background: #ffffffcc; box-shadow: 0 0 20px #ffffff55, 0 0 4px #fff;
+      transform: translate(-50%, -50%); pointer-events: none; mix-blend-mode: screen;
+      z-index: 9999;
+    }
+    .stage { cursor: none; }
+    @media (hover: none) {
+      .cursor { display: none; }
+      .stage { cursor: default; }
+    }
+
+    .home {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      justify-items: center;
+      align-items: start;
+      padding: 24px;
+      gap: 18px;
+      z-index: 10000;
+    }
+    .home .logo {
+      display: flex; align-items: center; gap: 12px;
+      background: #14202b; border: 1px solid #223041; padding: 10px 14px; border-radius: 10px;
+    }
+    .home .logo img { height: 32px; border-radius: 6px; }
+    .home .name {
+      font-weight: 800; letter-spacing: 0.3px; font-size: 22px;
+      background: linear-gradient(90deg, var(--brand), var(--accent2), var(--accent3));
+      -webkit-background-clip: text; color: transparent;
+    }
+    .home .menu { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .home .menu button { font-size: 18px; padding: 12px 18px; }
+    .home .panels {
+      width: min(900px, 92vw);
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+    }
+    .panel {
+      background: var(--panel); border: 1px solid #2a303a; padding: 14px; border-radius: 10px;
+    }
+    .panel h2 {
+      margin: 0 0 10px;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; color: transparent;
+      font-size: 18px;
+    }
+    .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+    .badge {
+      display: inline-flex; gap: 8px; align-items: center;
+      background: #1d232d; border: 1px solid #2a303a; padding: 6px 10px; border-radius: 8px;
+    }
+
+    .settings {
+      position: fixed; inset: 0; display: grid; place-items: center; z-index: 10001;
+      background: rgba(0,0,0,0.6); opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .settings.show { opacity: 1; pointer-events: auto; }
+    .settings .card { max-width: 520px; }
+
+    @media (max-width: 700px) {
+      .hud { grid-template-columns: 1fr; gap: 8px; }
+      .stats { flex-wrap: wrap; font-size: 14px; }
+      .btns { justify-content: center; }
+      button { padding: 10px 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="home" class="home">
+    <div class="logo">
+      <img src="https://camcookieg.github.io/game/LOGO.gif" alt="Camcookie Logo" />
+      <span class="name">Shape Catch</span>
+    </div>
+
+    <div class="menu">
+      <button id="homePlay" class="primary">Play</button>
+      <button id="homeChallenge">Daily Challenge</button>
+      <button id="homeSettings">Settings</button>
+    </div>
+
+    <div class="panels">
+      <div class="panel">
+        <h2>High scores</h2>
+        <ul id="scoreList" class="list"></ul>
+      </div>
+      <div class="panel">
+        <h2>Achievements</h2>
+        <ul id="achList" class="list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="settings" class="settings">
+    <div class="card">
+      <div class="title">Settings</div>
+      <div class="desc">Customize controls and challenge mode. Tilt and tap are off by default.</div>
+      <div class="legend" style="justify-content:center;">
+        <label class="badge">
+          <input type="checkbox" id="tiltToggle" />
+          Tilt controls (mobile)
+        </label>
+        <label class="badge">
+          <input type="checkbox" id="tapToggle" />
+          Tap zones (mobile)
+        </label>
+      </div>
+      <div class="legend" style="justify-content:center;">
+        <button id="closeSettings">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="hud">
+    <div class="stats">
+      <div class="item"><strong>Score:</strong> <span id="score">0</span></div>
+      <div class="item"><strong>Combo:</strong> <span id="combo">x1</span></div>
+      <div class="item hearts" id="hearts"><strong>Hearts:</strong> <span id="heartIcons"></span></div>
+      <div class="item"><strong>Level:</strong> <span id="level">1</span></div>
+      <div class="item"><strong>Time:</strong> <span id="time">0.0s</span></div>
+      <div class="brand">
+        <img src="https://camcookieg.github.io/game/LOGO.gif" alt="Camcookie Logo" style="height:18px; border-radius:4px;" />
+        <span class="name">Camcookie Games</span>
+      </div>
+    </div>
+    <div class="btns">
+      <button id="startBtn" class="primary">Start</button>
+      <button id="pauseBtn">Pause</button>
+      <button id="resumeBtn">Resume</button>
+      <button id="restartBtn">Restart</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="stage" id="stage">
+      <svg id="svg" width="100%" height="100%" viewBox="0 0 900 562" xmlns="http://www.w3.org/2000/svg" aria-label="Game stage">
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1c222c" stroke-width="1"/>
+          </pattern>
+          <linearGradient id="bucketGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2b6cb0"/>
+            <stop offset="100%" stop-color="#1a4369"/>
+          </linearGradient>
+          <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.35"/>
+          </filter>
+          <radialGradient id="starGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fff98a"/>
+            <stop offset="60%" stop-color="#ffd166"/>
+            <stop offset="100%" stop-color="#ff9f1c"/>
+          </radialGradient>
+          <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#7bdff2"/>
+            <stop offset="50%" stop-color="#f7aef8"/>
+            <stop offset="100%" stop-color="#ffd166"/>
+          </linearGradient>
+        </defs>
+        <rect width="900" height="562" fill="url(#grid)"></rect>
+
+        <g id="bucket" filter="url(#dropShadow)">
+          <rect x="-50" y="-18" width="100" height="36" rx="8" fill="url(#bucketGrad)" stroke="#0f1216" stroke-width="2"></rect>
+          <rect x="-45" y="-28" width="90" height="10" rx="6" fill="#0f1216" opacity="0.25"></rect>
+          <circle cx="-15" cy="-2" r="3" fill="#fff"></circle>
+          <circle cx="15" cy="-2" r="3" fill="#fff"></circle>
+        </g>
+
+        <g id="pops"></g>
+        <g id="shapes"></g>
+
+        <rect x="0" y="560" width="900" height="2" fill="#1f2530"></rect>
+      </svg>
+
+      <canvas class="trail" id="trail"></canvas>
+      <canvas class="confetti" id="confetti"></canvas>
+      <canvas class="fireworks" id="fireworks"></canvas>
+
+      <div class="overlay show" id="overlay">
+        <div class="card">
+          <div class="title">Shape Catch</div>
+          <div class="desc">Catch shapes with your bucket. Miss a shape and lose a heart. Catch the rare star to restore all hearts.</div>
+          <div class="subline">Space/Enter starts. P pauses/resumes. R restarts.</div>
+          <div class="legend" id="legend"></div>
+          <button id="play" class="primary">Play</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cursor" id="cursor"></div>
+
+  <script>
+    // ===== Elements =====
+    const W = 900, H = 562, BUCKET_Y = 520, BUCKET_WIDTH = 100, MAX_HEARTS = 3;
+    const svg = document.getElementById('svg'), stage = document.getElementById('stage');
+    const bucket = document.getElementById('bucket'), shapesLayer = document.getElementById('shapes');
+    const popsLayer = document.getElementById('pops'), overlay = document.getElementById('overlay');
+    const cursorEl = document.getElementById('cursor'), legendEl = document.getElementById('legend');
+
+    const confettiCanvas = document.getElementById('confetti'), confettiCtx = confettiCanvas.getContext('2d');
+    const fireworksCanvas = document.getElementById('fireworks'), fireworksCtx = fireworksCanvas.getContext('2d');
+    const trailCanvas = document.getElementById('trail'), trailCtx = trailCanvas.getContext('2d');
+
+    const home = document.getElementById('home'), scoreList = document.getElementById('scoreList'), achList = document.getElementById('achList');
+    const homePlay = document.getElementById('homePlay'), homeChallenge = document.getElementById('homeChallenge'), homeSettings = document.getElementById('homeSettings');
+    const settings = document.getElementById('settings'), tiltToggle = document.getElementById('tiltToggle'), tapToggle = document.getElementById('tapToggle'), closeSettings = document.getElementById('closeSettings');
+
+    const scoreEl = document.getElementById('score'), comboEl = document.getElementById('combo'), levelEl = document.getElementById('level'), timeEl = document.getElementById('time');
+    const heartIcons = document.getElementById('heartIcons');
+
+    const startBtn = document.getElementById('startBtn'), restartBtn = document.getElementById('restartBtn'), pauseBtn = document.getElementById('pauseBtn'), resumeBtn = document.getElementById('resumeBtn'), playBtn = document.getElementById('play');
+
+    // ===== Utils =====
+    const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+    const choice = arr=>arr[Math.floor(Math.random()*arr.length)];
+    const rnd = (min,max)=>Math.random()*(max-min)+min;
+
+    // ===== Config / Theme =====
+    let CONFIG = null;
+    let ACTIVE_THEME = null;
+
+    async function loadConfig() {
+      try {
+        const res = await fetch('config.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Config not found');
+        CONFIG = await res.json();
+      } catch (e) {
+        // Fallback defaults
+        CONFIG = {
+          themes: [{
+            name: 'Default',
+            cssVars: {"--bg":"#0f1216","--panel":"#171b21","--accent":"#7bdff2","--accent2":"#f7aef8","--accent3":"#ffd166","--text":"#e7eaf0","--bad":"#ff6b6b","--good":"#6ef3a5","--brand":"#7bdff2"},
+            gradients: { bucketGrad:["#2b6cb0","#1a4369"], starGrad:["#fff98a","#ffd166","#ff9f1c"], brandGrad:["#7bdff2","#f7aef8","#ffd166"] },
+            particlesPalette: ["#7bdff2","#f7aef8","#ffd166","#6ef3a5","#ff6b6b","#b28dff","#5eead4"],
+            hudCopy: { title:"Shape Catch", desc:"Catch shapes with your bucket. Miss a shape and lose a heart. Catch the rare star to restore all hearts.", subline:"Space/Enter starts. P pauses/resumes. R restarts." }
+          }],
+          shapes: [
+            { id:"square", type:"svg", points:10, sizeRange:[20,36], fill:"#7bdff2", stroke:"#0f1216", strokeWidth:2, rotationRange:[-0.8,0.8], svg:{ primitive:"rect", rx:6 } },
+            { id:"circle", type:"svg", points:10, sizeRange:[20,36], fill:"#f7aef8", stroke:"#0f1216", strokeWidth:2, rotationRange:[0,0], svg:{ primitive:"circle" } },
+            { id:"triangle", type:"svg", points:10, sizeRange:[20,36], fill:"#ffd166", stroke:"#0f1216", strokeWidth:2, rotationRange:[-0.8,0.8], svg:{ primitive:"path", dTemplate:"triangle" } },
+            { id:"star", type:"svg", special:"restoreHearts", sizeRange:[26,36], fillGradient:"starGrad", stroke:"#0f1216", strokeWidth:2, rotationRange:[0.2,0.6], svg:{ primitive:"path", dTemplate:"star", scaleBase:20 } },
+            { id:"bomb", type:"svg", special:"instantLose", sizeRange:[24,32], fill:"#111", stroke:"#ff6b6b", strokeWidth:2, rotationRange:[-0.5,0.5], unlockLevel:50, svg:{ primitive:"group", groupTemplate:"bomb" } },
+            { id:"power_double", type:"svg", special:"powerUp", powerUp:{type:"double",durationSec:10}, sizeRange:[22,30], fill:"#f7aef8", ring:{stroke:"#f7aef8",width:2}, rotationRange:[0,0], svg:{ primitive:"group", groupTemplate:"orbRing" } }
+          ],
+          spawnRules: { basePool:["square","circle","triangle"], levelBonus:[{level:20,add:["pentagon","hexagon"]}], bombChanceAfterLevel:{level:50,chance:0.1}, starChancePercentBase:0.6, starChancePercentPerLevel:0.15, powerUpChancePercent:3.0 },
+          physics: { baseGravity:120, drag:0.995 },
+          challenge: { default:{ seed:"Balanced", modifiers:{ fastGravity:false, onlyTriangles:false } }, daily:{ useSystemDateSeed:true } }
+        };
+      }
+      ACTIVE_THEME = CONFIG.themes?.[0] || null;
+      applyTheme(ACTIVE_THEME);
+      buildLegend();
+    }
+
+    function applyTheme(theme) {
+      if (!theme) return;
+      Object.entries(theme.cssVars || {}).forEach(([k,v])=>{
+        document.documentElement.style.setProperty(k, v);
+      });
+      // gradients
+      const bucketStops = document.querySelectorAll('#bucketGrad stop');
+      if (theme.gradients?.bucketGrad && bucketStops.length>=2) {
+        bucketStops[0].setAttribute('stop-color', theme.gradients.bucketGrad[0]);
+        bucketStops[1].setAttribute('stop-color', theme.gradients.bucketGrad[1]);
+      }
+      const starStops = document.querySelectorAll('#starGrad stop');
+      if (theme.gradients?.starGrad && starStops.length>=3) {
+        starStops[0].setAttribute('stop-color', theme.gradients.starGrad[0]);
+        starStops[1].setAttribute('stop-color', theme.gradients.starGrad[1]);
+        starStops[2].setAttribute('stop-color', theme.gradients.starGrad[2]);
+      }
+      // HUD copy
+      if (theme.hudCopy) {
+        overlay.querySelector('.title').textContent = theme.hudCopy.title || 'Shape Catch';
+        overlay.querySelector('.desc').textContent = theme.hudCopy.desc || overlay.querySelector('.desc').textContent;
+        overlay.querySelector('.subline').textContent = theme.hudCopy.subline || overlay.querySelector('.subline').textContent;
+      }
+    }
+
+    function buildLegend() {
+      legendEl.innerHTML = '';
+      const showIds = (CONFIG.spawnRules?.basePool || []).concat('star');
+      showIds.forEach(id=>{
+        const def = CONFIG.shapes.find(s=>s.id===id);
+        if (!def) return;
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        const icon = document.createElementNS('http://www.w3.org/2000/svg','svg');
+        icon.setAttribute('width','20'); icon.setAttribute('height','20'); icon.setAttribute('viewBox','0 0 20 20');
+        // simple legend icon
+        const ns = 'http://www.w3.org/2000/svg';
+        if (def.type==='svg') {
+          if (def.svg.primitive==='rect') {
+            const r = document.createElementNS(ns,'rect'); r.setAttribute('x','2'); r.setAttribute('y','2'); r.setAttribute('width','16'); r.setAttribute('height','16'); r.setAttribute('rx',def.svg.rx||4); r.setAttribute('fill',def.fill||'url(#brandGrad)'); icon.appendChild(r);
+          } else if (def.svg.primitive==='circle') {
+            const c = document.createElementNS(ns,'circle'); c.setAttribute('cx','10'); c.setAttribute('cy','10'); c.setAttribute('r','8'); c.setAttribute('fill',def.fill||'url(#brandGrad)'); icon.appendChild(c);
+          } else if (def.svg.primitive==='path' && def.svg.dTemplate==='triangle') {
+            const p = document.createElementNS(ns,'path'); p.setAttribute('d','M10 2 L18 18 L2 18 Z'); p.setAttribute('fill',def.fill||'url(#brandGrad)'); icon.appendChild(p);
+          } else if (def.svg.primitive==='path' && def.svg.dTemplate==='star') {
+            const p = document.createElementNS(ns,'path'); p.setAttribute('d','M10 1 L12.9 7.2 L19.5 7.6 L14 11.9 L15.9 18.2 L10 14.6 L4.1 18.2 L6 11.9 L0.5 7.6 L7.1 7.2 Z'); p.setAttribute('fill','url(#starGrad)'); icon.appendChild(p);
+          } else {
+            const c = document.createElementNS(ns,'circle'); c.setAttribute('cx','10'); c.setAttribute('cy','10'); c.setAttribute('r','8'); c.setAttribute('fill','url(#brandGrad)'); icon.appendChild(c);
+          }
+        } else {
+          const c = document.createElementNS(ns,'circle'); c.setAttribute('cx','10'); c.setAttribute('cy','10'); c.setAttribute('r','8'); c.setAttribute('fill','url(#brandGrad)'); icon.appendChild(c);
+        }
+        badge.appendChild(icon);
+        const label = document.createTextNode(' ' + (def.id==='star' ? 'Star: Restore hearts' : `${def.id} +${def.points||10}`));
+        badge.appendChild(label);
+        legendEl.appendChild(badge);
+      });
+    }
+
+    // ===== State =====
+    const settingsState = { tiltControls:false, tapControls:false, dailyChallenge:null };
+    let hearts = MAX_HEARTS, running=false, paused=false, score=0, combo=1, level=1, misses=0;
+    let t0=0, pausedTimeAccum=0, pauseStart=0, mouseX=W/2, spawnTimer=0, spawnInterval=1.0, shapes=[], lastFrame=performance.now();
+    let activePowerUps = { slow:false, double:false, shield:false }, powerTimers={}, starsCaughtThisRun=0;
+    let trailPoints = [];
+
+    // ===== Persistence =====
+    const getScores=()=>JSON.parse(localStorage.getItem('scores')||'[]');
+    function saveScore(v){ let s=getScores(); s.push(v); s.sort((a,b)=>b-a); s=s.slice(0,5); localStorage.setItem('scores',JSON.stringify(s)); renderScores(); }
+    function renderScores(){ const s=getScores(); scoreList.innerHTML=''; if(!s.length){ scoreList.innerHTML='<li class="badge">No scores yet — play to set one!</li>'; return; } s.forEach((v,i)=>{ const li=document.createElement('li'); li.className='badge'; li.textContent=`#${i+1} — ${v}`; scoreList.appendChild(li); }); }
+    const getAchievements=()=>JSON.parse(localStorage.getItem('achievements')||'{}');
+    function unlockAchievement(key,label){ const ach=getAchievements(); if(!ach[key]){ ach[key]={label,date:new Date().toISOString()}; localStorage.setItem('achievements',JSON.stringify(ach)); renderAchievements(); popText(W/2,80,`Achievement: ${label}`,'#ffd166'); burstConfetti(); } }
+    function renderAchievements(){ const ach=getAchievements(); achList.innerHTML=''; const keys=Object.keys(ach); if(!keys.length){ achList.innerHTML='<li class="badge">No achievements yet — play to unlock!</li>'; return; } keys.forEach(k=>{ const li=document.createElement('li'); li.className='badge'; li.textContent=ach[k].label; achList.appendChild(li); }); }
+
+    // ===== Inputs =====
+    function resizeCanvases(){ const rect=stage.getBoundingClientRect(); [confettiCanvas,fireworksCanvas,trailCanvas].forEach(c=>{ c.width=Math.floor(rect.width); c.height=Math.floor(rect.height); }); }
+    window.addEventListener('resize', resizeCanvases);
+    window.addEventListener('mousemove', e=>{ const rect=stage.getBoundingClientRect(); mouseX=clamp(e.clientX-rect.left,50,rect.width-50); cursorEl.style.left=e.clientX+'px'; cursorEl.style.top=e.clientY+'px'; });
+
+    stage.addEventListener('touchstart', e=>{ if(!settingsState.tapControls) return; const rect=stage.getBoundingClientRect(); const x=e.touches[0].clientX-rect.left; mouseX=clamp(mouseX+(x<rect.width/2?-40:40),50,rect.width-50); });
+    let touchStartX=null; stage.addEventListener('touchstart', e=>{ touchStartX=e.touches[0].clientX; });
+    stage.addEventListener('touchmove', e=>{ const rect=stage.getBoundingClientRect(); const delta=e.touches[0].clientX-touchStartX; mouseX=clamp(mouseX+delta*0.5,50,rect.width-50); touchStartX=e.touches[0].clientX; });
+    function enableTiltControls(){ window.addEventListener('deviceorientation', e=>{ if(!settingsState.tiltControls) return; const rect=stage.getBoundingClientRect(); const gamma=e.gamma||0; mouseX=clamp(rect.width/2+gamma*10,50,rect.width-50); }); } enableTiltControls();
+
+    window.addEventListener('keydown', e=>{
+      if ((e.code==='Space'||e.code==='Enter')&&!running) startGame();
+      if (e.code==='KeyR') restartGame();
+      if (e.code==='KeyP') togglePause();
+      if (e.code==='ArrowLeft') mouseX=clamp(mouseX-30,50,stage.getBoundingClientRect().width-50);
+      if (e.code==='ArrowRight') mouseX=clamp(mouseX+30,50,stage.getBoundingClientRect().width-50);
+    });
+
+    startBtn.onclick=()=>startGame(); restartBtn.onclick=()=>restartGame(); pauseBtn.onclick=()=>pauseGame(); resumeBtn.onclick=()=>resumeGame(); playBtn.onclick=()=>startGame();
+    homePlay.onclick=()=>{ settingsState.dailyChallenge=null; hideHome(); startGame(); };
+    homeChallenge.onclick=()=>{ startDailyChallenge(); hideHome(); startGame(); };
+    homeSettings.onclick=()=>{ settings.classList.add('show'); };
+    closeSettings.onclick=()=>{ settings.classList.remove('show'); };
+    tiltToggle.onchange=()=>{ settingsState.tiltControls=tiltToggle.checked; };
+    tapToggle.onchange=()=>{ settingsState.tapControls=tapToggle.checked; };
+
+    // ===== Bucket & HUD =====
+    function updateBucket(){ const rect=stage.getBoundingClientRect(); const scaleX=rect.width/W; const svgX=mouseX/scaleX; bucket.setAttribute('transform',`translate(${svgX}, ${BUCKET_Y})`); }
+    function drawHearts(){ heartIcons.innerHTML=''; for(let i=0;i<MAX_HEARTS;i++){ const full=i<hearts; heartIcons.insertAdjacentHTML('beforeend', `<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 21s-6.6-4.35-9.33-7.08C0.47 11.73 1.4 8.6 3.74 7.34c1.91-1.04 4.33-0.52 5.75 1.07C10.33 6.82 12 6 12 6s1.67 0.82 2.51 2.41c1.42-1.59 3.84-2.11 5.75-1.07 2.34 1.26 3.27 4.39 1.07 6.58C18.6 16.65 12 21 12 21z" fill="${full?'#ff6b6b':'#3a3f47'}" stroke="#0f1216" stroke-width="1.5"/></svg>`); }
+      if (activePowerUps.shield){ heartIcons.insertAdjacentHTML('beforeend', `<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 2l7 4v5c0 5-3.5 9-7 11-3.5-2-7-6-7-11V6l7-4z" fill="#6ef3a5" stroke="#0f1216" stroke-width="1.5"/></svg>`); } }
+    function updateHUD(now){ scoreEl.textContent=score; comboEl.textContent='x'+combo; levelEl.textContent=level; if(running&&!paused) timeEl.textContent=(((now-t0)-pausedTimeAccum)/1000).toFixed(1)+'s'; }
+
+    // ===== Power-ups =====
+    function activatePowerUp(type,duration){ activePowerUps[type]=true; powerTimers[type]=performance.now()+duration*1000;
+      if(type==='double') popText(W/2,100,'Double score!','#f7aef8');
+      if(type==='slow') popText(W/2,120,'Slow motion!','#7bdff2');
+      if(type==='shield'){ popText(W/2,140,'Shield ready!','#6ef3a5'); drawHearts(); }
+    }
+    function updatePowerUps(now){ for(const t in powerTimers){ if(activePowerUps[t]&&now>powerTimers[t]){ activePowerUps[t]=false; if(t==='shield') drawHearts(); } } }
+    function currentGravity(){ let g=(CONFIG.physics?.baseGravity)||120; if(activePowerUps.slow) g*=0.5; if(settingsState.dailyChallenge?.modifiers?.fastGravity) g*=1.35; return g; }
+
+    // ===== Shape registry & spawning =====
+    function getShapeDef(id){ return CONFIG.shapes.find(s=>s.id===id); }
+
+    function pickSpawnType(){
+      const rules = CONFIG.spawnRules || {};
+      const base = [...(rules.basePool||[])];
+      // level bonus
+      (rules.levelBonus||[]).forEach(b=>{ if(level>=b.level) base.push(...b.add); });
+      // daily challenge: only triangles
+      if (settingsState.dailyChallenge?.modifiers?.onlyTriangles) return 'triangle';
+
+      // star chance
+      const starChance = Math.min(2.0, (rules.starChancePercentBase||0.6) + (level-1)*(rules.starChancePercentPerLevel||0.15));
+      if (Math.random()*100 < starChance) return 'star';
+
+      // power-up chance
+      if (Math.random()*100 < (rules.powerUpChancePercent||3.0)) {
+        const powerIds = CONFIG.shapes.filter(s=>s.special==='powerUp').map(s=>s.id);
+        if (powerIds.length) return choice(powerIds);
+      }
+
+      let type = choice(base);
+      const bombRule = rules.bombChanceAfterLevel;
+      if (bombRule && level>=bombRule.level && Math.random()<bombRule.chance) type='bomb';
+      return type;
+    }
+
+    function spawnShape(){
+      const id = pickSpawnType();
+      const def = getShapeDef(id);
+      if (!def) return;
+
+      const size = rnd(def.sizeRange?.[0]||20, def.sizeRange?.[1]||36);
+      const x = rnd(40, W-40), y=-20, vx=rnd(-25,25), vy=rnd(35,60)+level*3;
+      const rotSpeed = rnd(def.rotationRange?.[0]||0, def.rotationRange?.[1]||0);
+
+      const ns='http://www.w3.org/2000/svg';
+      let node;
+      if (def.type==='image') {
+        node = document.createElementNS(ns,'image');
+        node.setAttributeNS('http://www.w3.org/1999/xlink','href', def.image?.src || '');
+        node.setAttribute('x', -size/2); node.setAttribute('y', -size/2);
+        node.setAttribute('width', size); node.setAttribute('height', size);
+      } else if (def.type==='svg') {
+        node = buildSVGPrimitive(def, size, ns);
+      }
+
+      // common styling for non-image
+      if (def.type!=='image') {
+        if (def.fill) node.setAttribute && node.setAttribute('fill', def.fill);
+        if (def.fillGradient==='starGrad') node.setAttribute && node.setAttribute('fill', 'url(#starGrad)');
+      }
+
+      const g=document.createElementNS(ns,'g'); const uid='shape_'+Math.random().toString(36).slice(2);
+      g.setAttribute('id',uid); g.setAttribute('filter','url(#dropShadow)'); g.setAttribute('transform',`translate(${x}, ${y})`);
+      g.appendChild(node); shapesLayer.appendChild(g);
+
+      shapes.push({ id:uid, def, type:def.id, x, y, vx, vy, size, rot:rotSpeed, node:g });
+    }
+
+    function buildSVGPrimitive(def, size, ns){
+      const prim = def.svg?.primitive;
+      if (prim==='rect'){
+        const r=document.createElementNS(ns,'rect'); r.setAttribute('x',-size/2); r.setAttribute('y',-size/2);
+        r.setAttribute('width',size); r.setAttribute('height',size); r.setAttribute('rx',def.svg.rx||6);
+        if(def.stroke) r.setAttribute('stroke',def.stroke); if(def.strokeWidth!=null) r.setAttribute('stroke-width',def.strokeWidth);
+        return r;
+      }
+      if (prim==='circle'){
+        const c=document.createElementNS(ns,'circle'); c.setAttribute('r',size/2);
+        if(def.stroke) c.setAttribute('stroke',def.stroke); if(def.strokeWidth!=null) c.setAttribute('stroke-width',def.strokeWidth);
+        return c;
+      }
+      if (prim==='path'){
+        const p=document.createElementNS(ns,'path');
+        const dT=def.svg.dTemplate;
+        if (dT==='triangle') p.setAttribute('d', `M 0 ${-size/2} L ${size/2} ${size/2} L ${-size/2} ${size/2} Z`);
+        else if (dT==='star') { p.setAttribute('d','M10 1 L12.9 7.2 L19.5 7.6 L14 11.9 L15.9 18.2 L10 14.6 L4.1 18.2 L6 11.9 L0.5 7.6 L7.1 7.2 Z'); p.setAttribute('transform',`scale(${size/(def.svg.scaleBase||20)})`); }
+        else p.setAttribute('d', def.svg.d || `M 0 ${-size/2} L ${size/2} ${size/2} L ${-size/2} ${size/2} Z`);
+        if(def.stroke) p.setAttribute('stroke',def.stroke); if(def.strokeWidth!=null) p.setAttribute('stroke-width',def.strokeWidth);
+        return p;
+      }
+      if (prim==='group'){
+        const g=document.createElementNS(ns,'g');
+        if (def.svg.groupTemplate==='bomb'){
+          const body=document.createElementNS(ns,'circle'); body.setAttribute('r',size/2); body.setAttribute('fill',def.fill||'#111');
+          if(def.stroke) body.setAttribute('stroke',def.stroke); if(def.strokeWidth!=null) body.setAttribute('stroke-width',def.strokeWidth);
+          const fuse=document.createElementNS(ns,'rect'); fuse.setAttribute('x',-3); fuse.setAttribute('y',-size/2-6); fuse.setAttribute('width',6); fuse.setAttribute('height',10); fuse.setAttribute('fill','#444');
+          const spark=document.createElementNS(ns,'circle'); spark.setAttribute('cx',0); spark.setAttribute('cy',-size/2-8); spark.setAttribute('r',3); spark.setAttribute('fill','#ffd166');
+          g.appendChild(body); g.appendChild(fuse); g.appendChild(spark);
+        } else if (def.svg.groupTemplate==='orbRing'){
+          const orb=document.createElementNS(ns,'circle'); orb.setAttribute('r',size/2); orb.setAttribute('fill',def.fill||'#fff'); orb.setAttribute('opacity','0.9');
+          const ring=document.createElementNS(ns,'circle'); ring.setAttribute('r',size/2+4); ring.setAttribute('fill','none'); ring.setAttribute('stroke',def.ring?.stroke||def.fill||'#fff'); ring.setAttribute('stroke-width',def.ring?.width||2); ring.setAttribute('opacity','0.6');
+          g.appendChild(orb); g.appendChild(ring);
+        }
+        return g;
+      }
+      const c=document.createElementNS(ns,'circle'); c.setAttribute('r',size/2); return c;
+    }
+
+    function isCaught(s){ const bw=BUCKET_WIDTH; const bx=mouseX*(W/stage.getBoundingClientRect().width); const by=BUCKET_Y; return (Math.abs(s.x-bx)<=bw/2 && s.y>=by-22 && s.y<=by+6); }
+
+    function updateShapes(dt){
+      const g=currentGravity();
+      for(let i=shapes.length-1;i>=0;i--){
+        const s=shapes[i];
+        s.vy+=g*dt; s.vx*=CONFIG.physics?.drag||0.995; s.vy*=CONFIG.physics?.drag||0.995;
+        s.x+=s.vx*dt; s.y+=s.vy*dt;
+        const current=s.node.getAttribute('transform')||`translate(${s.x}, ${s.y})`;
+        s.node.setAttribute('transform', `translate(${s.x}, ${s.y}) rotate(${(performance.now()/50)*s.rot})`);
+
+        if(s.x<12){ s.x=12; s.vx*=-0.6; }
+        if(s.x>W-12){ s.x=W-12; s.vx*=-0.6; }
+
+        const def=s.def;
+        if(isCaught(s)){
+          if(def.special==='instantLose'){ popText(s.x,s.y,'Boom!','#ff6b6b'); endGame('bomb'); removeShape(i); continue; }
+          if(def.special==='powerUp'){ const pu=def.powerUp||{}; activatePowerUp(pu.type||'double', pu.durationSec||6); popText(s.x,s.y,'Power-up!','#b28dff'); removeShape(i); continue; }
+          if(def.special==='restoreHearts'){ hearts=MAX_HEARTS; starsCaughtThisRun+=1; combo=Math.min(combo+2,10); popText(s.x,s.y,'Hearts full!','#ffd166'); drawHearts(); if(starsCaughtThisRun>=3) unlockAchievement('heartSaver','Heart Saver'); removeShape(i); continue; }
+
+          const mult=activePowerUps.double?2:1;
+          const base=def.points||10;
+          score+=base*combo*mult;
+          popText(s.x,s.y,'+'+(base*combo*mult),'#6ef3a5');
+          combo=Math.min(combo+1,10);
+          removeShape(i); continue;
+        }
+
+        if(s.y>=H-6){
+          misses+=1; combo=1;
+          if(def.special!=='restoreHearts' && def.special!=='powerUp'){
+            if(activePowerUps.shield){ activePowerUps.shield=false; popText(s.x,H-20,'Shield saved you!','#6ef3a5'); drawHearts(); }
+            else { hearts=Math.max(0,hearts-1); popText(s.x,H-20,'−1 heart','#ff6b6b'); drawHearts(); if(hearts<=0){ endGame('hearts'); removeShape(i); continue; } }
+          } else { popText(s.x,H-20,'missed...','#b28dff'); }
+          removeShape(i); continue;
+        }
+      }
+    }
+
+    function removeShape(index){ const s=shapes[index]; shapesLayer.removeChild(s.node); shapes.splice(index,1); }
+
+    // ===== Pop text & effects =====
+    function popText(x,y,text,color){ const t=document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x',x); t.setAttribute('y',y); t.setAttribute('fill',color); t.setAttribute('font-weight','800'); t.setAttribute('font-size','16'); t.textContent=text; popsLayer.appendChild(t);
+      const start=performance.now(); const animate=(now)=>{ const p=Math.min(1,(now-start)/800); t.setAttribute('y',y-p*30); t.setAttribute('opacity',String(1-p)); if(p<1) requestAnimationFrame(animate); else popsLayer.removeChild(t); }; requestAnimationFrame(animate); }
+
+    function burstConfetti(){ const rect=stage.getBoundingClientRect(); confettiCanvas.width=rect.width; confettiCanvas.height=rect.height;
+      const palette = ACTIVE_THEME?.particlesPalette || ["#7bdff2","#f7aef8","#ffd166","#6ef3a5","#ff6b6b","#b28dff","#5eead4"];
+      const pieces=Array.from({length:100},()=>({ x:Math.random()*confettiCanvas.width, y:-10, r:2+Math.random()*3, vx:-1+Math.random()*2, vy:2+Math.random()*3, c:choice(palette) }));
+      let time=0; function draw(){ time+=1; confettiCtx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+        pieces.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; confettiCtx.fillStyle=p.c; confettiCtx.beginPath(); confettiCtx.arc(p.x,p.y,p.r,0,Math.PI*2); confettiCtx.fill(); });
+        if(time<120) requestAnimationFrame(draw); else confettiCtx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+      } draw();
+    }
+
+    function fireworksBurst(){ const rect=stage.getBoundingClientRect(); fireworksCanvas.width=rect.width; fireworksCanvas.height=rect.height;
+      const center={x:rect.width/2, y:rect.height/3}; const palette=ACTIVE_THEME?.particlesPalette || ["#7bdff2","#f7aef8","#ffd166","#6ef3a5","#ff6b6b","#b28dff","#5eead4"];
+      const particles=Array.from({length:140},()=>{ const a=Math.random()*Math.PI*2; const speed=2+Math.random()*4; return { x:center.x,y:center.y, vx:Math.cos(a)*speed, vy:Math.sin(a)*speed, life:70+Math.random()*30, color:choice(palette) }; });
+      function draw(){ fireworksCtx.clearRect(0,0,fireworksCanvas.width,fireworksCanvas.height);
+        particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.02; p.life-=1; fireworksCtx.fillStyle=p.color; fireworksCtx.globalCompositeOperation='lighter'; fireworksCtx.beginPath(); fireworksCtx.arc(p.x,p.y,2,0,Math.PI*2); fireworksCtx.fill(); });
+        fireworksCtx.globalCompositeOperation='source-over';
+        if(particles.some(p=>p.life>0)) requestAnimationFrame(draw); else fireworksCtx.clearRect(0,0,fireworksCanvas.width,fireworksCanvas.height);
+      } draw();
+    }
+
+    function celebrateMilestone(lvl){ if(lvl%10===0){ fireworksBurst(); overlay.classList.add('show'); overlay.querySelector('.title').textContent=`Level ${lvl}!`;
+        if(lvl===100){ overlay.querySelector('.desc').textContent='Legendary Storm Master!!! You win big — enjoy the fireworks!'; burstConfetti(); }
+        else { overlay.querySelector('.desc').textContent='You win! Go to next level. Storm intensifies...'; }
+        setTimeout(()=>overlay.classList.remove('show'),2500); } }
+
+    function updateTrail(){ const rect=stage.getBoundingClientRect(); const scaleX=rect.width/W; const x=mouseX; const y=BUCKET_Y*scaleX; const now=performance.now();
+      if(combo>=5 && running && !paused){ trailPoints.push({x,y,t:now,c:choice(ACTIVE_THEME?.particlesPalette||['#7bdff2','#f7aef8','#ffd166'])}); trailPoints=trailPoints.filter(p=>now-p.t<600); }
+      else { trailPoints=[]; }
+      trailCtx.clearRect(0,0,trailCanvas.width,trailCanvas.height);
+      trailPoints.forEach(p=>{ const age=(now-p.t)/600; const r=8*(1-age); trailCtx.beginPath(); trailCtx.fillStyle=p.c; trailCtx.globalAlpha=(1-age)*0.7; trailCtx.arc(p.x, rect.height-(rect.height-y), r, 0, Math.PI*2); trailCtx.fill(); });
+      trailCtx.globalAlpha=1;
+    }
+
+    // ===== Game flow =====
+    function togglePause(){ paused?resumeGame():pauseGame(); }
+    function pauseGame(){ if(!running||paused) return; paused=true; pauseStart=performance.now(); overlay.classList.add('show'); overlay.querySelector('.title').textContent='Paused'; overlay.querySelector('.desc').textContent='Take a breather. Press Resume or P to continue.'; }
+    function resumeGame(){ if(!running||!paused) return; paused=false; const pauseEnd=performance.now(); pausedTimeAccum+=(pauseEnd-pauseStart); overlay.classList.remove('show'); }
+
+    function startGame(){ reset(true); overlay.classList.remove('show'); running=true; paused=false; t0=performance.now(); pausedTimeAccum=0; }
+    function endGame(reason=''){ running=false; paused=false; overlay.classList.add('show'); overlay.querySelector('.title').textContent='Game Over';
+      const base=`Final score: ${score}. Level ${level} reached.`; if(reason==='hearts'){ overlay.querySelector('.desc').textContent=`You ran out of hearts. ${base}`; }
+      else if(reason==='bomb'){ overlay.querySelector('.desc').textContent=`Caught a bomb — kaboom! ${base}`; } else { overlay.querySelector('.desc').textContent=base; }
+      saveScore(score); showHome();
+    }
+    function restartGame(){ reset(false); startGame(); }
+
+    function reset(preserveOverlay){
+      hearts=MAX_HEARTS; score=0; combo=1; level=1; misses=0; spawnTimer=0; spawnInterval=1.0;
+      activePowerUps={ slow:false, double:false, shield:false }; powerTimers={}; starsCaughtThisRun=0;
+      drawHearts(); updateBucket(); updateHUD(performance.now());
+      shapes.forEach(s=>shapesLayer.removeChild(s.node)); shapes=[];
+      while(popsLayer.firstChild) popsLayer.removeChild(popsLayer.firstChild);
+      confettiCtx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+      fireworksCtx.clearRect(0,0,fireworksCanvas.width,fireworksCanvas.height);
+      trailCtx.clearRect(0,0,trailCanvas.width,trailCanvas.height);
+      if(!preserveOverlay && ACTIVE_THEME?.hudCopy){
+        overlay.querySelector('.title').textContent = ACTIVE_THEME.hudCopy.title || 'Shape Catch';
+        overlay.querySelector('.desc').textContent = ACTIVE_THEME.hudCopy.desc || overlay.querySelector('.desc').textContent;
+      }
+    }
+
+    function updateDifficulty(now){
+      const elapsed=(((now-t0)-pausedTimeAccum)/1000);
+      const newLevel=1+Math.floor(elapsed/15);
+      if(newLevel>level){
+        level=newLevel;
+        spawnInterval=Math.max(0.3, 1.0-(level-1)*0.12);
+        celebrateMilestone(level);
+        if(level>=5) unlockAchievement('CatchStorm','Catch Storm');
+        if(level===50){ overlay.classList.add('show'); overlay.querySelector('.title').textContent='Level 50 — Danger!'; overlay.querySelector('.desc').textContent='Bombs may appear. Catching one ends the game.'; setTimeout(()=>overlay.classList.remove('show'),2500); }
+      }
+    }
+
+    function startDailyChallenge(){
+      const daily = CONFIG.challenge?.daily;
+      let seedStr = daily?.useSystemDateSeed ? new Date().toDateString() : (CONFIG.challenge?.default?.seed || 'Balanced');
+      const hash=[...seedStr].reduce((a,c)=>a+c.charCodeAt(0),0);
+      settingsState.dailyChallenge = {
+        seed: seedStr,
+        modifiers: {
+          fastGravity: (hash % 2) === 0,
+          onlyTriangles: (hash % 3) === 0
+        }
+      };
+      overlay.classList.add('show'); overlay.querySelector('.title').textContent='Daily Challenge';
+      const mods=[]; if(settingsState.dailyChallenge.modifiers.fastGravity) mods.push('Faster gravity'); if(settingsState.dailyChallenge.modifiers.onlyTriangles) mods.push('Only triangles');
+      overlay.querySelector('.desc').textContent = mods.length ? mods.join(' + ') : 'Balanced storm';
+      setTimeout(()=>overlay.classList.remove('show'),1800);
+    }
+
+    function showHome(){ renderScores(); renderAchievements(); home.style.display='grid'; }
+    function hideHome(){ home.style.display='none'; }
+
+    function frame(now){
+      const dt=Math.min(0.05,(now-lastFrame)/1000); lastFrame=now;
+      if(running&&!paused){
+        spawnTimer+=dt;
+        if(spawnTimer>=spawnInterval){ spawnTimer=0; spawnShape(); }
+        updateBucket(); updateShapes(dt); updateDifficulty(now); updatePowerUps(now); updateTrail();
+      } else { updateTrail(); }
+      updateHUD(now); requestAnimationFrame(frame);
+    }
+
+    // ===== Init =====
+    (async function init(){
+      await loadConfig();
+      drawHearts(); updateBucket(); resizeCanvases(); renderScores(); renderAchievements(); showHome();
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>

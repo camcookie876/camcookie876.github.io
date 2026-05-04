@@ -1,0 +1,1241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Shape Catch — Camcookie Santa Tracker - Camcookie Games</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      /* Christmas palette */
+      --bg: #081016;
+      --panel: rgba(255,255,255,0.08);
+      --text: #f8fbff;
+      --brand: #b3e6ff;
+      --accent: #ff4d4d;     /* red */
+      --accent2: #ffd56b;    /* gold */
+      --accent3: #7cf3c6;    /* mint glow */
+      --green: #3ac06e;
+      --gold: #ffd56b;
+      --coal: #1a1a1a;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; height: 100%; background: var(--bg);
+      font-family: 'Dancing Script'; color: #fff;
+    }
+    .wrap { display: grid; place-items: center; height: 100%; }
+
+    /* HUD */
+    .hud {
+      position: fixed; top: 12px; left: 12px; right: 12px; z-index: 10;
+      display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+    }
+    .stats {
+      display: flex; gap: 14px; background: var(--panel);
+      border: 1px solid #223041; padding: 8px 12px; border-radius: 10px;
+      backdrop-filter: blur(6px);
+    }
+    .stats .item { display: flex; gap: 6px; align-items: center; }
+    .hearts { display: flex; gap: 6px; align-items: center; }
+    .hearts svg { filter: drop-shadow(0 1px 2px #0006); }
+    .brand {
+      display: inline-flex; align-items: center; gap: 8px; margin-left: 12px; padding: 6px 10px;
+      border-radius: 8px; border: 1px solid #223041; background: #14202b;
+    }
+    .brand .name {
+      font-weight: 800; letter-spacing: 0.3px;
+      background: linear-gradient(90deg, var(--brand), var(--accent2), var(--accent3));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .btns { display: flex; gap: 10px; flex-wrap: wrap; }
+    button {
+      background: #202630; color: var(--text); border: 1px solid #2a313c;
+      padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 600;
+    }
+    button:hover { background: #252c37; }
+    button.primary { background: linear-gradient(135deg, #2a394a, #243244); border: 1px solid #2f3b49; }
+
+    /* Stage */
+    .stage {
+      width: 100%; max-width: 900px; aspect-ratio: 16 / 10;
+      background:
+        radial-gradient(1200px 800px at 70% 15%, #0c1620, #081016);
+      border: 2px solid #1f2530; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+      position: relative; overflow: hidden;
+    }
+    /* Aurora + twinkle (decor layer) */
+    .stage::before {
+      content: ""; position: absolute; inset: 0; z-index: 0;
+      background:
+        radial-gradient(1000px 400px at 60% 10%, rgba(124,243,198,0.10), transparent 60%),
+        radial-gradient(900px 600px at 20% 0%, rgba(179,230,255,0.08), transparent 65%);
+      pointer-events: none;
+    }
+
+    .overlay {
+      position: absolute; inset: 0; display: grid; place-items: center; z-index: 4;
+      background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.55));
+      opacity: 0; pointer-events: none; transition: opacity .25s ease;
+    }
+    .overlay.show { opacity: 1; pointer-events: auto; }
+    .card {
+      background: var(--panel); border: 1px solid #2a303a; padding: 20px; border-radius: 12px; max-width: 560px;
+      text-align: center; backdrop-filter: blur(6px);
+    }
+    .title {
+      font-weight: 800; letter-spacing: 0.3px; font-size: 26px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      margin-bottom: 12px;
+    }
+    .desc { opacity: 0.95; margin-bottom: 10px; }
+    .subline { opacity: 0.85; font-size: 14px; margin-top: 6px; }
+    .legend { display: flex; gap: 16px; justify-content: center; margin: 12px 0 18px; flex-wrap: wrap; }
+    .legend .badge { display: inline-flex; gap: 8px; align-items: center; background: #1d232d; border: 1px solid #2a303a; padding: 6px 10px; border-radius: 8px; }
+
+    /* Visual canvases */
+    .confetti, .fireworks, .trail, .snow {
+      position: absolute; inset: 0; pointer-events: none; z-index: 3;
+    }
+    .snow { z-index: 2; }
+
+    /* Cursor dot */
+    .cursor {
+      position: fixed; width: 12px; height: 12px; border-radius: 50%;
+      background: #ffffffcc; box-shadow: 0 0 20px #ffffff55, 0 0 4px #fff;
+      transform: translate(-50%, -50%); pointer-events: none; mix-blend-mode: screen;
+      z-index: 9999;
+    }
+    .stage { cursor: none; }
+    @media (hover: none) {
+      .cursor { display: none; }
+      .stage { cursor: default; }
+    }
+
+    /* Homescreen */
+    .home {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      justify-items: center;
+      align-items: start;
+      padding: 24px;
+      gap: 18px;
+      z-index: 10000;
+    }
+    .home .logo {
+      display: flex; align-items: center; gap: 12px;
+      background: #14202b; border: 1px solid #223041; padding: 10px 14px; border-radius: 10px;
+    }
+    .home .logo img { height: 32px; border-radius: 6px; }
+    .home .name {
+      font-weight: 800; letter-spacing: 0.3px; font-size: 22px;
+      background: linear-gradient(90deg, var(--brand), var(--accent2), var(--accent3));
+      -webkit-background-clip: text; color: transparent;
+    }
+    .home .menu { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .home .menu button { font-size: 18px; padding: 12px 18px; }
+    .home .panels {
+      width: min(900px, 92vw);
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+    }
+    .panel {
+      background: var(--panel); border: 1px solid #2a303a; padding: 14px; border-radius: 10px; backdrop-filter: blur(6px);
+    }
+    .panel h2 {
+      margin: 0 0 10px;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; color: transparent;
+      font-size: 18px;
+    }
+    .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+    .badge {
+      display: inline-flex; gap: 8px; align-items: center;
+      background: #1d232d; border: 1px solid #2a303a; padding: 6px 10px; border-radius: 8px;
+    }
+
+    .settings {
+      position: fixed; inset: 0; display: grid; place-items: center; z-index: 10001;
+      background: rgba(0,0,0,0.6); opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .settings.show { opacity: 1; pointer-events: auto; }
+    .settings .card { max-width: 520px; }
+
+    /* Responsive HUD */
+    @media (max-width: 700px) {
+      .hud { grid-template-columns: 1fr; gap: 8px; }
+      .stats { flex-wrap: wrap; font-size: 14px; }
+      .btns { justify-content: center; }
+      button { padding: 10px 14px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Homescreen -->
+  <div id="home" class="home">
+    <div class="logo">
+      <img src="https://camcookieg.github.io/game/LOGO.gif" alt="Camcookie Logo" />
+      <span class="name">Camcookie Games</span>
+    </div>
+
+    <div class="menu">
+      <button id="homePlay" class="primary">Play</button>
+      <button id="homeChallenge">Daily Challenge</button>
+      <button id="homeSettings">Settings</button>
+    </div>
+
+    <div class="panels">
+      <div class="panel">
+        <h2>High scores</h2>
+        <ul id="scoreList" class="list"></ul>
+      </div>
+      <div class="panel">
+        <h2>Achievements</h2>
+        <ul id="achList" class="list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div id="settings" class="settings">
+    <div class="card">
+      <div class="title">Settings</div>
+      <div class="desc">Customize controls and challenge mode. Tilt and tap are off by default.</div>
+      <div class="legend" style="justify-content:center;">
+        <label class="badge">
+          <input type="checkbox" id="tiltToggle" />
+          Tilt controls (mobile)
+        </label>
+        <label class="badge">
+          <input type="checkbox" id="tapToggle" />
+          Tap zones (mobile)
+        </label>
+        <label class="badge">
+  <input type="checkbox" id="musicToggle" />
+  Background Music
+</label>
+
+      </div>
+      <div class="legend" style="justify-content:center;">
+        <button id="closeSettings">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="hud">
+    <div class="stats">
+      <div class="item"><strong>Score:</strong> <span id="score">0</span></div>
+      <div class="item"><strong>Combo:</strong> <span id="combo">x1</span></div>
+      <div class="item hearts" id="hearts">
+        <strong>Hearts:</strong>
+        <span id="heartIcons"></span>
+      </div>
+      <div class="item"><strong>Level:</strong> <span id="level">1</span></div>
+      <div class="item"><strong>Time:</strong> <span id="time">0.0s</span></div>
+      <div class="brand">
+        <img src="https://camcookieg.github.io/game/LOGO.gif" alt="Camcookie Logo" style="height:18px; border-radius:4px;" />
+        <span class="name">Camcookie Games</span>
+      </div>
+    </div>
+    <div class="btns">
+      <button id="startBtn" class="primary">Start</button>
+      <button id="pauseBtn">Pause</button>
+      <button id="resumeBtn">Resume</button>
+      <button id="restartBtn">Restart</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="stage" id="stage">
+      <!-- Inline SVG canvas -->
+      <svg id="svg" width="100%" height="100%" viewBox="0 0 900 562" xmlns="http://www.w3.org/2000/svg" aria-label="Game stage">
+        <defs>
+          <!-- Subtle roofline & twinkle pattern -->
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#14202b" stroke-width="1"/>
+          </pattern>
+          <!-- Santa sack gradient -->
+          <linearGradient id="sackGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#8b1d22"/>
+            <stop offset="100%" stop-color="#5a0f12"/>
+          </linearGradient>
+          <!-- Ornament glow -->
+          <radialGradient id="ornamentGrad" cx="50%" cy="50%" r="55%">
+            <stop offset="0%" stop-color="#fff3d6"/>
+            <stop offset="60%" stop-color="#ffd56b"/>
+            <stop offset="100%" stop-color="#ffb300"/>
+          </radialGradient>
+          <!-- Star -->
+          <radialGradient id="starGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fff9da"/>
+            <stop offset="50%" stop-color="#ffe59a"/>
+            <stop offset="100%" stop-color="#ffcf66"/>
+          </radialGradient>
+          <!-- Brand -->
+          <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#b3e6ff"/>
+            <stop offset="50%" stop-color="#ffccd5"/>
+            <stop offset="100%" stop-color="#ffe59a"/>
+          </linearGradient>
+          <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.35"/>
+          </filter>
+        </defs>
+
+        <!-- Background grid -->
+        <rect width="900" height="562" fill="url(#grid)"></rect>
+
+        <!-- Santa's sack bucket -->
+        <g id="bucket" filter="url(#dropShadow)">
+          <path d="M -48 -18
+                   C -44 -30, 44 -30, 48 -18
+                   L 50 12
+                   C 50 22, -50 22, -50 12
+                   Z"
+                fill="url(#sackGrad)" stroke="#2a0c0e" stroke-width="2" />
+          <!-- Trim -->
+          <rect x="-48" y="-28" width="96" height="10" rx="6" fill="#f1e9d2" stroke="#2a0c0e" stroke-width="1"/>
+          <!-- Jingle bells studs -->
+          <circle cx="-18" cy="-24" r="3" fill="#ffd56b"/>
+          <circle cx="18" cy="-24" r="3" fill="#ffd56b"/>
+        </g>
+
+        <!-- Pop layer -->
+        <g id="pops"></g>
+
+        <!-- Shapes layer -->
+        <g id="shapes"></g>
+
+        <!-- Ground line -->
+        <rect x="0" y="560" width="900" height="2" fill="#1f2530"></rect>
+      </svg>
+
+      <!-- Visual canvases -->
+      <canvas class="snow" id="snow"></canvas>
+      <canvas class="trail" id="trail"></canvas>
+      <canvas class="confetti" id="confetti"></canvas>
+      <canvas class="fireworks" id="fireworks"></canvas>
+
+      <!-- Overlay -->
+      <div class="overlay show" id="overlay">
+        <div class="card">
+          <div class="title">Shape Catch — Camcookie Santa Tracker</div>
+          <div class="desc">Help Santa collect gifts, candy canes, ornaments, and golden stars. Avoid coal! Stars restore hearts and boost your cheer.</div>
+          <div class="subline">Space/Enter starts • P pauses/resumes • R restarts</div>
+          <div class="legend">
+            <span class="badge">
+              <svg width="20" height="20" viewBox="0 0 20 20">
+                <path d="M10 2 C10 -4 18 -4 18 2 C18 7 14 8 12 10 L12 18 C12 19 11 20 10 20 C9 20 8 19 8 18 L8 12 C8 10.5 9 9.5 10 8.5 C10.5 8 11 7 11 6 C11 4 10.5 3 10 2 Z" fill="#fff"/>
+              </svg>
+              Candy cane +15
+            </span>
+            <span class="badge">
+              <svg width="20" height="20" viewBox="0 0 20 20">
+                <circle cx="10" cy="10" r="7" fill="url(#ornamentGrad)"/>
+                <rect x="9" y="2" width="2" height="4" fill="#d7c79a"/>
+              </svg>
+              Ornament +10
+            </span>
+            <span class="badge">
+              <svg width="20" height="20" viewBox="0 0 20 20">
+                <rect x="2" y="4" width="16" height="12" rx="3" fill="#ff4d4d"/>
+                <rect x="9" y="4" width="2" height="12" fill="#ffd56b"/>
+                <rect x="2" y="9" width="16" height="2" fill="#ffd56b"/>
+              </svg>
+              Gift +20
+            </span>
+            <span class="badge">
+              <svg width="20" height="20" viewBox="0 0 20 20">
+                <path d="M10 1 L12.9 7.2 L19.5 7.6 L14 11.9 L15.9 18.2 L10 14.6 L4.1 18.2 L6 11.9 L0.5 7.6 L7.1 7.2 Z" fill="url(#starGrad)"/>
+              </svg>
+              Star: Restore hearts
+            </span>
+          </div>
+          <button id="play" class="primary">Play</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global cursor dot -->
+  <div class="cursor" id="cursor"></div>
+  <script>
+// Playlist of songs
+const playlist = [
+  "https://camcookie876.github.io/Camcookie-Santa-Tracker/music/AI-Music-so-1.mp3",
+  "https://camcookie876.github.io/Camcookie-Santa-Tracker/music/AI-Music-so-2.mp3",
+  "https://camcookie876.github.io/Camcookie-Santa-Tracker/music/Brev-AI-1.mp3",
+  "https://camcookie876.github.io/Camcookie-Santa-Tracker/music/Brev-AI-2.mp3"
+];
+let currentTrack = 0;
+const bgMusic = new Audio();
+bgMusic.volume = 0.6;   // softer background volume
+bgMusic.loop = false;   // no loop, we handle playlist manually
+
+// When a track ends, move to the next
+bgMusic.addEventListener("ended", () => {
+  currentTrack = (currentTrack + 1) % playlist.length;
+  bgMusic.src = playlist[currentTrack];
+  bgMusic.play();
+});
+
+// Settings toggle
+const musicToggle = document.getElementById("musicToggle");
+
+musicToggle.onchange = () => {
+  if (musicToggle.checked) {
+    currentTrack = 0;
+    bgMusic.src = playlist[currentTrack];
+    bgMusic.play();
+  } else {
+    bgMusic.pause();
+  }
+};
+
+// Optional: start music when game starts if toggle is on
+function startGame() {
+  reset(true);
+  overlay.classList.remove("show");
+  running = true;
+  paused = false;
+  t0 = performance.now();
+  pausedTimeAccum = 0;
+
+  if (musicToggle.checked) {
+    currentTrack = 0;
+    bgMusic.src = playlist[currentTrack];
+    bgMusic.play();
+  }
+}
+
+// Optional: stop music when game ends
+function endGame(reason = "") {
+  running = false;
+  paused = false;
+  bgMusic.pause();
+  // ... your existing overlay/game over logic
+}
+
+    // Elements & constants
+    const svg = document.getElementById('svg');
+    const stage = document.getElementById('stage');
+    const bucket = document.getElementById('bucket');
+    const shapesLayer = document.getElementById('shapes');
+    const popsLayer = document.getElementById('pops');
+    const overlay = document.getElementById('overlay');
+    const cursorEl = document.getElementById('cursor');
+
+    const confettiCanvas = document.getElementById('confetti');
+    const confettiCtx = confettiCanvas.getContext('2d');
+    const fireworksCanvas = document.getElementById('fireworks');
+    const fireworksCtx = fireworksCanvas.getContext('2d');
+    const trailCanvas = document.getElementById('trail');
+    const trailCtx = trailCanvas.getContext('2d');
+    const snowCanvas = document.getElementById('snow');
+    const snowCtx = snowCanvas.getContext('2d');
+
+    // Homescreen & settings
+    const home = document.getElementById('home');
+    const scoreList = document.getElementById('scoreList');
+    const achList = document.getElementById('achList');
+    const homePlay = document.getElementById('homePlay');
+    const homeChallenge = document.getElementById('homeChallenge');
+    const homeSettings = document.getElementById('homeSettings');
+    const settings = document.getElementById('settings');
+    const tiltToggle = document.getElementById('tiltToggle');
+    const tapToggle = document.getElementById('tapToggle');
+    const closeSettings = document.getElementById('closeSettings');
+
+    // HUD
+    const scoreEl = document.getElementById('score');
+    const comboEl = document.getElementById('combo');
+    const levelEl = document.getElementById('level');
+    const timeEl = document.getElementById('time');
+    const heartIcons = document.getElementById('heartIcons');
+
+    // Buttons
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
+    const playBtn = document.getElementById('play');
+
+    // Constants
+    const W = 900, H = 562;
+    const BUCKET_Y = 520;
+    const BUCKET_WIDTH = 100;
+    const MAX_HEARTS = 3;
+    const BASE_GRAVITY = 110;
+    const DRAG = 0.996;
+
+    // Settings state
+    const settingsState = {
+      tiltControls: false,
+      tapControls: false,
+      dailyChallenge: null
+    };
+
+    // State
+    let hearts = MAX_HEARTS;
+    let running = false;
+    let paused = false;
+    let score = 0;
+    let combo = 1;
+    let level = 1;
+    let misses = 0;
+    let t0 = 0;
+    let pausedTimeAccum = 0;
+    let pauseStart = 0;
+
+    let mouseX = W / 2;
+    let spawnTimer = 0;
+    let spawnInterval = 1.0;
+    let shapes = [];
+    let lastFrame = performance.now();
+
+    let activePowerUps = { slow: false, double: false, shield: false };
+    let powerTimers = {};
+    let starsCaughtThisRun = 0;
+
+    // Trail & snow
+    let trailPoints = [];
+    let snowflakes = [];
+
+    // Utils
+    const rnd = (min, max) => Math.random() * (max - min) + min;
+    const choice = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+    // Responsive canvas sizing
+    function resizeCanvases() {
+      const rect = stage.getBoundingClientRect();
+      [confettiCanvas, fireworksCanvas, trailCanvas, snowCanvas].forEach(c => {
+        c.width = Math.floor(rect.width);
+        c.height = Math.floor(rect.height);
+      });
+      initSnowflakes();
+    }
+    window.addEventListener('resize', resizeCanvases);
+
+    // Mouse
+    window.addEventListener('mousemove', (e) => {
+      const rect = stage.getBoundingClientRect();
+      mouseX = clamp(e.clientX - rect.left, 50, rect.width - 50);
+      cursorEl.style.left = e.clientX + 'px';
+      cursorEl.style.top = e.clientY + 'px';
+    });
+
+    // Tap zones (optional)
+    stage.addEventListener('touchstart', (e) => {
+      if (!settingsState.tapControls) return;
+      const rect = stage.getBoundingClientRect();
+      const x = e.touches[0].clientX - rect.left;
+      if (x < rect.width / 2) mouseX = clamp(mouseX - 40, 50, rect.width - 50);
+      else mouseX = clamp(mouseX + 40, 50, rect.width - 50);
+    });
+
+    // Swipe drag
+    let touchStartX = null;
+    stage.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+    stage.addEventListener('touchmove', e => {
+      const rect = stage.getBoundingClientRect();
+      const deltaX = e.touches[0].clientX - touchStartX;
+      mouseX = clamp(mouseX + deltaX * 0.5, 50, rect.width - 50);
+      touchStartX = e.touches[0].clientX;
+    });
+
+    // Tilt controls
+    function enableTiltControls() {
+      window.addEventListener('deviceorientation', e => {
+        if (!settingsState.tiltControls) return;
+        const rect = stage.getBoundingClientRect();
+        const gamma = e.gamma || 0;
+        mouseX = clamp(rect.width / 2 + gamma * 10, 50, rect.width - 50);
+      });
+    }
+    enableTiltControls();
+
+    // Keys
+    window.addEventListener('keydown', (e) => {
+      if ((e.code === 'Space' || e.code === 'Enter') && !running) startGame();
+      if (e.code === 'KeyR') restartGame();
+      if (e.code === 'KeyP') togglePause();
+      if (e.code === 'ArrowLeft') mouseX = clamp(mouseX - 30, 50, stage.getBoundingClientRect().width - 50);
+      if (e.code === 'ArrowRight') mouseX = clamp(mouseX + 30, 50, stage.getBoundingClientRect().width - 50);
+    });
+
+    // Buttons
+    startBtn.onclick = () => startGame();
+    restartBtn.onclick = () => restartGame();
+    pauseBtn.onclick = () => pauseGame();
+    resumeBtn.onclick = () => resumeGame();
+    playBtn.onclick = () => startGame();
+
+    // Homescreen buttons
+    homePlay.onclick = () => { settingsState.dailyChallenge = null; hideHome(); startGame(); };
+    homeChallenge.onclick = () => { startDailyChallenge(); hideHome(); startGame(); };
+    homeSettings.onclick = () => { settings.classList.add('show'); };
+    closeSettings.onclick = () => { settings.classList.remove('show'); };
+
+    tiltToggle.onchange = () => { settingsState.tiltControls = tiltToggle.checked; };
+    tapToggle.onchange = () => { settingsState.tapControls = tapToggle.checked; };
+
+    // High scores / achievements
+    function getScores() { return JSON.parse(localStorage.getItem('scores') || '[]'); }
+    function saveScore(value) {
+      let scores = getScores();
+      scores.push(value);
+      scores.sort((a,b) => b - a);
+      scores = scores.slice(0, 5);
+      localStorage.setItem('scores', JSON.stringify(scores));
+      renderScores();
+    }
+    function renderScores() {
+      const scores = getScores();
+      scoreList.innerHTML = '';
+      if (scores.length === 0) {
+        scoreList.innerHTML = '<li class="badge">No scores yet — play to set one!</li>';
+        return;
+      }
+      scores.forEach((s, i) => {
+        const li = document.createElement('li');
+        li.className = 'badge';
+        li.textContent = `#${i+1} — ${s}`;
+        scoreList.appendChild(li);
+      });
+    }
+
+    function getAchievements() { return JSON.parse(localStorage.getItem('achievements') || '{}'); }
+    function unlockAchievement(key, label) {
+      const ach = getAchievements();
+      if (!ach[key]) {
+        ach[key] = { label, date: new Date().toISOString() };
+        localStorage.setItem('achievements', JSON.stringify(ach));
+        renderAchievements();
+        popText(W/2, 80, `Achievement: ${label}`, '#ffd56b');
+        burstConfetti();
+      }
+    }
+    function renderAchievements() {
+      const ach = getAchievements();
+      achList.innerHTML = '';
+      const keys = Object.keys(ach);
+      if (keys.length === 0) {
+        achList.innerHTML = '<li class="badge">No achievements yet — play to unlock!</li>';
+        return;
+      }
+      keys.forEach(k => {
+        const li = document.createElement('li');
+        li.className = 'badge';
+        li.textContent = ach[k].label;
+        achList.appendChild(li);
+      });
+    }
+
+    // Bucket
+    function updateBucket() {
+      const rect = stage.getBoundingClientRect();
+      const scaleX = rect.width / W;
+      const svgX = mouseX / scaleX;
+      const svgY = BUCKET_Y;
+      bucket.setAttribute('transform', `translate(${svgX}, ${svgY})`);
+    }
+
+    // Hearts UI (ornaments)
+    function drawHearts() {
+      heartIcons.innerHTML = '';
+      for (let i = 0; i < MAX_HEARTS; i++) {
+        const full = i < hearts;
+        heartIcons.insertAdjacentHTML('beforeend', `
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="8" fill="${full ? '#ff4d4d' : '#3a3f47'}" stroke="#0a0e14" stroke-width="1.5"/>
+            <rect x="11" y="2" width="2" height="4" fill="#d7c79a"/>
+          </svg>
+        `);
+      }
+      if (activePowerUps.shield) {
+        heartIcons.insertAdjacentHTML('beforeend', `
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path d="M12 2l7 4v5c0 5-3.5 9-7 11-3.5-2-7-6-7-11V6l7-4z" fill="#7cf3c6" stroke="#0a0e14" stroke-width="1.5"/>
+          </svg>
+        `);
+      }
+    }
+
+    // Power-ups
+    function activatePowerUp(type, duration) {
+      activePowerUps[type] = true;
+      powerTimers[type] = performance.now() + duration * 1000;
+      if (type === 'double') popText(W/2, 100, 'Sleigh boost!', '#ffccd5');
+      if (type === 'slow') popText(W/2, 120, 'Candle glow!', '#b3e6ff');
+      if (type === 'shield') { popText(W/2, 140, 'Snow globe shield!', '#7cf3c6'); drawHearts(); }
+    }
+    function updatePowerUps(now) {
+      for (const type in powerTimers) {
+        if (activePowerUps[type] && now > powerTimers[type]) {
+          activePowerUps[type] = false;
+          if (type === 'shield') drawHearts();
+        }
+      }
+    }
+    function currentGravity() {
+      let g = BASE_GRAVITY;
+      if (activePowerUps.slow) g *= 0.5;
+      if (settingsState.dailyChallenge?.modifiers?.fastGravity) g *= 1.35;
+      return g;
+    }
+
+    // Santa Tracker spawn rules
+    function spawnShape() {
+      const basePool = ['candy_cane','ornament','gift'];
+      const starChance = Math.min(2.2, 0.9 + (level - 1) * 0.12);
+      const isStar = Math.random() * 100 < starChance;
+
+      const powerUpChance = 3.5;
+      const spawnPowerUp = Math.random() * 100 < powerUpChance;
+      const powerTypes = ['slow', 'double', 'shield'];
+
+      let type;
+      if (isStar) {
+        type = 'star';
+      } else if (spawnPowerUp) {
+        type = 'power_' + choice(powerTypes);
+      } else {
+        type = choice(basePool);
+        if (level >= 25 && Math.random() < 0.06) type = 'coal';
+      }
+
+      const size = (type === 'star') ? rnd(28, 40) :
+                   (type === 'coal') ? rnd(20, 30) :
+                   (type.startsWith('power_')) ? rnd(22, 30) :
+                   (type === 'candy_cane') ? rnd(28, 44) :
+                   (type === 'ornament') ? rnd(24, 38) :
+                   (type === 'gift') ? rnd(28, 42) : rnd(22, 36);
+
+      const x = rnd(40, W - 40);
+      const y = -20;
+      const vx = rnd(-25, 25);
+      const vy = rnd(35, 60) + level * 3;
+
+      const id = 'shape_' + Math.random().toString(36).slice(2);
+      const ns = 'http://www.w3.org/2000/svg';
+      let node;
+
+      if (type === 'candy_cane') {
+        node = document.createElementNS(ns, 'g');
+        const scale = size / 40;
+        const cane = document.createElementNS(ns, 'path');
+        cane.setAttribute('d', 'M10 2 C10 -4 18 -4 18 2 C18 7 14 8 12 10 L12 36 C12 38 10 40 8 40 C6 40 4 38 4 36 L4 12 C4 9 6 7 8 6 C9 5 10 4 10 2 Z');
+        cane.setAttribute('fill', '#fff');
+        cane.setAttribute('stroke', '#0a0e14');
+        cane.setAttribute('stroke-width', '2');
+        cane.setAttribute('transform', `scale(${scale}) translate(${-size/2}, ${-size/2})`);
+        node.appendChild(cane);
+        for (let i = -20; i < 40; i += 6) {
+          const stripe = document.createElementNS(ns, 'rect');
+          stripe.setAttribute('x', -size/4);
+          stripe.setAttribute('y', i);
+          stripe.setAttribute('width', size/2);
+          stripe.setAttribute('height', 3);
+          stripe.setAttribute('fill', '#ff4d4d');
+          stripe.setAttribute('transform', `rotate(45)`);
+          node.appendChild(stripe);
+        }
+      } else if (type === 'ornament') {
+        node = document.createElementNS(ns, 'g');
+        const orb = document.createElementNS(ns, 'circle');
+        orb.setAttribute('r', size/2);
+        orb.setAttribute('fill', 'url(#ornamentGrad)');
+        orb.setAttribute('stroke', '#8a5b00');
+        orb.setAttribute('stroke-width', '1.5');
+        const cap = document.createElementNS(ns, 'rect');
+        cap.setAttribute('x', -3);
+        cap.setAttribute('y', -size/2 - 6);
+        cap.setAttribute('width', 6);
+        cap.setAttribute('height', 8);
+        cap.setAttribute('fill', '#d7c79a');
+        node.appendChild(orb); node.appendChild(cap);
+      } else if (type === 'gift') {
+        node = document.createElementNS(ns, 'g');
+        const box = document.createElementNS(ns, 'rect');
+        box.setAttribute('x', -size/2);
+        box.setAttribute('y', -size/2);
+        box.setAttribute('width', size);
+        box.setAttribute('height', size);
+        box.setAttribute('rx', 6);
+        box.setAttribute('fill', '#ff4d4d');
+        box.setAttribute('stroke', '#0a0e14');
+        box.setAttribute('stroke-width', '2');
+        node.appendChild(box);
+
+        const ribbonV = document.createElementNS(ns, 'rect');
+        ribbonV.setAttribute('x', -4);
+        ribbonV.setAttribute('y', -size/2);
+        ribbonV.setAttribute('width', 8);
+        ribbonV.setAttribute('height', size);
+        ribbonV.setAttribute('fill', '#ffd56b');
+        node.appendChild(ribbonV);
+
+        const ribbonH = document.createElementNS(ns, 'rect');
+        ribbonH.setAttribute('x', -size/2);
+        ribbonH.setAttribute('y', -4);
+        ribbonH.setAttribute('width', size);
+        ribbonH.setAttribute('height', 8);
+        ribbonH.setAttribute('fill', '#ffd56b');
+        node.appendChild(ribbonH);
+
+        const bowLeft = document.createElementNS(ns, 'path');
+        bowLeft.setAttribute('d', `M 0 -6 L -8 -12 L -2 -12 Z`);
+        bowLeft.setAttribute('fill', '#ffd56b');
+        const bowRight = document.createElementNS(ns, 'path');
+        bowRight.setAttribute('d', `M 0 -6 L 8 -12 L 2 -12 Z`);
+        bowRight.setAttribute('fill', '#ffd56b');
+        node.appendChild(bowLeft); node.appendChild(bowRight);
+      } else if (type === 'star') {
+        node = document.createElementNS(ns, 'path');
+        node.setAttribute('d', 'M10 1 L12.9 7.2 L19.5 7.6 L14 11.9 L15.9 18.2 L10 14.6 L4.1 18.2 L6 11.9 L0.5 7.6 L7.1 7.2 Z');
+        node.setAttribute('fill', 'url(#starGrad)');
+        node.setAttribute('transform', `scale(${size/20})`);
+      } else if (type.startsWith('power_')) {
+        node = document.createElementNS(ns, 'g');
+        const fill = (type === 'power_slow') ? '#b3e6ff' :
+                     (type === 'power_double') ? '#ffccd5' :
+                     (type === 'power_shield') ? '#7cf3c6' : '#fff';
+        const orb = document.createElementNS(ns, 'circle');
+        orb.setAttribute('r', size/2);
+        orb.setAttribute('fill', fill);
+        orb.setAttribute('opacity', '0.9');
+        const ring = document.createElementNS(ns, 'circle');
+        ring.setAttribute('r', size/2 + 4);
+        ring.setAttribute('fill', 'none');
+        ring.setAttribute('stroke', fill);
+        ring.setAttribute('stroke-width', '2');
+        ring.setAttribute('opacity', '0.6');
+        node.appendChild(orb); node.appendChild(ring);
+      } else if (type === 'coal') {
+        node = document.createElementNS(ns, 'g');
+        const lump = document.createElementNS(ns, 'path');
+        lump.setAttribute('d', 'M -10 -6 L 8 -8 L 12 2 L 2 10 L -12 4 Z');
+        lump.setAttribute('fill', '#1a1a1a');
+        lump.setAttribute('stroke', '#444');
+        lump.setAttribute('stroke-width', '1.5');
+        node.appendChild(lump);
+      } else {
+        node = document.createElementNS(ns, 'circle');
+        node.setAttribute('r', size/2);
+        node.setAttribute('fill', '#b3e6ff');
+      }
+
+      const g = document.createElementNS(ns, 'g');
+      g.setAttribute('id', id);
+      g.setAttribute('filter', 'url(#dropShadow)');
+      g.setAttribute('transform', `translate(${x}, ${y})`);
+      g.appendChild(node);
+      shapesLayer.appendChild(g);
+
+      const rot = (type === 'ornament') ? rnd(-0.25, 0.25)
+                : (type === 'candy_cane') ? rnd(-0.4, 0.4)
+                : (type === 'gift') ? rnd(-0.3, 0.3)
+                : (type === 'coal') ? rnd(-0.5, 0.5)
+                : (type === 'star') ? rnd(0.15, 0.45)
+                : rnd(-0.3, 0.3);
+
+      shapes.push({ id, type, x, y, vx, vy, size, node: g, rot });
+    }
+
+    function isCaught(s) {
+      const bw = BUCKET_WIDTH;
+      const bx = mouseX * (W / stage.getBoundingClientRect().width);
+      const by = BUCKET_Y;
+      return (Math.abs(s.x - bx) <= bw/2 && s.y >= by - 22 && s.y <= by + 6);
+    }
+
+    function updateShapes(dt) {
+      const g = currentGravity();
+      for (let i = shapes.length - 1; i >= 0; i--) {
+        const s = shapes[i];
+        s.vy += g * dt;
+        s.vx *= DRAG; s.vy *= DRAG;
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+
+        s.node.setAttribute('transform', `translate(${s.x}, ${s.y}) rotate(${(performance.now()/50)*s.rot})`);
+
+        if (s.x < 12) { s.x = 12; s.vx *= -0.6; }
+        if (s.x > W - 12) { s.x = W - 12; s.vx *= -0.6; }
+
+        if (isCaught(s)) {
+          if (s.type === 'coal') {
+            popText(s.x, s.y, 'Coal—yikes!', '#ff4d4d');
+            endGame('coal'); removeShape(i); continue;
+          }
+          if (s.type.startsWith('power_')) {
+            if (s.type === 'power_slow') activatePowerUp('slow', 8);
+            if (s.type === 'power_double') activatePowerUp('double', 10);
+            if (s.type === 'power_shield') activatePowerUp('shield', 12);
+            popText(s.x, s.y, 'Holiday power!', '#b3e6ff');
+            removeShape(i); continue;
+          }
+          if (s.type === 'star') {
+            hearts = MAX_HEARTS;
+            starsCaughtThisRun += 1;
+            combo = Math.min(combo + 2, 10);
+            popText(s.x, s.y, 'Hearts full!', '#ffd56b');
+            drawHearts();
+            if (starsCaughtThisRun >= 3) unlockAchievement('StarRestorer', 'Star Restorer');
+            removeShape(i); continue;
+          } else {
+            const basePoints = (s.type === 'candy_cane') ? 15 :
+                               (s.type === 'ornament') ? 10 :
+                               (s.type === 'gift') ? 20 : 10;
+            const mult = activePowerUps.double ? 2 : 1;
+            const earned = basePoints * combo * mult;
+            score += earned;
+            combo = Math.min(combo + 1, 10);
+            popText(s.x, s.y, '+' + earned, '#7cf3c6');
+          }
+          removeShape(i);
+          continue;
+        }
+
+        if (s.y >= H - 6) {
+          misses += 1;
+          combo = 1;
+          if (s.type !== 'star' && !s.type.startsWith('power_')) {
+            if (activePowerUps.shield) {
+              activePowerUps.shield = false;
+              popText(s.x, H - 20, 'Shield saved you!', '#7cf3c6');
+              drawHearts();
+            } else {
+              hearts = Math.max(0, hearts - 1);
+              popText(s.x, H - 20, '−1 heart', '#ff4d4d');
+              drawHearts();
+              if (hearts <= 0) { endGame('hearts'); removeShape(i); continue; }
+            }
+          } else {
+            popText(s.x, H - 20, 'missed…', '#b3e6ff');
+          }
+          removeShape(i);
+          continue;
+        }
+      }
+    }
+
+    function removeShape(index) {
+      const s = shapes[index];
+      shapesLayer.removeChild(s.node);
+      shapes.splice(index, 1);
+    }
+
+    function popText(x, y, text, color) {
+      const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      t.setAttribute('x', x);
+      t.setAttribute('y', y);
+      t.setAttribute('fill', color);
+      t.setAttribute('font-weight', '800');
+      t.setAttribute('font-size', '16');
+      t.textContent = text;
+      popsLayer.appendChild(t);
+
+      const start = performance.now();
+      const animate = (now) => {
+        const p = Math.min(1, (now - start) / 800);
+        t.setAttribute('y', y - p * 30);
+        t.setAttribute('opacity', String(1 - p));
+        if (p < 1) requestAnimationFrame(animate); else popsLayer.removeChild(t);
+      };
+      requestAnimationFrame(animate);
+    }
+
+    function updateHUD(now) {
+      scoreEl.textContent = score;
+      comboEl.textContent = 'x' + combo;
+      levelEl.textContent = level;
+      if (running && !paused) timeEl.textContent = (((now - t0) - pausedTimeAccum) / 1000).toFixed(1) + 's';
+    }
+
+    function updateDifficulty(now) {
+      const elapsed = (((now - t0) - pausedTimeAccum) / 1000);
+      const newLevel = 1 + Math.floor(elapsed / 15);
+
+      if (newLevel > level) {
+        level = newLevel;
+        spawnInterval = Math.max(0.3, 1.0 - (level - 1) * 0.12);
+        celebrateMilestone(level);
+        if (level >= 5) unlockAchievement('SantaHelper', 'Santa’s Little Helper');
+        if (level === 30) {
+          overlay.classList.add('show');
+          overlay.querySelector('.title').textContent = `Level 30 — Coal Warning!`;
+          overlay.querySelector('.desc').textContent = 'Coal may appear. Catching coal ends the game.';
+          setTimeout(() => overlay.classList.remove('show'), 2500);
+        }
+      }
+    }
+
+    // Confetti (Christmas palette)
+    function burstConfetti() {
+      const rect = stage.getBoundingClientRect();
+      confettiCanvas.width = rect.width; confettiCanvas.height = rect.height;
+      const palette = ['#ffffff','#ff4d4d','#ffd56b','#3ac06e','#b3e6ff'];
+      const pieces = Array.from({ length: 120 }, () => ({
+        x: Math.random() * confettiCanvas.width,
+        y: -10,
+        r: 2 + Math.random() * 3,
+        vx: -1 + Math.random() * 2,
+        vy: 2 + Math.random() * 3,
+        c: choice(palette)
+      }));
+
+      let time = 0;
+      function draw() {
+        time += 1;
+        confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+        pieces.forEach(p => {
+          p.x += p.vx; p.y += p.vy;
+          confettiCtx.fillStyle = p.c;
+          confettiCtx.beginPath();
+          confettiCtx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+          confettiCtx.fill();
+        });
+        if (time < 140) requestAnimationFrame(draw);
+        else confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+      }
+      draw();
+    }
+
+    // Fireworks (festive)
+    function fireworksBurst() {
+      const rect = stage.getBoundingClientRect();
+      fireworksCanvas.width = rect.width; fireworksCanvas.height = rect.height;
+      const center = { x: rect.width / 2, y: rect.height / 3 };
+      const colors = ['#ffffff','#ff4d4d','#ffd56b','#3ac06e','#b3e6ff'];
+      const particles = Array.from({length: 160}, () => {
+        const a = Math.random() * Math.PI * 2;
+        const speed = 2 + Math.random() * 4;
+        return { x: center.x, y: center.y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, life: 80 + Math.random()*30, color: choice(colors) };
+      });
+
+      function draw() {
+        fireworksCtx.clearRect(0,0,fireworksCanvas.width, fireworksCanvas.height);
+        particles.forEach(p => {
+          p.x += p.vx; p.y += p.vy;
+          p.vy += 0.02;
+          p.life -= 1;
+          fireworksCtx.fillStyle = p.color;
+          fireworksCtx.globalCompositeOperation = 'lighter';
+          fireworksCtx.beginPath();
+          fireworksCtx.arc(p.x, p.y, 2, 0, Math.PI*2);
+          fireworksCtx.fill();
+        });
+        fireworksCtx.globalCompositeOperation = 'source-over';
+        if (particles.some(p => p.life > 0)) requestAnimationFrame(draw);
+        else fireworksCtx.clearRect(0,0,fireworksCanvas.width, fireworksCanvas.height);
+      }
+      draw();
+    }
+
+    function celebrateMilestone(lvl) {
+      if (lvl % 10 === 0) {
+        fireworksBurst();
+        overlay.classList.add('show');
+        overlay.querySelector('.title').textContent = `Level ${lvl}!`;
+        overlay.querySelector('.desc').textContent = 'Sleigh bells ring—pace quickens!';
+        setTimeout(() => overlay.classList.remove('show'), 2500);
+      }
+    }
+
+    // Trail rendering (festive glow)
+    function updateTrail() {
+      const rect = stage.getBoundingClientRect();
+      const scaleX = rect.width / W;
+      const x = mouseX;
+      const y = BUCKET_Y * scaleX;
+      const now = performance.now();
+      if (combo >= 5 && running && !paused) {
+        trailPoints.push({ x, y, t: now, c: choice(['#ff4d4d','#ffd56b','#3ac06e']) });
+        trailPoints = trailPoints.filter(p => now - p.t < 600);
+      } else { trailPoints = []; }
+      trailCtx.clearRect(0,0,trailCanvas.width, trailCanvas.height);
+      trailPoints.forEach(p => {
+        const age = (now - p.t) / 600;
+        const r = 8 * (1 - age);
+        trailCtx.beginPath();
+        trailCtx.fillStyle = p.c;
+        trailCtx.globalAlpha = (1 - age) * 0.7;
+        trailCtx.arc(p.x, rect.height - (rect.height - y), r, 0, Math.PI*2);
+        trailCtx.fill();
+      });
+      trailCtx.globalAlpha = 1;
+    }
+
+    // Snow overlay
+    function initSnowflakes() {
+      const rect = stage.getBoundingClientRect();
+      snowflakes = Array.from({ length: 140 }, () => ({
+        x: Math.random() * rect.width,
+        y: Math.random() * rect.height,
+        r: Math.random() * 2.5 + 1,
+        vy: Math.random() * 0.8 + 0.5,
+        sway: Math.random() * 0.4 + 0.2,
+        phase: Math.random() * Math.PI * 2
+      }));
+    }
+    function drawSnow() {
+      snowCtx.clearRect(0,0,snowCanvas.width,snowCanvas.height);
+      snowCtx.fillStyle = '#ffffff';
+      snowflakes.forEach(f => {
+        f.y += f.vy;
+        f.x += Math.sin(f.phase) * f.sway;
+        f.phase += 0.02;
+        if (f.y > snowCanvas.height + 10) { f.y = -10; f.x = Math.random() * snowCanvas.width; }
+        snowCtx.beginPath();
+        snowCtx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+        snowCtx.fill();
+      });
+      requestAnimationFrame(drawSnow);
+    }
+
+    // Pause
+    function togglePause() { paused ? resumeGame() : pauseGame(); }
+    function pauseGame() {
+      if (!running || paused) return;
+      paused = true;
+      pauseStart = performance.now();
+      overlay.classList.add('show');
+      overlay.querySelector('.title').textContent = 'Paused';
+      overlay.querySelector('.desc').textContent = 'Cocoa break. Press Resume or P to continue.';
+    }
+    function resumeGame() {
+      if (!running || !paused) return;
+      paused = false;
+      const pauseEnd = performance.now();
+      pausedTimeAccum += (pauseEnd - pauseStart);
+      overlay.classList.remove('show');
+    }
+
+    // Game control
+    function startGame() {
+      reset(true);
+      overlay.classList.remove('show');
+      running = true;
+      paused = false;
+      t0 = performance.now();
+      pausedTimeAccum = 0;
+    }
+
+    function endGame(reason = '') {
+      running = false;
+      paused = false;
+      overlay.classList.add('show');
+      overlay.querySelector('.title').textContent = 'Game Over';
+      const base = `Final score: ${score}. Level ${level} reached.`;
+      if (reason === 'hearts') {
+        overlay.querySelector('.desc').textContent = `You ran out of hearts. ${base}`;
+      } else if (reason === 'coal') {
+        overlay.querySelector('.desc').textContent = `Caught coal — Santa’s list reset! ${base}`;
+      } else {
+        overlay.querySelector('.desc').textContent = base;
+      }
+      saveScore(score);
+      showHome();
+    }
+
+    function restartGame() { reset(false); startGame(); }
+
+    function reset(preserveOverlay) {
+      hearts = MAX_HEARTS;
+      score = 0; combo = 1; level = 1; misses = 0;
+      spawnTimer = 0; spawnInterval = 1.0;
+      activePowerUps = { slow: false, double: false, shield: false };
+      powerTimers = {};
+      starsCaughtThisRun = 0;
+
+      drawHearts();
+      updateBucket();
+      updateHUD(performance.now());
+
+      shapes.forEach(s => shapesLayer.removeChild(s.node));
+      shapes = [];
+      while (popsLayer.firstChild) popsLayer.removeChild(popsLayer.firstChild);
+      confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+      fireworksCtx.clearRect(0,0,fireworksCanvas.width, fireworksCanvas.height);
+      trailCtx.clearRect(0,0,trailCanvas.width, trailCanvas.height);
+
+      if (!preserveOverlay) {
+        overlay.querySelector('.title').textContent = 'Shape Catch — Camcookie Santa Tracker';
+        overlay.querySelector('.desc').textContent = 'Help Santa collect gifts, candy canes, ornaments, and golden stars. Avoid coal! Stars restore hearts and boost your cheer.';
+      }
+    }
+
+    // Daily challenge: Santa sprint
+    function startDailyChallenge() {
+      const seed = new Date().toDateString();
+      const hash = [...seed].reduce((a,c)=>a+c.charCodeAt(0),0);
+      settingsState.dailyChallenge = {
+        seed,
+        modifiers: {
+          fastGravity: (hash % 2) === 0
+        },
+        goal: 'Deliver Presents: 100 gifts in 120s'
+      };
+      overlay.classList.add('show');
+      overlay.querySelector('.title').textContent = 'Daily Challenge';
+      const mods = [];
+      if (settingsState.dailyChallenge.modifiers.fastGravity) mods.push('Faster gravity');
+      overlay.querySelector('.desc').textContent = (mods.length ? mods.join(' + ') : 'Balanced sleigh ride') + ' • Deliver 100 gifts in 2m';
+      setTimeout(() => overlay.classList.remove('show'), 2000);
+    }
+
+    // Homescreen helpers
+    function showHome() {
+      renderScores();
+      renderAchievements();
+      home.style.display = 'grid';
+    }
+    function hideHome() {
+      home.style.display = 'none';
+    }
+
+    // Loop
+    function frame(now) {
+      const dt = Math.min(0.05, (now - lastFrame) / 1000);
+      lastFrame = now;
+
+      if (running && !paused) {
+        spawnTimer += dt;
+        if (spawnTimer >= spawnInterval) {
+          spawnTimer = 0;
+          spawnShape();
+        }
+
+        updateBucket();
+        updateShapes(dt);
+        updateDifficulty(now);
+        updatePowerUps(now);
+        updateTrail();
+      } else {
+        updateTrail();
+      }
+
+      updateHUD(now);
+      requestAnimationFrame(frame);
+    }
+    // Init
+    function init() {
+      drawHearts();
+      updateBucket();
+      resizeCanvases();
+      renderScores();
+      renderAchievements();
+      showHome();
+      requestAnimationFrame(frame);
+      drawSnow();
+    }
+    init();
+  </script>
+</body>
+</html>

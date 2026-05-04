@@ -6,10 +6,10 @@
 
 const SUPABASE_CONFIG = {
   // Your Supabase project URL - found in Settings > API
-  url: 'https://YOUR_PROJECT_ID.supabase.co',
+  url: 'https://uexubxzlmyjuktgeqfsf.supabase.co',
   
   // Your Supabase anonymous key - found in Settings > API
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVleHVieHpsbXlqdWt0Z2VxZnNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MzUxODYsImV4cCI6MjA5MjIxMTE4Nn0.yuWkhA7b21uL2BGVn5zij6fSiBWQdCGXwevZyJN5EDE'
 };
 
 // Initialize Supabase client (make sure supabase-js is loaded)
