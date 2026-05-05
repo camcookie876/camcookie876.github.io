@@ -193,14 +193,14 @@
 
     #popup.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
-  <script src="/connect4now/topbar-utils.js"></script>
+  <script src="/connect/topbar-utils.js"></script>
 </head>
 <body>
 <div id="topbar">
   <div class="brand">Camcookie Connect 26</div>
-  <a href="/connect4now/" style="margin-left: auto; color: white; text-decoration: none; font-size: 14px; padding: 6px 11px; border: 1px solid rgba(255, 255, 255, 0.55); border-radius: 999px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='transparent'">← Back to Connect</a>
+  <a href="/" style="margin-left: auto; color: white; text-decoration: none; font-size: 14px; padding: 6px 11px; border: 1px solid rgba(255, 255, 255, 0.55); border-radius: 999px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='transparent'">← Back to Connect</a>
 </div>
-<a href="https://camcookie876.github.io/connect4now/" style="position:fixed;top:12px;left:12px;font-size:14px;color:var(--muted);text-decoration:none;z-index:1000;"></a>
+<a href="https://camcookie876.github.io/connect/" style="position:fixed;top:12px;left:12px;font-size:14px;color:var(--muted);text-decoration:none;z-index:1000;"></a>
   <div id="loginBox" class="card">
     <h1>Camcookie Connect</h1>
     <p class="muted">Sign in or create an account with just a username and password. Safe and Secure.</p>
@@ -353,13 +353,13 @@
       if (params.org) q.set("org", params.org);
 
       if (selectedApp === "chat") {
-        window.location.href = "/connect4now/26/chat?" + q.toString();
+        window.location.href = "/connect/26/chat?" + q.toString();
       }
       if (selectedApp === "books") {
-        window.location.href = "/connect4now/26/books?" + q.toString();
+        window.location.href = "/connect/26/books?" + q.toString();
       }
       if (selectedApp === "draw") {
-        window.location.href = "/connect4now/26/draw?" + q.toString();
+        window.location.href = "/connect/26/draw?" + q.toString();
       }
     }
 

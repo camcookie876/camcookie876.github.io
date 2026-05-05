@@ -6,7 +6,6 @@
     <meta name="description" content="Browse Camcookie's book collection and navigate to series and author pages.">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/styles.css">
-  <script src="/svg-icons.js"></script>
 </head>
 <body>
 <script src="/script.js"></script>
@@ -24,34 +23,9 @@
 
 <center><h1 class="header">Books</h1></center>
 <div class="content">
-  <p>Camcookie's book hub now includes direct story access from Connect 26 inside the normal books folder. Use the quick links below or go directly to any story using <code>/books/book/{BOOK_ID}</code>.</p>
-  <div style="display:grid; gap:16px; max-width:920px; margin:auto;" id="bookCards"></div>
-  <div style="margin-top:24px;">
-    <h2>Recommended story pages</h2>
-    <ul>
-      <li><a href="/books/book/fallofthefirewall/">Camcookie: Fall of the Firewall</a></li>
-      <li><a href="/books/book/spikeprotocol/">Spike Protocol</a></li>
-      <li><a href="/books/tag/cyberpunk/">Tag: cyberpunk</a></li>
-      <li><a href="/books/tag/adventure/">Tag: adventure</a></li>
-    </ul>
-  </div>
+<a class="links" href="/books/series/"><h1>Series</h1></a><br>
+<a class="links" href="/connect/26/books/"><h1>Connect 26 Books</h1></a><br>
+
 </div>
-<script>
-  const cards = [
-    { href: '/books/series/', icon: 'books', title: 'Series', desc: 'Browse Camcookie original book series, authors, and titles.' },
-    { href: '/books/book/fallofthefirewall/', icon: 'fire', title: 'Featured Story', desc: 'Camcookie: Fall of the Firewall — access the first Connect 26 story directly.' },
-    { href: '/books/tag/adventure/', icon: 'tags', title: 'Tags', desc: 'Explore books and stories by tag like adventure, cyberpunk, mystery, and action.' },
-    { href: '/connect4now/26/books/', icon: 'link', title: 'Open Connect 26 Books', desc: 'Visit the full Camcookie Connect 26 books reader on the app side.' }
-  ];
-  
-  const bookCards = document.getElementById('bookCards');
-  cards.forEach(card => {
-    const a = document.createElement('a');
-    a.className = 'links';
-    a.href = card.href;
-    a.innerHTML = '<h2>' + getSVGIcon(card.icon) + ' ' + card.title + '</h2><p>' + card.desc + '</p>';
-    bookCards.appendChild(a);
-  });
-</script>
 </body>
 </html>

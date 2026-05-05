@@ -3,13 +3,6 @@
  * Provides dropdown navigation and URL/query parameter handling
  */
 
-// Load SVG icons
-if (typeof getSVGIcon === 'undefined') {
-  const script = document.createElement('script');
-  script.src = '/svg-icons.js';
-  document.head.appendChild(script);
-}
-
 // Helper to get current app/page
 function getCurrentPageType() {
   const path = window.location.pathname;
@@ -102,10 +95,10 @@ function initTopbar() {
     menu.style.display = 'none';
     
     const apps = [
-      { name: 'Chat', path: '/connect4now/26/chat', icon: 'chat', type: 'chat' },
-      { name: 'Books', path: '/connect4now/26/books', icon: 'books', type: 'books' },
-      { name: 'Draw', path: '/connect4now/26/draw', icon: 'draw', type: 'draw' },
-      { name: 'Dashboard', path: '/connect4now/26', icon: 'home', type: 'connect' },
+      { name: 'Chat', path: '/connect/26/chat', icon: '💬', type: 'chat' },
+      { name: 'Books', path: '/connect/26/books', icon: '📖', type: 'books' },
+      { name: 'Draw', path: '/connect/26/draw', icon: '🎨', type: 'draw' },
+      { name: 'Dashboard', path: '/connect/26', icon: '🏠', type: 'connect' },
     ];
     
     apps.forEach((app) => {
@@ -115,24 +108,7 @@ function initTopbar() {
       if (app.type === currentPage) {
         item.classList.add('active');
       }
-      
-      // Try to use SVG icon if available
-      if (typeof getSVGIcon !== 'undefined') {
-        const iconSpan = document.createElement('span');
-        iconSpan.innerHTML = getSVGIcon(app.icon);
-        iconSpan.style.width = '18px';
-        iconSpan.style.height = '18px';
-        iconSpan.style.display = 'inline-flex';
-        iconSpan.style.alignItems = 'center';
-        iconSpan.style.marginRight = '8px';
-        item.appendChild(iconSpan);
-        
-        const name = document.createElement('span');
-        name.textContent = app.name;
-        item.appendChild(name);
-      } else {
-        item.textContent = app.name;
-      }
+      item.innerHTML = `${app.icon} ${app.name}`;
       menu.appendChild(item);
     });
     

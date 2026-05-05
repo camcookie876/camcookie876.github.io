@@ -9,103 +9,19 @@ permalink: /404.html
     <title>404 - Camcookie</title>
     <meta name="description" content="Page not found. Use the site navigation or search to find the page you need.">
     <link rel="stylesheet" href="/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
 <body>
 <script src="/script.js"></script>
-<main class="content">
-  <section class="hero">
-    <h1 class="header">Page Missing</h1>
-    <p class="subheader">If you're following a Connect 26 book or tag link, the story will load from our database.</p>
-  </section>
 
-  <div class="card" id="page-frame" style="max-width:900px; margin:24px auto; padding:24px;">
-    <div id="page-output" style="min-height: 200px; display: flex; align-items: center; justify-content: center;">
-      <p>Loading...</p>
-    </div>
-    <div style="margin-top:24px; display:flex; gap:12px; flex-wrap:wrap;">
-      <a class="links" href="/" style="flex:1 1 160px;">Home</a>
-      <a class="links" href="/books/" style="flex:1 1 160px;">Books Hub</a>
-      <a class="links" href="/connect4now/26/books/" style="flex:1 1 160px;">Connect 26 Books</a>
-      <a class="links" href="/connect4now/26/" style="flex:1 1 160px;">Connect 26 Home</a>
-    </div>
-  </div>
-</main>
+<center><h1 class="header">404</h1></center>
+<div class="content">
+    <p>Sorry, this page could not be found.</p>
+    <p>You tried to visit: <div id="url"></div></p>
+    <a class="links" href="/">Back to Home</a>
+</div>
 
-<script src="/connect4now/config.js"></script>
 <script>
-  async function renderNotFound() {
-    const pageOutput = document.getElementById('page-output');
-    const path = window.location.pathname;
-    const bookMatch = path.match(/^\/books\/book\/([^\/]+)\/?$/i);
-    const tagMatch = path.match(/^\/books\/tag\/([^\/]+)\/?$/i);
-
-    try {
-      const supabase = getSupabase();
-
-      if (bookMatch) {
-        const storyId = decodeURIComponent(bookMatch[1]);
-        const { data: story, error } = await supabase
-          .from('stories')
-          .select('*, users(username)')
-          .eq('slug', storyId)
-          .single();
-        
-        if (error || !story) {
-          pageOutput.innerHTML = '<h1>Story Not Found</h1><p>The story ID "' + storyId + '" does not exist in Connect 26.</p><p>Try <a class="links" href="/books/">the book hub</a>.</p>';
-          return;
-        }
-
-        // Fetch tags for this story
-        const { data: storyTags } = await supabase
-          .from('story_tags')
-          .select('tag')
-          .eq('story_id', story.id);
-
-        const tags = storyTags ? storyTags.map(t => t.tag) : [];
-        const tagLinks = tags.map(tag => '<a class="links" href="/books/tag/' + encodeURIComponent(tag) + '/" style="margin-right:8px; display:inline-block; margin-bottom:8px;">#' + tag + '</a>').join('');
-        
-        const author = story.users?.username || 'Unknown';
-        pageOutput.innerHTML = '<h1>' + story.title + '</h1><p><strong>Author:</strong> ' + author + '</p><p>' + (story.summary || '') + '</p><div>' + (story.body ? story.body.substring(0, 300) + '...' : '') + '</div><div style="margin-top:16px;">' + tagLinks + '</div><a class="links" href="/connect4now/26/books/?story=' + story.id + '" style="display:inline-block; margin-top:18px;">Open in Connect 26 Books</a>';
-        return;
-      }
-
-      if (tagMatch) {
-        const tag = decodeURIComponent(tagMatch[1]).toLowerCase();
-        const { data: storyTags, error: tagError } = await supabase
-          .from('story_tags')
-          .select('story_id, stories(id, title, summary, slug, users(username))')
-          .ilike('tag', tag);
-        
-        if (tagError || !storyTags || storyTags.length === 0) {
-          pageOutput.innerHTML = '<h1>No stories found</h1><p>No stories are tagged with "' + tag + '". Try a different tag or return to the books hub.</p>';
-          return;
-        }
-
-        let storyItems = '';
-        storyTags.forEach(item => {
-          const story = item.stories;
-          const author = story.users?.username || 'Unknown';
-          storyItems += '<div style="margin-bottom:16px; padding:16px; border:1px solid rgba(15,103,255,0.12); border-radius:14px; background:#fafbff;"><h3 style="margin-bottom:6px;">' + story.title + '</h3><p style="font-size:0.95rem; color:var(--text-secondary); margin-bottom:8px;">By ' + author + '</p><p>' + (story.summary || '') + '</p><a class="links" href="/connect4now/26/books/?story=' + story.id + '">Read this story</a></div>';
-        });
-
-        pageOutput.innerHTML = '<h1>Stories tagged "#' + tag + '"</h1>' + storyItems;
-        return;
-      }
-
-      pageOutput.innerHTML = '<h1>404 - Page Not Found</h1><p>Sorry, this page does not exist. We can still help you explore Camcookie books and Connect 26 content.</p><p><strong>Requested URL:</strong> <code>' + window.location.pathname + '</code></p>';
-    } catch (err) {
-      console.error('Error loading page:', err);
-      pageOutput.innerHTML = '<h1>404 - Error</h1><p>There was an error loading this page. Try returning to the <a class="links" href="/books/">books hub</a> or <a class="links" href="/">home</a>.</p>';
-    }
-  }
-
-  // Ensure Supabase is loaded before rendering
-  if (typeof getSupabase !== 'undefined') {
-    renderNotFound();
-  } else {
-    setTimeout(renderNotFound, 500);
-  }
-</script>
+  document.getElementById('url').textContent = window.location.href;
+  </script>
 </body>
 </html>
