@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" href="https://camcookieg.github.io/game/LOGO.gif">
+    <meta charset="UTF-8">
+    <title>Pixel Dodger - Camcookie Games</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+<body>
+<div class="Topbar"><div class="Topbar-inner"><a href="https://camcookieg.github.io/" class="Topbar-logo"><img src="https://camcookieg.github.io/game/LOGO.gif" alt="Camcookie Logo"></a><div class="Topbar-links"><noscript><a href="/links">Links</a></noscript></div><div class="Topbar-right"><div class="Topbar-menu-btn">|||</div></div></div><div class="Topbar-dropdown"></div></div><script src="/script.js"></script>
+
+<h1 class="header">Pixel Dodger</h1>
+<div class="content" style="max-width:860px; margin:auto;">
+  <div class="card" style="padding:24px; margin-bottom:24px; text-align:center; background:#fff;">
+    <div id="gameArea" style="position:relative; background:#e8f2ff; border:2px solid var(--border); border-radius:18px; width:100%; max-width:520px; height:320px; margin:auto; overflow:hidden;"></div>
+    <p style="margin-top:18px; color:var(--text-secondary);">Use the arrow keys to move the blue block. Avoid the red obstacles and survive as long as you can.</p>
+    <div style="display:flex; justify-content:center; gap:18px; margin-top:14px; flex-wrap:wrap;">
+      <span>Score: <strong id="score">0</strong></span>
+      <span>Time: <strong id="time">60</strong>s</span>
+      <span id="status" style="color:var(--text-secondary);"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const gameArea = document.getElementById('gameArea');
+  const scoreEl = document.getElementById('score');
+  const timeEl = document.getElementById('time');
+  const statusEl = document.getElementById('status');
+
+  const player = document.createElement('div');
+  player.style.width = '30px';
+  player.style.height = '30px';
+  player.style.background = 'var(--primary)';
+  player.style.position = 'absolute';
+  player.style.left = '240px';
+  player.style.top = '140px';
+  player.style.borderRadius = '6px';
+  gameArea.appendChild(player);
+
+  let score = 0;
+  let timeLeft = 60;
+  const keys = { ArrowUp:false, ArrowDown:false, ArrowLeft:false, ArrowRight:false };
+  const obstacles = [];
+  let gameOver = false;
+
+  function updateStats() {
+    scoreEl.textContent = score;
+    timeEl.textContent = timeLeft;
+  }
+
+  function spawnObstacle() {
+    const obstacle = document.createElement('div');
+    obstacle.style.width = '28px';
+    obstacle.style.height = '28px';
+    obstacle.style.background = '#dc2626';
+    obstacle.style.position = 'absolute';
+    obstacle.style.left = Math.random() * 490 + 'px';
+    obstacle.style.top = '-30px';
+    obstacle.style.borderRadius = '8px';
+    gameArea.appendChild(obstacle);
+    obstacles.push(obstacle);
+  }
+
+  function getRect(el) {
+    return el.getBoundingClientRect();
+  }
+
+  function collide(a, b) {
+    const ar = getRect(a);
+    const br = getRect(b);
+    return !(ar.right < br.left || ar.left > br.right || ar.bottom < br.top || ar.top > br.bottom);
+  }
+
+  function endGame(message) {
+    gameOver = true;
+    statusEl.textContent = message;
+  }
+
+  function step() {
+    if (gameOver) return;
+    const x = parseInt(player.style.left, 10);
+    const y = parseInt(player.style.top, 10);
+    const speed = 4;
+    if (keys.ArrowUp && y > 0) player.style.top = (y - speed) + 'px';
+    if (keys.ArrowDown && y < 290) player.style.top = (y + speed) + 'px';
+    if (keys.ArrowLeft && x > 0) player.style.left = (x - speed) + 'px';
+    if (keys.ArrowRight && x < 490) player.style.left = (x + speed) + 'px';
+
+    obstacles.forEach((obstacle, index) => {
+      const top = parseInt(obstacle.style.top, 10);
+      obstacle.style.top = (top + 3 + score * 0.04) + 'px';
+      if (parseInt(obstacle.style.top, 10) > 340) {
+        obstacle.remove();
+        obstacles.splice(index, 1);
+        score += 1;
+        updateStats();
+      }
+      if (collide(player, obstacle)) {
+        endGame('Game over! Refresh to play again.');
+      }
+    });
+
+    requestAnimationFrame(step);
+  }
+
+  function tick() {
+    if (gameOver) return;
+    timeLeft -= 1;
+    updateStats();
+    if (timeLeft <= 0) {
+      endGame('Time is up! Great job.');
+      return;
+    }
+    if (Math.random() < 0.45) spawnObstacle();
+  }
+
+  window.addEventListener('keydown', (event) => {
+    if (keys.hasOwnProperty(event.key)) {
+      keys[event.key] = true;
+    }
+  });
+  window.addEventListener('keyup', (event) => {
+    if (keys.hasOwnProperty(event.key)) {
+      keys[event.key] = false;
+    }
+  });
+
+  setInterval(tick, 900);
+  updateStats();
+  requestAnimationFrame(step);
+</script>
+
+<p style="text-align:center; margin-top:24px;">Copyright 2025 by Camcookie</p>
+</body>
+</html>

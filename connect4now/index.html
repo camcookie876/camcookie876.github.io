@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/styles-unified.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/svg-icons.js"></script>
   
   <style>
     body {
@@ -302,12 +303,12 @@
 
     #popup.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
-  <script src="/connect/config.js"></script>
-  <script src="/connect/auth-manager.js"></script>
+  <script src="/connect4now/config.js"></script>
+  <script src="/connect4now/auth-manager.js"></script>
 </head>
 <body>
   <div id="topbar">
-    <div class="brand">🔒 Camcookie Connect 26</div>
+    <div class="brand" id="cc-brand">🔒 Camcookie Connect 26</div>
     <div class="topbar-profile" id="topbar-profile" style="display:none;">
       <img src="" alt="Profile" class="profile-image" id="profile-btn">
       <div class="profile-dropdown" id="profile-dropdown" style="display:none;">
@@ -320,9 +321,9 @@
         </div>
         <div class="profile-section" style="padding:12px 16px; border-bottom:1px solid var(--border-subtle);">
           <div class="profile-section-title" style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px; letter-spacing:0.5px;">Connected Apps</div>
-          <a href="/connect/26/chat/" class="profile-menu-item" style="display:block; padding:10px 12px; color:var(--text-primary); text-decoration:none; border-radius:6px; transition:background var(--transition-fast); font-size:14px; font-weight:500; cursor:pointer;">💬 Chat</a>
-          <a href="/connect/26/draw/" class="profile-menu-item" style="display:block; padding:10px 12px; color:var(--text-primary); text-decoration:none; border-radius:6px; transition:background var(--transition-fast); font-size:14px; font-weight:500; cursor:pointer;">🎨 Draw</a>
-          <a href="/connect/26/books/" class="profile-menu-item" style="display:block; padding:10px 12px; color:var(--text-primary); text-decoration:none; border-radius:6px; transition:background var(--transition-fast); font-size:14px; font-weight:500; cursor:pointer;">📖 Books</a>
+          <a href="/connect4now/26/chat/" class="profile-menu-item" style="display:block; padding:10px 12px; color:var(--text-primary); text-decoration:none; border-radius:6px; transition:background var(--transition-fast); font-size:14px; font-weight:500; cursor:pointer;" id="profile-chat-link">💬 Chat</a>
+          <a href="/connect4now/26/draw/" class="profile-menu-item" style="display:block; padding:10px 12px; color:var(--text-primary); text-decoration:none; border-radius:6px; transition:background var(--transition-fast); font-size:14px; font-weight:500; cursor:pointer;" id="profile-draw-link">🎨 Draw</a>
+          <a href="/connect4now/26/books/" class="profile-menu-item" style="display:block; padding:10px 12px; color:var(--text-primary); text-decoration:none; border-radius:6px; transition:background var(--transition-fast); font-size:14px; font-weight:500; cursor:pointer;" id="profile-books-link">📖 Books</a>
         </div>
         <div class="profile-section" style="padding:12px 16px;">
           <button class="profile-menu-item" id="show-settings" style="display:block; width:100%; text-align:left; padding:10px 12px; color:var(--text-primary); background:none; border:none; text-decoration:none; border-radius:6px; transition:background var(--transition-fast); font-size:14px; font-weight:500; cursor:pointer;">⚙️ Settings</button>
@@ -389,17 +390,17 @@
 
       <h2 class="section-title">Connected Apps</h2>
       <div class="app-grid">
-        <a href="/connect/26/chat/" class="app-tile">
+        <a href="/connect4now/26/chat/" class="app-tile">
           <div class="app-icon">💬</div>
           <h3>Chat</h3>
           <span class="beta">BETA</span>
         </a>
-        <a href="/connect/26/draw/" class="app-tile">
+        <a href="/connect4now/26/draw/" class="app-tile">
           <div class="app-icon">🎨</div>
           <h3>Draw</h3>
           <span class="beta">BETA</span>
         </a>
-        <a href="/connect/26/books/" class="app-tile">
+        <a href="/connect4now/26/books/" class="app-tile">
           <div class="app-icon">📖</div>
           <h3>Books</h3>
           <span class="beta">BETA</span>

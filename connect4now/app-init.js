@@ -28,7 +28,7 @@ class Connect26App {
 
       // Check if authenticated
       if (this.options.requireAuth && !this.auth.isAuthenticated()) {
-        window.location.href = '/connect/';
+        window.location.href = '/connect4now/';
         return;
       }
 
@@ -107,7 +107,7 @@ class Connect26App {
       this.userProfile = profile;
 
       if (!user && this.options.requireAuth) {
-        window.location.href = '/connect/';
+        window.location.href = '/connect4now/';
       } else {
         this.updateProfileUI();
       }

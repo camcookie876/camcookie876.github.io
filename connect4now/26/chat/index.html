@@ -292,10 +292,10 @@
     }
     .beta {display: inline-block; background: var(--cyan); color: #fff; padding: 2px 6px; border-radius: 6px; font-size: .7rem; margin-left: 6px;}
   </style>
-  <script src="/connect/config.js"></script>
-  <script src="/connect/auth-manager.js"></script>
-  <script src="/connect/app-init.js"></script>
-  <script src="/connect/topbar-utils.js"></script>
+  <script src="/connect4now/config.js"></script>
+  <script src="/connect4now/auth-manager.js"></script>
+  <script src="/connect4now/app-init.js"></script>
+  <script src="/connect4now/topbar-utils.js"></script>
 </head>
 <body data-connect-app="chat" data-require-auth="true" data-fullscreen="true">
 
@@ -426,7 +426,7 @@
     </div>
 
     <footer>
-      <a href="/connect/26/terms" target="_blank">Terms &amp; Conditions</a>
+      <a href="/connect4now/26/terms" target="_blank">Terms &amp; Conditions</a>
     </footer>
   </div>
 
@@ -1135,7 +1135,7 @@
           const q = new URLSearchParams();
           if (params.chat) q.set("chat", params.chat);
           if (params.org) q.set("org", params.org);
-          window.location.href = "/connect/26/?" + q.toString();
+          window.location.href = "/connect4now/26/?" + q.toString();
         };
       } catch (e) {
         $("loadingScreen").classList.add("hidden");
