@@ -1,7 +1,7 @@
 const PADGE_FILE = '/padge.json';
 const isDOCS = window.location.pathname.startsWith('/DOCS/');
 
-const mainLinks = isDOCS ? [
+const mainLinks = [
   { name: 'Home', url: '/' },
   { name: 'DOCS', url: '/DOCS/' },
   { name: 'Music', url: '/DOCS/music/' },
@@ -9,14 +9,6 @@ const mainLinks = isDOCS ? [
   { name: 'Books', url: '/books/' },
   { name: 'Games', url: '/games/' },
   { name: 'Connect', url: '/connect/' }
-] : [
-  { name: 'Home', url: '/' },
-  { name: 'DOCS', url: '/DOCS/' },
-  { name: 'Music', url: 'https://camcookiem.github.io/' },
-  { name: 'Books', url: '/books/' },
-  { name: 'Games', url: 'https://camcookieg.github.io/' },
-  { name: 'Connect', url: '/connect/' },
-  { name: 'Links', url: '/links/' }
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
