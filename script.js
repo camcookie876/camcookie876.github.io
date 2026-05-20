@@ -1,5 +1,4 @@
 const PADGE_FILE = '/padge.json';
-const isDOCS = window.location.pathname.startsWith('/DOCS/');
 
 const mainLinks = [
   { name: 'Home', url: '/' },
@@ -7,7 +6,7 @@ const mainLinks = [
   { name: 'Music', url: '/DOCS/music/' },
   { name: 'Arduino', url: '/DOCS/arduino/' },
   { name: 'Books', url: '/books/' },
-  { name: 'Games', url: '/games/' },
+  { name: 'Games', url: '/game/' },
   { name: 'Connect', url: '/connect/' }
 ];
 
@@ -44,6 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
         a.textContent = link.name;
         navContainer.appendChild(a);
       });
+
+      const searchBar = createSearchBar();
+      navContainer.insertAdjacentElement('afterend', searchBar);
     }
 
     // Mobile dropdown
@@ -54,6 +56,9 @@ document.addEventListener('DOMContentLoaded', () => {
         a.textContent = link.name;
         dropdown.appendChild(a);
       });
+
+      const dropdownSearchBar = createSearchBar(true);
+      dropdown.appendChild(dropdownSearchBar);
     }
 
     // Toggle dropdown
@@ -81,9 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const brand = document.createElement('a');
     brand.className = 'site-brand';
     brand.href = '/';
-    brand.innerHTML = isDOCS 
-      ? '<img src="/DOCS/logo.png" alt="Camcookie DOCS"> <span>Camcookie DOCS</span>' 
-      : '<img src="/logo.png" alt="Camcookie Logo"> <span>Camcookie</span>';
+    brand.innerHTML = '<img src="/logo.png" alt="Camcookie Logo"> <span>Camcookie</span>';
 
     const nav = document.createElement('nav');
     nav.className = 'site-nav';
@@ -113,6 +116,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     inner.appendChild(brand);
     inner.appendChild(nav);
+
+    const topbarSearch = createSearchBar();
+    inner.appendChild(topbarSearch);
+
     inner.appendChild(menuBtn);
     inner.appendChild(dropdown);
     
@@ -144,6 +151,101 @@ document.addEventListener('DOMContentLoaded', () => {
       <p><a href="/links/">Links</a> | <a href="/DOCS/">Docs</a></p>
     `;
     document.body.appendChild(footer);
+  }
+
+  function createSearchBar(isDropdown = false) {
+    const container = document.createElement('div');
+    container.className = 'site-search';
+    container.style.display = 'flex';
+    container.style.alignItems = 'center';
+    container.style.gap = '8px';
+    container.style.marginTop = isDropdown ? '12px' : '0';
+    container.style.width = isDropdown ? '100%' : 'auto';
+    container.style.flex = isDropdown ? '0' : '1';
+
+    if (isDropdown) {
+      container.style.flexDirection = 'column';
+      container.style.alignItems = 'stretch';
+    }
+
+    const input = document.createElement('input');
+    input.type = 'search';
+    input.placeholder = 'Search pages...';
+    input.style.flex = '1';
+    input.style.minWidth = '0';
+    input.style.padding = '8px 10px';
+    input.style.border = '1px solid #ccc';
+    input.style.borderRadius = '4px';
+    input.style.width = isDropdown ? '100%' : '220px';
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Search';
+    button.style.padding = '8px 12px';
+    button.style.border = 'none';
+    button.style.borderRadius = '4px';
+    button.style.background = '#007bff';
+    button.style.color = '#fff';
+    button.style.cursor = 'pointer';
+    button.style.width = isDropdown ? '100%' : 'auto';
+
+    const message = document.createElement('div');
+    message.className = 'site-search-message';
+    message.style.fontSize = '12px';
+    message.style.color = isDropdown ? '#000' : '#fff';
+    message.style.minHeight = '18px';
+    message.style.paddingTop = isDropdown ? '4px' : '0';
+
+    button.addEventListener('click', () => {
+      performSearch(input, message);
+    });
+
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        performSearch(input, message);
+      }
+    });
+
+    container.appendChild(input);
+    container.appendChild(button);
+    container.appendChild(message);
+
+    return container;
+  }
+
+  function performSearch(input, message) {
+    const query = input.value.trim().toLowerCase();
+    message.textContent = '';
+    if (!query) {
+      input.focus();
+      return;
+    }
+
+    if (!pageIndex.length) {
+      message.textContent = 'Loading pages...';
+      return;
+    }
+
+    const match = pageIndex.find(page => {
+      const title = page.title ? page.title.toLowerCase() : '';
+      const url = page.url ? page.url.toLowerCase() : '';
+      const desc = page.description ? page.description.toLowerCase() : '';
+      return title.includes(query) || url.includes(query) || desc.includes(query);
+    });
+
+    if (match) {
+      const targetUrl = match.url.startsWith('http') || match.url.startsWith('/') ? match.url : `/${match.url}`;
+      window.location.href = targetUrl;
+      return;
+    }
+
+    message.textContent = 'No page found.';
+    setTimeout(() => {
+      if (message.textContent === 'No page found.') {
+        message.textContent = '';
+      }
+    }, 3000);
   }
 
   function loadPageIndex() {

@@ -408,13 +408,187 @@ body {
    =========================== */
 
 a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: rgba(15, 103, 255, 0.08);
   color: var(--primary-color);
   text-decoration: none;
-  transition: var(--transition);
+  transition: var(--transition), transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 10px 24px rgba(15, 103, 255, 0.08);
+  font-weight: 600;
 }
 
 a:hover {
-  text-decoration: underline;
+  text-decoration: none;
+  background: var(--primary-color);
+  color: #ffffff;
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 14px 30px rgba(15, 103, 255, 0.18);
+}
+
+a:focus-visible {
+  outline: 3px solid rgba(15, 103, 255, 0.22);
+  outline-offset: 2px;
+}
+
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  box-shadow: 0 12px 24px rgba(15, 103, 255, 0.18);
+}
+
+button:hover,
+input[type="button"]:hover,
+input[type="submit"]:hover,
+input[type="reset"]:hover {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 16px 30px rgba(15, 103, 255, 0.2);
+}
+
+button:active,
+input[type="button"]:active,
+input[type="submit"]:active,
+input[type="reset"]:active {
+  opacity: 0.95;
+  transform: translateY(0);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text-dark);
+  margin: 0 0 1rem;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  transition: color 0.2s ease;
+}
+
+h1 {
+  font-size: clamp(2.4rem, 5vw, 4.25rem);
+}
+
+h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+h3 {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+}
+
+h4,
+h5,
+h6 {
+  font-size: clamp(1.25rem, 2.5vw, 1.6rem);
+}
+
+h1:hover,
+h2:hover,
+h3:hover,
+h4:hover,
+h5:hover,
+h6:hover {
+  color: var(--primary-color);
+}
+
+p {
+  font-size: 1rem;
+  color: var(--text-light);
+  margin: 0 0 1.15rem;
+}
+
+strong,
+b {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background: #ffffff;
+  font: inherit;
+  color: var(--text-dark);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(15, 103, 255, 0.1);
+}
+
+img,
+figure {
+  max-width: 100%;
+  display: block;
+}
+
+figure {
+  margin: 0 0 1.5rem;
+}
+
+blockquote {
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.5rem;
+  border-left: 4px solid var(--primary-color);
+  background: rgba(15, 103, 255, 0.05);
+  color: var(--text-dark);
+  border-radius: 12px;
+}
+
+ul,
+ol {
+  margin: 0 0 1.5rem 1.4rem;
+  padding: 0;
+  color: var(--text-light);
+}
+
+li {
+  margin: 0.75rem 0;
+}
+
+code,
+pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+
+pre {
+  padding: 1rem;
+  border-radius: 16px;
+  background: #f4f7ff;
+  overflow-x: auto;
+}
+
+code {
+  background: rgba(15, 103, 255, 0.08);
+  padding: 0.2rem 0.4rem;
+  border-radius: 8px;
 }
 
 .links {
