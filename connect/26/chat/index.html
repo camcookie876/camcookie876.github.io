@@ -220,7 +220,7 @@
     .chat-main { display: flex; flex-direction: column; }
     .chat-header { padding: 12px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:8px; }
     .messages { flex: 1; padding: 12px; background: #f8fafc; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-    .msg { max-width: 72%; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 8px 10px; }
+    .msg { max-width: 72%; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 8px 10px; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; }
     .msg.me { margin-left: auto; background: #dbeafe; border-color: #93c5fd; }
     .msghead { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: .75rem; margin-bottom: 2px; }
 
@@ -928,14 +928,30 @@
       div.className = "msg";
       if (msg.user_id === currentUser.id) div.classList.add("me");
 
+      // Fetch the sender's username
+      let senderName = "User";
+      if (msg.user_id === currentUser.id) {
+        senderName = currentUser.username || "You";
+      } else {
+        const { data: user } = await client
+          .from("users")
+          .select("username")
+          .eq("id", msg.user_id)
+          .maybeSingle();
+        if (user && user.username) senderName = user.username;
+      }
+
       const head = document.createElement("div");
       head.className = "msghead";
-      head.innerHTML = `<span>${msg.user_id === currentUser.id ? "You" : "User"}</span>
+      head.innerHTML = `<span>${senderName}</span>
                         <span>${new Date(msg.created_at).toLocaleTimeString()}</span>`;
 
       const body = document.createElement("div");
       const decrypted = await decryptString(msg.encrypted_content, currentKey);
       body.textContent = decrypted;
+      body.style.wordWrap = "break-word";
+      body.style.overflowWrap = "break-word";
+      body.style.wordBreak = "break-word";
 
       div.appendChild(head);
       div.appendChild(body);
