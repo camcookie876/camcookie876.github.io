@@ -43,9 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
         a.textContent = link.name;
         navContainer.appendChild(a);
       });
-
-      const searchBar = createSearchBar();
-      navContainer.insertAdjacentElement('afterend', searchBar);
     }
 
     // Mobile dropdown
@@ -57,7 +54,11 @@ document.addEventListener('DOMContentLoaded', () => {
         dropdown.appendChild(a);
       });
 
+      // Add search bar at the end of dropdown
       const dropdownSearchBar = createSearchBar(true);
+      dropdownSearchBar.style.borderTop = '1px solid #eee';
+      dropdownSearchBar.style.padding = '8px';
+      dropdownSearchBar.style.marginTop = '8px';
       dropdown.appendChild(dropdownSearchBar);
     }
 
@@ -157,68 +158,56 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.createElement('div');
     container.className = 'site-search';
     container.style.display = 'flex';
-    container.style.alignItems = 'center';
-    container.style.gap = '8px';
-    container.style.marginTop = isDropdown ? '12px' : '0';
-    container.style.width = isDropdown ? '100%' : 'auto';
-    container.style.flex = isDropdown ? '0' : '1';
+    container.style.flexDirection = 'column';
+    container.style.gap = '0';
+    container.style.width = isDropdown ? '100%' : '200px';
     container.style.position = 'relative';
-
-    if (isDropdown) {
-      container.style.flexDirection = 'column';
-      container.style.alignItems = 'stretch';
-    }
 
     const inputContainer = document.createElement('div');
     inputContainer.style.display = 'flex';
-    inputContainer.style.gap = '8px';
+    inputContainer.style.gap = '4px';
     inputContainer.style.width = '100%';
-    inputContainer.style.position = 'relative';
+    inputContainer.style.minHeight = '0';
 
     const input = document.createElement('input');
     input.type = 'search';
-    input.placeholder = 'Search pages...';
+    input.placeholder = 'Search...';
     input.style.flex = '1';
-    input.style.minWidth = '0';
-    input.style.padding = '8px 10px';
+    input.style.padding = '6px 8px';
     input.style.border = '1px solid #ccc';
-    input.style.borderRadius = '4px';
-    input.style.width = isDropdown ? '100%' : '220px';
+    input.style.borderRadius = '3px';
+    input.style.fontSize = '13px';
+    input.style.minWidth = '0';
 
     const button = document.createElement('button');
     button.type = 'button';
-    button.textContent = 'Search';
-    button.style.padding = '8px 12px';
+    button.textContent = 'Go';
+    button.style.padding = '6px 10px';
     button.style.border = 'none';
-    button.style.borderRadius = '4px';
+    button.style.borderRadius = '3px';
     button.style.background = '#007bff';
     button.style.color = '#fff';
     button.style.cursor = 'pointer';
-    button.style.width = isDropdown ? '100%' : 'auto';
+    button.style.fontSize = '13px';
+    button.style.whiteSpace = 'nowrap';
 
     const resultsContainer = document.createElement('div');
     resultsContainer.className = 'site-search-results';
     resultsContainer.style.position = 'absolute';
-    resultsContainer.style.top = '100%';
+    resultsContainer.style.top = isDropdown ? 'auto' : '100%';
+    resultsContainer.style.bottom = isDropdown ? '-100%' : 'auto';
     resultsContainer.style.left = '0';
-    resultsContainer.style.right = isDropdown ? '0' : 'auto';
-    resultsContainer.style.width = isDropdown ? '100%' : '220px';
-    resultsContainer.style.marginTop = '4px';
+    resultsContainer.style.right = '0';
+    resultsContainer.style.width = '100%';
+    resultsContainer.style.marginTop = isDropdown ? '0' : '2px';
     resultsContainer.style.background = '#fff';
     resultsContainer.style.border = '1px solid #ccc';
-    resultsContainer.style.borderRadius = '4px';
-    resultsContainer.style.maxHeight = '300px';
+    resultsContainer.style.borderRadius = '3px';
+    resultsContainer.style.maxHeight = isDropdown ? '200px' : '250px';
     resultsContainer.style.overflowY = 'auto';
     resultsContainer.style.display = 'none';
     resultsContainer.style.zIndex = '1000';
     resultsContainer.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-
-    const message = document.createElement('div');
-    message.className = 'site-search-message';
-    message.style.fontSize = '12px';
-    message.style.color = isDropdown ? '#000' : '#fff';
-    message.style.minHeight = '18px';
-    message.style.paddingTop = isDropdown ? '4px' : '0';
 
     button.addEventListener('click', () => {
       if (input.value.trim()) {
@@ -255,7 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
     inputContainer.appendChild(button);
     container.appendChild(inputContainer);
     container.appendChild(resultsContainer);
-    container.appendChild(message);
 
     return container;
   }
