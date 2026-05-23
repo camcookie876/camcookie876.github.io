@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Camcookie AI API Dashboard</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<h1>Camcookie AI API Dashboard</h1>
+
+<!-- USER STATUS -->
+<div>
+  <h2>Your Account</h2>
+  <p id="user-status">Checking login…</p>
+  <button id="logout">Log Out</button>
+</div>
+
+<!-- API KEY MANAGEMENT -->
+<div>
+  <h2>Your API Key</h2>
+
+  <label>Website URL (origin)</label>
+  <input id="site-url" placeholder="https://your-site.com">
+
+  <button id="gen-btn">Generate / Update API Key</button>
+  <button id="delete-key">Delete API Key</button>
+  <button id="copy-key">Copy Key</button>
+
+  <p id="api-info"></p>
+  <pre id="api-key"></pre>
+</div>
+
+<!-- TEST API -->
+<div>
+  <h2>Test Your API</h2>
+  <input id="test-prompt" placeholder="Ask something…">
+  <pre id="test-output"></pre>
+</div>
+
+<!-- SNIPPET -->
+<div>
+  <h2>How to use the AI API</h2>
+  <pre id="snippet"></pre>
+</div>
+
+<script>
+/* ============================
+   CONFIG
+============================ */
+const CONNECT26_URL = "https://uexubxzlmyjuktgeqfsf.supabase.co";
+const CONNECT26_ANON = "YOUR_CONNECT26_ANON_KEY";
+
+const AI_URL = "https://YOUR_AI_PROJECT_ID.supabase.co";
+const AI_ANON = "YOUR_AI_ANON_KEY";
+
+const connect26 = supabase.createClient(CONNECT26_URL, CONNECT26_ANON);
+const ai = supabase.createClient(AI_URL, AI_ANON);
+
+let userId = null;
+let apiKey = null;
+let siteUrl = null;
+
+/* ============================
+   AUTO-UPDATE LOOP
+============================ */
+setInterval(() => {
+  loadUser();
+  loadApiKey();
+  updateSnippet();
+}, 1500);
+
+/* ============================
+   LOAD USER
+============================ */
+async function loadUser() {
+  const { data } = await connect26.auth.getUser();
+  const status = document.getElementById("user-status");
+
+  if (!data.user) {
+    status.textContent = "Not logged in. Log in to Connect 26 first.";
+    return;
+  }
+
+  userId = data.user.id;
+  status.textContent = "Logged in as: " + userId;
+}
+
+/* ============================
+   LOAD API KEY
+============================ */
+async function loadApiKey() {
+  if (!userId) return;
+
+  const { data } = await ai
+    .from("api_keys")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const info = document.getElementById("api-info");
+  const keyBox = document.getElementById("api-key");
+
+  if (!data) {
+    apiKey = null;
+    info.textContent = "No API key yet.";
+    keyBox.textContent = "";
+    return;
+  }
+
+  apiKey = data.api_key;
+  siteUrl = data.site_url;
+
+  document.getElementById("site-url").value = siteUrl;
+  info.textContent = `Credits: ${data.credits}`;
+  keyBox.textContent = apiKey;
+}
+
+/* ============================
+   GENERATE / UPDATE KEY
+============================ */
+document.getElementById("gen-btn").onclick = async () => {
+  if (!userId) return;
+
+  const site = document.getElementById("site-url").value.trim();
+  if (!site) return alert("Enter your website URL");
+
+  const newKey = crypto.randomUUID() + "-" + Math.random().toString(36).slice(2, 10);
+
+  await ai
+    .from("api_keys")
+    .upsert({
+      user_id: userId,
+      api_key: newKey,
+      site_url: site,
+      active: true
+    }, { onConflict: "user_id" });
+
+  apiKey = newKey;
+};
+
+/* ============================
+   DELETE KEY
+============================ */
+document.getElementById("delete-key").onclick = async () => {
+  if (!userId) return;
+
+  await ai.from("api_keys").delete().eq("user_id", userId);
+
+  apiKey = null;
+  document.getElementById("api-key").textContent = "";
+  document.getElementById("api-info").textContent = "Deleted.";
+};
+
+/* ============================
+   COPY KEY
+============================ */
+document.getElementById("copy-key").onclick = () => {
+  if (!apiKey) return;
+  navigator.clipboard.writeText(apiKey);
+};
+
+/* ============================
+   LOG OUT
+============================ */
+document.getElementById("logout").onclick = async () => {
+  await connect26.auth.signOut();
+  location.reload();
+};
+
+/* ============================
+   TEST API (AUTO-STREAM)
+============================ */
+document.getElementById("test-prompt").oninput = async () => {
+  const prompt = document.getElementById("test-prompt").value;
+  if (!prompt || !userId) return;
+
+  const { data: req } = await ai
+    .from("requests")
+    .insert({
+      user_id: userId,
+      prompt,
+      status: "pending"
+    })
+    .select("id")
+    .single();
+
+  let done = false;
+  while (!done) {
+    const { data: r } = await ai
+      .from("requests")
+      .select("response,status")
+      .eq("id", req.id)
+      .single();
+
+    document.getElementById("test-output").textContent = r.response;
+
+    if (r.status === "done") done = true;
+    else await new Promise(r => setTimeout(r, 300));
+  }
+};
+
+/* ============================
+   SNIPPET (AUTO-UPDATE)
+============================ */
+function updateSnippet() {
+  const box = document.getElementById("snippet");
+
+  if (!apiKey || !siteUrl) {
+    box.textContent = "// Generate your API key above";
+    return;
+  }
+
+  box.textContent = `
+<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>
+<script>
+  const client = supabase.createClient("${AI_URL}", "${AI_ANON}");
+  const API_KEY = "${apiKey}";
+
+  if (window.location.origin !== "${siteUrl}") {
+    throw new Error("Origin not allowed");
+  }
+
+  async function callAI(prompt) {
+    const { data: req } = await client
+      .from("requests")
+      .insert({
+        user_id: "${userId}",
+        prompt,
+        status: "pending"
+      })
+      .select("id")
+      .single();
+
+    let done = false;
+    while (!done) {
+      const { data: r } = await client
+        .from("requests")
+        .select("response,status")
+        .eq("id", req.id)
+        .single();
+
+      console.log(r.response);
+
+      if (r.status === "done") done = true;
+      else await new Promise(r => setTimeout(r, 300));
+    }
+  }
+  `;
+}
+</script>
+
+</body>
+</html>
