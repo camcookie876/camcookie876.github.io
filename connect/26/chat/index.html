@@ -456,11 +456,17 @@
     let messagesChannel = null;
 
     function getParams() {
+      // Get from localStorage for new system
+      const token = localStorage.getItem('cc-token');
+      const user = localStorage.getItem('cc-user');
+      
+      // Still support legacy URL params for backward compatibility
       const p = new URLSearchParams(window.location.search);
       return {
-        token: p.get("token"),
+        token: token || p.get("token"),
         chat: p.get("chat"),
-        org: p.get("org")
+        org: p.get("org"),
+        legacyUser: user
       };
     }
 
@@ -521,6 +527,17 @@
     async function requireUser() {
       const params = getParams();
 
+      // Try new localStorage-based auth first
+      const storedUser = localStorage.getItem('cc-user');
+      if (storedUser) {
+        try {
+          return JSON.parse(storedUser);
+        } catch (e) {
+          console.error("Failed to parse stored user", e);
+        }
+      }
+
+      // Fall back to legacy token-based system
       if (!params.token) {
         const q = new URLSearchParams();
         if (params.chat) q.set("chat", params.chat);
@@ -1144,11 +1161,9 @@
         $("deleteChatBtn").onclick = deleteChat;
 
         $("logoutBtn").onclick = () => {
-          const params = getParams();
-          const q = new URLSearchParams();
-          if (params.chat) q.set("chat", params.chat);
-          if (params.org) q.set("org", params.org);
-          window.location.href = "/connect/26/?" + q.toString();
+          localStorage.removeItem('cc-token');
+          localStorage.removeItem('cc-user');
+          window.location.href = '/connect/26/';
         };
       } catch (e) {
         $("loadingScreen").classList.add("hidden");

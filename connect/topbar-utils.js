@@ -1,6 +1,6 @@
 /**
  * Unified topbar navigation utility
- * Provides dropdown navigation and URL/query parameter handling
+ * Provides dropdown navigation and localStorage-based auth handling
  */
 
 // Helper to get current app/page
@@ -12,6 +12,17 @@ function getCurrentPageType() {
   if (path.includes('/terms')) return 'terms';
   if (path.includes('/26')) return 'connect';
   return 'home';
+}
+
+// Check if user is authenticated
+function isUserAuthenticated() {
+  return !!localStorage.getItem('cc-token') && !!localStorage.getItem('cc-user');
+}
+
+// Get current user
+function getCurrentUser() {
+  const userStr = localStorage.getItem('cc-user');
+  return userStr ? JSON.parse(userStr) : null;
 }
 
 // Initialize topbar with dropdown navigation
@@ -95,10 +106,10 @@ function initTopbar() {
     menu.style.display = 'none';
     
     const apps = [
-      { name: 'Chat', path: '/connect/26/chat', icon: '💬', type: 'chat' },
-      { name: 'Books', path: '/connect/26/books', icon: '📖', type: 'books' },
-      { name: 'Draw', path: '/connect/26/draw', icon: '🎨', type: 'draw' },
-      { name: 'Dashboard', path: '/connect/26', icon: '🏠', type: 'connect' },
+      { name: 'Chat', path: '/connect/26/chat/', icon: '💬', type: 'chat' },
+      { name: 'Books', path: '/connect/26/books/', icon: '📖', type: 'books' },
+      { name: 'Draw', path: '/connect/26/draw/', icon: '🎨', type: 'draw' },
+      { name: 'Dashboard', path: '/connect/26/apps/', icon: '🏠', type: 'apps' },
     ];
     
     apps.forEach((app) => {
@@ -111,6 +122,28 @@ function initTopbar() {
       item.innerHTML = `${app.icon} ${app.name}`;
       menu.appendChild(item);
     });
+
+    // Add settings option
+    const settingsItem = document.createElement('a');
+    settingsItem.href = '/connect/26/settings/';
+    settingsItem.className = 'cc-app-item';
+    if (currentPage === 'settings') settingsItem.classList.add('active');
+    settingsItem.innerHTML = '⚙️ Settings';
+    menu.appendChild(settingsItem);
+
+    // Add logout option
+    const logoutItem = document.createElement('a');
+    logoutItem.href = '#';
+    logoutItem.className = 'cc-app-item';
+    logoutItem.style.borderTop = '1px solid #dbe4ff';
+    logoutItem.innerHTML = '🚪 Logout';
+    logoutItem.onclick = (e) => {
+      e.preventDefault();
+      localStorage.removeItem('cc-token');
+      localStorage.removeItem('cc-user');
+      window.location.href = '/connect/26/';
+    };
+    menu.appendChild(logoutItem);
     
     // Toggle menu
     dropdownBtn.addEventListener('click', (e) => {
@@ -131,7 +164,7 @@ function initTopbar() {
   }
 }
 
-// Store query parameters in localStorage and clean URL
+// Legacy query parameter handling (for backward compatibility)
 function handleQueryParams() {
   const params = new URLSearchParams(window.location.search);
   if (params.size > 0) {

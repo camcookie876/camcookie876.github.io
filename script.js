@@ -53,13 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
         a.textContent = link.name;
         dropdown.appendChild(a);
       });
-
-      // Add search bar at the end of dropdown
-      const dropdownSearchBar = createSearchBar(true);
-      dropdownSearchBar.style.borderTop = '1px solid #eee';
-      dropdownSearchBar.style.padding = '8px';
-      dropdownSearchBar.style.marginTop = '8px';
-      dropdown.appendChild(dropdownSearchBar);
     }
 
     // Toggle dropdown
@@ -117,10 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     inner.appendChild(brand);
     inner.appendChild(nav);
-
-    const topbarSearch = createSearchBar();
-    inner.appendChild(topbarSearch);
-
     inner.appendChild(menuBtn);
     inner.appendChild(dropdown);
     
@@ -148,166 +137,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const footer = document.createElement('footer');
     footer.className = 'footer';
     footer.innerHTML = `
-      <p>&copy; 2024 Camcookie. All rights reserved.</p>
-      <p><a href="/links/">Links</a> | <a href="/DOCS/">Docs</a></p>
+      <p>&copy; 2026 Camcookie. All rights reserved.</p>
+      <p><a href="/connect/">Connect</a></p>
     `;
     document.body.appendChild(footer);
-  }
-
-  function createSearchBar(isDropdown = false) {
-    const container = document.createElement('div');
-    container.className = 'site-search';
-    container.style.display = 'flex';
-    container.style.flexDirection = 'column';
-    container.style.gap = '0';
-    container.style.width = isDropdown ? '100%' : '200px';
-    container.style.position = 'relative';
-
-    const inputContainer = document.createElement('div');
-    inputContainer.style.display = 'flex';
-    inputContainer.style.gap = '4px';
-    inputContainer.style.width = '100%';
-    inputContainer.style.minHeight = '0';
-
-    const input = document.createElement('input');
-    input.type = 'search';
-    input.placeholder = 'Search...';
-    input.style.flex = '1';
-    input.style.padding = '6px 8px';
-    input.style.border = '1px solid #ccc';
-    input.style.borderRadius = '3px';
-    input.style.fontSize = '13px';
-    input.style.minWidth = '0';
-
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.textContent = 'Go';
-    button.style.padding = '6px 10px';
-    button.style.border = 'none';
-    button.style.borderRadius = '3px';
-    button.style.background = '#007bff';
-    button.style.color = '#fff';
-    button.style.cursor = 'pointer';
-    button.style.fontSize = '13px';
-    button.style.whiteSpace = 'nowrap';
-
-    const resultsContainer = document.createElement('div');
-    resultsContainer.className = 'site-search-results';
-    resultsContainer.style.position = 'absolute';
-    resultsContainer.style.top = isDropdown ? 'auto' : '100%';
-    resultsContainer.style.bottom = isDropdown ? '-100%' : 'auto';
-    resultsContainer.style.left = '0';
-    resultsContainer.style.right = '0';
-    resultsContainer.style.width = '100%';
-    resultsContainer.style.marginTop = isDropdown ? '0' : '2px';
-    resultsContainer.style.background = '#fff';
-    resultsContainer.style.border = '1px solid #ccc';
-    resultsContainer.style.borderRadius = '3px';
-    resultsContainer.style.maxHeight = isDropdown ? '200px' : '250px';
-    resultsContainer.style.overflowY = 'auto';
-    resultsContainer.style.display = 'none';
-    resultsContainer.style.zIndex = '1000';
-    resultsContainer.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-
-    button.addEventListener('click', () => {
-      if (input.value.trim()) {
-        performDropdownSearch(input.value.trim(), resultsContainer, pageIndex);
-      }
-    });
-
-    input.addEventListener('input', () => {
-      if (input.value.trim().length > 0) {
-        performDropdownSearch(input.value.trim(), resultsContainer, pageIndex);
-      } else {
-        resultsContainer.style.display = 'none';
-        resultsContainer.innerHTML = '';
-      }
-    });
-
-    input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        if (input.value.trim()) {
-          performDropdownSearch(input.value.trim(), resultsContainer, pageIndex);
-        }
-      }
-    });
-
-    // Close results when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!container.contains(e.target)) {
-        resultsContainer.style.display = 'none';
-      }
-    });
-
-    inputContainer.appendChild(input);
-    inputContainer.appendChild(button);
-    container.appendChild(inputContainer);
-    container.appendChild(resultsContainer);
-
-    return container;
-  }
-
-  function performDropdownSearch(query, resultsContainer, pageIndex) {
-    const lowerQuery = query.toLowerCase();
-    const matches = pageIndex.filter(page => {
-      const title = page.title ? page.title.toLowerCase() : '';
-      const url = page.url ? page.url.toLowerCase() : '';
-      const desc = page.description ? page.description.toLowerCase() : '';
-      return title.includes(lowerQuery) || url.includes(lowerQuery) || desc.includes(lowerQuery);
-    });
-
-    resultsContainer.innerHTML = '';
-
-    if (matches.length === 0) {
-      const noResult = document.createElement('div');
-      noResult.style.padding = '12px';
-      noResult.style.textAlign = 'center';
-      noResult.style.color = '#999';
-      noResult.textContent = 'No pages found';
-      resultsContainer.appendChild(noResult);
-      resultsContainer.style.display = 'block';
-      return;
-    }
-
-    matches.slice(0, 10).forEach(page => {
-      const item = document.createElement('div');
-      item.style.padding = '10px 12px';
-      item.style.borderBottom = '1px solid #eee';
-      item.style.cursor = 'pointer';
-      item.style.transition = 'background-color 0.2s';
-
-      const titleEl = document.createElement('div');
-      titleEl.style.fontWeight = '500';
-      titleEl.style.color = '#000';
-      titleEl.textContent = page.title || 'Untitled';
-
-      const urlEl = document.createElement('div');
-      urlEl.style.fontSize = '12px';
-      urlEl.style.color = '#666';
-      urlEl.style.marginTop = '2px';
-      urlEl.textContent = page.url || '/';
-
-      item.appendChild(titleEl);
-      item.appendChild(urlEl);
-
-      item.addEventListener('mouseover', () => {
-        item.style.backgroundColor = '#f5f5f5';
-      });
-
-      item.addEventListener('mouseout', () => {
-        item.style.backgroundColor = 'transparent';
-      });
-
-      item.addEventListener('click', () => {
-        const targetUrl = page.url.startsWith('http') || page.url.startsWith('/') ? page.url : `/${page.url}`;
-        window.location.href = targetUrl;
-      });
-
-      resultsContainer.appendChild(item);
-    });
-
-    resultsContainer.style.display = 'block';
   }
 
   function loadPageIndex() {
