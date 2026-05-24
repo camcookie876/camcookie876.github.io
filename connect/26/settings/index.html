@@ -342,6 +342,17 @@
       <h1>Settings</h1>
 
       <div class="settings-section">
+        <h2>Profile Photo</h2>
+        <label for="photoInput">Upload Photo (Base64)</label>
+        <input type="file" id="photoInput" accept="image/*" style="padding: 8px;">
+        <div id="photoPreview" style="margin: 12px 0; max-width: 150px; max-height: 150px;">
+          <img id="photoPreviewImg" style="width: 100%; height: auto; border-radius: 8px; display: none;">
+        </div>
+        <button class="submit" id="uploadPhotoBtn">Upload Photo</button>
+        <p id="photoMsg"></p>
+      </div>
+
+      <div class="settings-section">
         <h2>Username</h2>
         <label for="newUsername">New Username</label>
         <input type="text" id="newUsername" placeholder="Enter new username">
@@ -413,6 +424,66 @@
     $("appShell").style.display = "block";
   }
 
+    initUI();
+    showSettings();
+  }
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handlePhotoUpload() {
+    const photoInput = $("photoInput");
+    const file = photoInput.files[0];
+    if (!file) {
+      $("photoMsg").textContent = "Please select a photo.";
+      $("photoMsg").className = "danger";
+      return;
+    }
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      $("photoMsg").textContent = "Photo must be smaller than 5MB.";
+      $("photoMsg").className = "danger";
+      return;
+    }
+
+    try {
+      const base64 = await fileToBase64(file);
+      
+      // Show preview
+      const previewImg = $("photoPreviewImg");
+      previewImg.src = base64;
+      previewImg.style.display = "block";
+
+      // Upload to database
+      const user = JSON.parse(localStorage.getItem('cc-user') || '{}');
+      const { error } = await client
+        .from('users')
+        .update({ photo: base64 })
+        .eq('id', user.id);
+
+      if (error) {
+        $("photoMsg").textContent = "Failed to upload photo: " + error.message;
+        $("photoMsg").className = "danger";
+        return;
+      }
+
+      $("photoMsg").textContent = "Photo uploaded successfully!";
+      $("photoMsg").className = "success";
+      $("photoInput").value = "";
+      popup("Photo updated!");
+    } catch (err) {
+      $("photoMsg").textContent = "Error uploading photo: " + err.message;
+      $("photoMsg").className = "danger";
+    }
+  }
+
   function initUI() {
     const appsMenu = $("appsMenu");
     appsMenu.innerHTML = apps.map(app => `
@@ -440,6 +511,24 @@
       if (!e.target.closest('.dropdown-container')) {
         appsMenu.classList.remove("show");
         $("userMenu").classList.remove("show");
+      }
+    });
+
+    // Upload photo
+    $("uploadPhotoBtn").onclick = handlePhotoUpload;
+
+    // Photo preview on input change
+    $("photoInput").addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        try {
+          const base64 = await fileToBase64(file);
+          const previewImg = $("photoPreviewImg");
+          previewImg.src = base64;
+          previewImg.style.display = "block";
+        } catch (err) {
+          console.error('Preview error:', err);
+        }
       }
     });
 

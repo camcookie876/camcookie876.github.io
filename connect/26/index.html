@@ -175,6 +175,14 @@
     <input id="username" placeholder="Username" autocomplete="username" />
     <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
 
+    <div id="signupPhotoWrap" style="display:none; margin-top:12px;">
+      <label for="signupPhoto" style="display:block; margin-bottom:6px; font-size:0.9rem; font-weight:600;">Upload Profile Photo (Optional)</label>
+      <input id="signupPhoto" type="file" accept="image/*" />
+      <div id="signupPhotoPreview" style="margin-top:8px; max-width:100px; max-height:100px;">
+        <img id="signupPhotoImg" style="width:100%; height:auto; border-radius:8px; display:none;">
+      </div>
+    </div>
+
     <label id="termsWrap" style="display:none; margin-top:12px; font-size:14px;"><input id="agreeTerms" type="checkbox" style="width:auto; margin-right:8px;"> I agree to the <a href="/connect/26/terms/" target="_blank">Terms & Conditions</a>.</label>
 
     <button id="submitBtn">Sign in</button>
@@ -270,9 +278,16 @@
         return;
       }
 
+      // Get photo if uploaded
+      let photoBase64 = null;
+      const photoFile = $("signupPhoto").files[0];
+      if (photoFile) {
+        photoBase64 = await fileToBase64(photoFile);
+      }
+
       const { data, error } = await client
         .from("users")
-        .insert({ username: u, password_hash: hash })
+        .insert({ username: u, password_hash: hash, photo: photoBase64 })
         .select()
         .single();
 
@@ -296,9 +311,34 @@
       authMode = mode;
       const signup = mode === "signup";
       $("termsWrap").style.display = signup ? "block" : "none";
+      $("signupPhotoWrap").style.display = signup ? "block" : "none";
       $("submitBtn").textContent = signup ? "Create account" : "Sign in";
       $("errorMsg").textContent = "";
     }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Photo preview
+    $("signupPhoto").addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        try {
+          const base64 = await fileToBase64(file);
+          const previewImg = $("signupPhotoImg");
+          previewImg.src = base64;
+          previewImg.style.display = "block";
+        } catch (err) {
+          console.error('Preview error:', err);
+        }
+      }
+    });
 
     $("submitBtn").onclick = () => authMode === "signup" ? signup() : login();
     $("modeLogin").onclick = () => setMode("login");

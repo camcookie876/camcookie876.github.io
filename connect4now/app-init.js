@@ -37,7 +37,7 @@ class Connect26App {
 
       // Setup UI
       this.setupAppShell();
-      this.setupAuth Listener();
+      this.setupAuthListener();
 
       // Emit ready event
       window.dispatchEvent(new CustomEvent('app-ready', { detail: { app: this.appName, user: this.user, profile: this.userProfile } }));

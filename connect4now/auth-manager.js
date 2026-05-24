@@ -90,8 +90,8 @@ class AuthManager {
       
       if (this.userProfile) {
         localStorage.setItem('cc_username', this.userProfile.username);
-        if (this.userProfile.profile_image_base64) {
-          localStorage.setItem('cc_profile_image', this.userProfile.profile_image_base64);
+        if (this.userProfile.photo) {
+          localStorage.setItem('cc_profile_image', this.userProfile.photo);
         }
       }
       return this.userProfile;
@@ -133,7 +133,7 @@ class AuthManager {
         .insert([{
           id: authData.user.id,
           username: username,
-          profile_image_base64: null
+          photo: null
         }]);
 
       if (profileError) {
@@ -264,14 +264,14 @@ class AuthManager {
     try {
       const { error } = await this.supabase
         .from('users')
-        .update({ profile_image_base64: imageBase64 })
+        .update({ photo: imageBase64 })
         .eq('id', this.currentUser.id);
 
       if (error) {
         return { error: error.message };
       }
 
-      this.userProfile.profile_image_base64 = imageBase64;
+      this.userProfile.photo = imageBase64;
       localStorage.setItem('cc_profile_image', imageBase64);
       this.notifyListeners();
 
