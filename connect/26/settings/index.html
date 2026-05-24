@@ -302,19 +302,17 @@
       text-decoration: underline;
     }
   </style>
+  <script src="/connect/26/cc-auth.js"></script>
 </head>
 <body>
 <div id="topbar">
   <div class="brand">Camcookie Connect 26</div>
   <div class="topbar-right">
     <div class="dropdown-container">
-      <button id="appsBtn">Apps ▼</button>
-      <div class="dropdown-menu" id="appsMenu"></div>
-    </div>
-    <div class="dropdown-container">
-      <button id="userBtn">👤</button>
+      <button id="userBtn" style="padding:0;border:none;background:transparent;"><img id="userPhoto" style="width:36px;height:36px;border-radius:999px;border:2px solid rgba(255,255,255,.65);object-fit:cover;" alt="Account"></button>
       <div class="dropdown-menu" id="userMenu">
-        <a href="/connect/26/apps/" class="dropdown-item">Apps</a>
+        <a href="#" id="appsToggle" class="dropdown-item">Apps</a>
+        <div class="dropdown-menu" id="appsMenu" style="position:static;box-shadow:none;border-left:none;border-right:none;display:none;"></div>
         <a href="#" class="dropdown-item" id="logoutBtn">Logout</a>
       </div>
     </div>
@@ -416,18 +414,8 @@
   function initUI() {
     const appsMenu = $("appsMenu");
     appsMenu.innerHTML = apps.map(app => `
-      <a href="${app.path}" class="dropdown-item">📱 ${app.name}</a>
-    `).join('') + '<a href="/connect/26/settings/" class="dropdown-item">⚙️ Settings</a>';
-
-    $("appsBtn").onclick = (e) => {
-      e.stopPropagation();
-      appsMenu.classList.toggle("show");
-    };
-
-    $("userBtn").onclick = (e) => {
-      e.stopPropagation();
-      $("userMenu").classList.toggle("show");
-    };
+      <a href="${app.path}" class="dropdown-item">${app.name}</a>
+    `).join('') + '<a href="/connect/26/settings/" class="dropdown-item">Settings</a>';
 
     $("logoutBtn").onclick = (e) => {
       e.preventDefault();
@@ -436,12 +424,6 @@
       window.location.href = '/connect/26/';
     };
 
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.dropdown-container')) {
-        appsMenu.classList.remove("show");
-        $("userMenu").classList.remove("show");
-      }
-    });
 
     // Change username
     $("changeUsernameBtn").onclick = async () => {
@@ -550,6 +532,7 @@
     }
 
     initUI();
+    ccInitTopbar();
     showSettings();
   }
 

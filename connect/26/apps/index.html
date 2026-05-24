@@ -281,6 +281,7 @@
 
     #popup.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
+  <script src="/connect/26/cc-auth.js"></script>
 </head>
 <body>
 <div id="topbar">
@@ -288,12 +289,10 @@
   <div class="topbar-right">
     <div class="user-info" id="userInfo"></div>
     <div class="dropdown-container">
-      <button id="appsBtn">Apps ▼</button>
-      <div class="dropdown-menu" id="appsMenu"></div>
-    </div>
-    <div class="dropdown-container">
-      <button id="userBtn">👤</button>
+      <button id="userBtn" style="padding:0;border:none;background:transparent;"><img id="userPhoto" style="width:36px;height:36px;border-radius:999px;border:2px solid rgba(255,255,255,.65);object-fit:cover;" alt="Account"></button>
       <div class="dropdown-menu" id="userMenu">
+        <a href="#" id="appsToggle" class="dropdown-item">Apps</a>
+        <div class="dropdown-menu" id="appsMenu" style="position:static;box-shadow:none;border-left:none;border-right:none;display:none;"></div>
         <a href="/connect/26/settings/" class="dropdown-item">Settings</a>
         <a href="#" class="dropdown-item" id="logoutBtn">Logout</a>
       </div>
@@ -316,7 +315,7 @@
 </div>
 
 <div id="appShell">
-  <h1>Select an App</h1><p>Books and Draw do not work at the moment due to a new login system.</p>
+  <h1>Select an App</h1><p></p>
   <div class="app-grid" id="appGrid"></div>
 </div>
 
@@ -429,8 +428,6 @@
   }
 
   function initUI() {
-    const user = JSON.parse(localStorage.getItem('cc-user') || '{}');
-    $("userInfo").textContent = user.username || 'User';
 
     const grid = $("appGrid");
     grid.innerHTML = apps.map(app => `
@@ -443,18 +440,8 @@
 
     const appsMenu = $("appsMenu");
     appsMenu.innerHTML = apps.map(app => `
-      <a href="${app.path}" class="dropdown-item">📱 ${app.name}</a>
-    `).join('') + '<a href="/connect/26/settings/" class="dropdown-item">⚙️ Settings</a>';
-
-    $("appsBtn").onclick = (e) => {
-      e.stopPropagation();
-      appsMenu.classList.toggle("show");
-    };
-
-    $("userBtn").onclick = (e) => {
-      e.stopPropagation();
-      $("userMenu").classList.toggle("show");
-    };
+      <a href="${app.path}" class="dropdown-item">${app.name}</a>
+    `).join('') + '<a href="/connect/26/settings/" class="dropdown-item">Settings</a>';
 
     $("logoutBtn").onclick = (e) => {
       e.preventDefault();
@@ -463,12 +450,6 @@
       window.location.href = '/connect/26/';
     };
 
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.dropdown-container')) {
-        appsMenu.classList.remove("show");
-        $("userMenu").classList.remove("show");
-      }
-    });
   }
 
   function init() {
@@ -482,6 +463,13 @@
     }
 
     initUI();
+    ccInitTopbar();
+    const h = window.location.hash || "";
+    if (h.startsWith("#app=")) {
+      const appName = decodeURIComponent(h.slice(5)).toLowerCase();
+      const target = apps.find(a => a.name.toLowerCase() === appName);
+      if (target) { window.location.href = target.path + h; return; }
+    }
     showApps();
   }
 
