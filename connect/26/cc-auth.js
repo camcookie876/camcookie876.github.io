@@ -31,6 +31,28 @@ function ccSetSetting(key, value) {
   localStorage.setItem(CC_STORAGE_KEY_SETTINGS, JSON.stringify(settings));
 }
 
+function ccGetUserPhoto() {
+  return localStorage.getItem('cc_profile_image');
+}
+
+function ccSetUserPhoto(photoBase64) {
+  localStorage.setItem('cc_profile_image', photoBase64);
+}
+
+function ccGetUsername() {
+  const user = ccGetUser();
+  return user?.username || localStorage.getItem('cc_username') || 'User';
+}
+
+async function ccFileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 async function ccHashPassword(password) {
   const enc = new TextEncoder().encode(password);
   const buf = await crypto.subtle.digest('SHA-256', enc);
