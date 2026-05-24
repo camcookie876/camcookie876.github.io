@@ -312,7 +312,7 @@
       <div class="dropdown-menu" id="appsMenu"></div>
     </div>
     <div class="dropdown-container">
-      <button id="userBtn">👤</button>
+      <button id="userBtn">Account</button>
       <div class="dropdown-menu" id="userMenu">
         <a href="/connect/26/apps/" class="dropdown-item">Apps</a>
         <a href="#" class="dropdown-item" id="logoutBtn">Logout</a>
@@ -416,8 +416,8 @@
   function initUI() {
     const appsMenu = $("appsMenu");
     appsMenu.innerHTML = apps.map(app => `
-      <a href="${app.path}" class="dropdown-item">📱 ${app.name}</a>
-    `).join('') + '<a href="/connect/26/settings/" class="dropdown-item">⚙️ Settings</a>';
+      <a href="${app.path}" class="dropdown-item">${app.name}</a>
+    `).join('') + '<a href="/connect/26/settings/" class="dropdown-item">Settings</a>';
 
     $("appsBtn").onclick = (e) => {
       e.stopPropagation();

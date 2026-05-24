@@ -165,13 +165,19 @@
 <a href="https://camcookie876.github.io/connect/" style="position:fixed;top:12px;left:12px;font-size:14px;color:var(--muted);text-decoration:none;z-index:1000;"></a>
   <div id="loginBox" class="card">
     <h1>Camcookie Connect</h1>
-    <p class="muted">Sign in or create an account with just a username and password.</p>
+    <p class="muted">Choose sign in or sign up, then continue with username and password.</p>
+
+    <div style="display:flex; gap:10px; margin-bottom:8px;">
+      <button id="modeLogin" class="secondary" style="margin-top:0;">Sign in mode</button>
+      <button id="modeSignup" class="secondary" style="margin-top:0;">Sign up mode</button>
+    </div>
 
     <input id="username" placeholder="Username" autocomplete="username" />
     <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
 
-    <button id="loginBtn">Sign in</button>
-    <button id="signupBtn" class="secondary">Create account</button>
+    <label id="termsWrap" style="display:none; margin-top:12px; font-size:14px;"><input id="agreeTerms" type="checkbox" style="width:auto; margin-right:8px;"> I agree to the <a href="/connect/26/terms/" target="_blank">Terms & Conditions</a>.</label>
+
+    <button id="submitBtn">Sign in</button>
 
     <p id="errorMsg" class="muted" style="color:var(--danger); margin-top:8px;"></p>
   </div>
@@ -213,6 +219,8 @@
       return token;
     }
 
+    let authMode = "login";
+
     async function login() {
       const u = $("username").value.trim();
       const p = $("password").value.trim();
@@ -240,6 +248,8 @@
     }
 
     async function signup() {
+      const agreed = $("agreeTerms").checked;
+      if (!agreed) { $("errorMsg").textContent = "You must agree to the Terms & Conditions."; return; }
       const u = $("username").value.trim();
       const p = $("password").value.trim();
       if (!u || !p) {
@@ -276,16 +286,24 @@
     }
 
     function redirect(token, user) {
-      // Store user data and token in localStorage
-      localStorage.setItem('cc-token', token);
-      localStorage.setItem('cc-user', JSON.stringify(user));
-      
-      // Redirect to apps page
-      window.location.href = "/connect/26/apps/";
+      localStorage.setItem("cc-token", token);
+      localStorage.setItem("cc-user", JSON.stringify({ id: user.id, username: user.username }));
+      const appHash = window.location.hash && window.location.hash.startsWith("#app=") ? window.location.hash : "";
+      window.location.href = "/connect/26/apps/" + appHash;
     }
 
-    $("loginBtn").onclick = login;
-    $("signupBtn").onclick = signup;
+    function setMode(mode) {
+      authMode = mode;
+      const signup = mode === "signup";
+      $("termsWrap").style.display = signup ? "block" : "none";
+      $("submitBtn").textContent = signup ? "Create account" : "Sign in";
+      $("errorMsg").textContent = "";
+    }
+
+    $("submitBtn").onclick = () => authMode === "signup" ? signup() : login();
+    $("modeLogin").onclick = () => setMode("login");
+    $("modeSignup").onclick = () => setMode("signup");
+    setMode("login");
   </script>
 <script src="https://camcookie876.github.io/connect/camcookie-data.js"></script>
 
