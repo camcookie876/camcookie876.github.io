@@ -288,10 +288,12 @@
   <div class="topbar-right">
     <div class="user-info" id="userInfo"></div>
     <div class="dropdown-container">
-      <button id="userBtn">Account</button>
+      <button id="appsBtn">Apps ▼</button>
+      <div class="dropdown-menu" id="appsMenu"></div>
+    </div>
+    <div class="dropdown-container">
+      <button id="userBtn">👤</button>
       <div class="dropdown-menu" id="userMenu">
-        <a href="#" id="appsToggle" class="dropdown-item">Apps</a>
-        <div class="dropdown-menu" id="appsMenu" style="position:static;box-shadow:none;border-left:none;border-right:none;display:none;"></div>
         <a href="/connect/26/settings/" class="dropdown-item">Settings</a>
         <a href="#" class="dropdown-item" id="logoutBtn">Logout</a>
       </div>
@@ -314,7 +316,7 @@
 </div>
 
 <div id="appShell">
-  <h1>Select an App</h1><p></p>
+  <h1>Select an App</h1><p>Books and Draw do not work at the moment due to a new login system.</p>
   <div class="app-grid" id="appGrid"></div>
 </div>
 
@@ -441,8 +443,8 @@
 
     const appsMenu = $("appsMenu");
     appsMenu.innerHTML = apps.map(app => `
-      <a href="${app.path}" class="dropdown-item">${app.name}</a>
-    `).join('') + '<a href="/connect/26/settings/" class="dropdown-item">Settings</a>';
+      <a href="${app.path}" class="dropdown-item">📱 ${app.name}</a>
+    `).join('') + '<a href="/connect/26/settings/" class="dropdown-item">⚙️ Settings</a>';
 
     $("appsBtn").onclick = (e) => {
       e.stopPropagation();
@@ -480,12 +482,6 @@
     }
 
     initUI();
-    const h = window.location.hash || "";
-    if (h.startsWith("#app=")) {
-      const appName = decodeURIComponent(h.slice(5)).toLowerCase();
-      const target = apps.find(a => a.name.toLowerCase() === appName);
-      if (target) { window.location.href = target.path + h; return; }
-    }
     showApps();
   }
 

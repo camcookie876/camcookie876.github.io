@@ -137,6 +137,44 @@
       border: 1px solid var(--blue);
     }
 
+    .app-grid {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .tile {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fff;
+      cursor: pointer;
+      text-align: left;
+      transition: .15s ease;
+    }
+
+    .tile:hover {
+      border-color: var(--blue);
+      background: #f0f7ff;
+    }
+
+    .tile.selected {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+      background: #eef6ff;
+    }
+
+    .beta {
+      display: inline-block;
+      background: var(--cyan);
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: .7rem;
+      margin-left: 6px;
+    }
+
     #popup {
       position: fixed;
       bottom: 18px;
@@ -165,15 +203,36 @@
 <a href="https://camcookie876.github.io/connect/" style="position:fixed;top:12px;left:12px;font-size:14px;color:var(--muted);text-decoration:none;z-index:1000;"></a>
   <div id="loginBox" class="card">
     <h1>Camcookie Connect</h1>
-    <p class="muted">Sign in or create an account with just a username and password.</p>
+    <p class="muted">Sign in or create an account with just a username and password. Safe and Secure.</p>
 
     <input id="username" placeholder="Username" autocomplete="username" />
     <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+
+    <h3 style="margin-top:24px;">Continue to</h3>
+
+    <div class="app-grid">
+      <div class="tile selected" id="goChat">
+        <h3>Camcookie Chat <span class="beta">BETA</span></h3>
+        <p class="muted">Join secure, encrypted chats all in one place.</p>
+      </div>
+      <div class="tile" id="goBooks">
+        <h3>Camcookie Books <span class="beta">BETA (Load Stories Error)</span></h3>
+        <p class="muted">Read and share stories.</p>
+      </div>
+      <div class="tile" id="goDraw">
+        <h3>Camcookie Draw</h3>
+        <p class="muted">Create, save, and export artwork anywhere!</p>
+      </div>
+      <div class="tile">
+        <h3>Camcookie Connect 26</h3>
+        <p class="muted">© 2026 Camcookie</p>
+      </div>
 
     <button id="loginBtn">Sign in</button>
     <button id="signupBtn" class="secondary">Create account</button>
 
     <p id="errorMsg" class="muted" style="color:var(--danger); margin-top:8px;"></p>
+    </div>
   </div>
 
   <div id="popup"></div>
@@ -185,11 +244,21 @@
 
     function $(id){ return document.getElementById(id); }
 
+    let selectedApp = "chat";
+
     function popup(msg) {
       const el = $("popup");
       el.textContent = msg;
       el.classList.add("show");
       setTimeout(() => el.classList.remove("show"), 2200);
+    }
+
+    function getParams() {
+      const p = new URLSearchParams(window.location.search);
+      return {
+        chat: p.get("chat"),
+        org: p.get("org")
+      };
     }
 
     async function hashPassword(str) {
@@ -236,7 +305,7 @@
       }
 
       const token = await createToken(user.id);
-      redirect(token, user);
+      redirect(token);
     }
 
     async function signup() {
@@ -272,20 +341,51 @@
       }
 
       const token = await createToken(data.id);
-      redirect(token, data);
+      redirect(token);
     }
 
-    function redirect(token, user) {
-      // Store user data and token in localStorage
-      localStorage.setItem('cc-token', token);
-      localStorage.setItem('cc-user', JSON.stringify(user));
-      
-      // Redirect to apps page
-      window.location.href = "/connect/26/apps/";
+    function redirect(token) {
+      const params = getParams();
+      const q = new URLSearchParams();
+      q.set("token", token);
+
+      if (params.chat) q.set("chat", params.chat);
+      if (params.org) q.set("org", params.org);
+
+      if (selectedApp === "chat") {
+        window.location.href = "/connect/26/chat?" + q.toString();
+      }
+      if (selectedApp === "books") {
+        window.location.href = "/connect/26/books?" + q.toString();
+      }
+      if (selectedApp === "draw") {
+        window.location.href = "/connect/26/draw?" + q.toString();
+      }
     }
 
     $("loginBtn").onclick = login;
     $("signupBtn").onclick = signup;
+
+    $("goChat").onclick = () => {
+      selectedApp = "chat";
+      $("goChat").classList.add("selected");
+      $("goBooks").classList.remove("selected");
+      $("goDraw").classList.remove("selected");
+    };
+
+    $("goBooks").onclick = () => {
+      selectedApp = "books";
+      $("goBooks").classList.add("selected");
+      $("goChat").classList.remove("selected");
+      $("goDraw").classList.remove("selected");
+    };
+
+    $("goDraw").onclick = () => {
+      selectedApp = "draw";
+      $("goBooks").classList.remove("selected");
+      $("goChat").classList.remove("selected");
+      $("goDraw").classList.add("selected");
+    };
   </script>
 <script src="https://camcookie876.github.io/connect/camcookie-data.js"></script>
 

@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Connect 26 – Drawing & Animation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/connect/config.js"></script>
+  <script src="/connect/auth-manager.js"></script>
+  <script src="/connect/app-init.js"></script>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -198,7 +202,7 @@
   </style>
   <script src="/connect/topbar-utils.js"></script>
 </head>
-<body>
+<body data-connect-app="draw" data-require-auth="true" data-fullscreen="true">
 
 <div id="topbar">
   <div class="brand">🎨 Camcookie Draw</div>

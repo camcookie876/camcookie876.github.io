@@ -1,19 +1,41 @@
 /**
  * Camcookie Connect 26 - Auth & Utility Module
+ * Shared utilities for authentication and localStorage management
  */
 
 const CC_STORAGE_KEY_TOKEN = 'cc-token';
 const CC_STORAGE_KEY_USER = 'cc-user';
 const CC_STORAGE_KEY_SETTINGS = 'cc-settings';
 
-function ccGetToken() { return localStorage.getItem(CC_STORAGE_KEY_TOKEN); }
+// Get current authentication token
+function ccGetToken() {
+  return localStorage.getItem(CC_STORAGE_KEY_TOKEN);
+}
+
+// Get current user data
 function ccGetUser() {
   const userStr = localStorage.getItem(CC_STORAGE_KEY_USER);
-  if (!userStr) return null;
-  try { return JSON.parse(userStr); } catch { return null; }
+  return userStr ? JSON.parse(userStr) : null;
 }
-function ccIsAuthenticated() { return !!ccGetToken() && !!ccGetUser(); }
 
+// Get user ID
+function ccGetUserId() {
+  const user = ccGetUser();
+  return user ? user.id : null;
+}
+
+// Get username
+function ccGetUsername() {
+  const user = ccGetUser();
+  return user ? user.username : null;
+}
+
+// Check if user is authenticated
+function ccIsAuthenticated() {
+  return !!ccGetToken() && !!ccGetUser();
+}
+
+// Clear authentication
 function ccLogout() {
   localStorage.removeItem(CC_STORAGE_KEY_TOKEN);
   localStorage.removeItem(CC_STORAGE_KEY_USER);
@@ -21,86 +43,103 @@ function ccLogout() {
   window.location.href = '/connect/26/';
 }
 
+// Get setting value
 function ccGetSetting(key, defaultValue = null) {
   const settings = JSON.parse(localStorage.getItem(CC_STORAGE_KEY_SETTINGS) || '{}');
   return settings[key] !== undefined ? settings[key] : defaultValue;
 }
+
+// Set setting value
 function ccSetSetting(key, value) {
   const settings = JSON.parse(localStorage.getItem(CC_STORAGE_KEY_SETTINGS) || '{}');
   settings[key] = value;
   localStorage.setItem(CC_STORAGE_KEY_SETTINGS, JSON.stringify(settings));
 }
 
-function ccGetUserPhoto() {
-  return localStorage.getItem('cc_profile_image');
-}
-
-function ccSetUserPhoto(photoBase64) {
-  localStorage.setItem('cc_profile_image', photoBase64);
-}
-
-function ccGetUsername() {
-  const user = ccGetUser();
-  return user?.username || localStorage.getItem('cc_username') || 'User';
-}
-
-async function ccFileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
+// Hash password using SHA-256
 async function ccHashPassword(password) {
   const enc = new TextEncoder().encode(password);
-  const buf = await crypto.subtle.digest('SHA-256', enc);
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
+// Encrypt text using SHA-256 (for message encryption)
+async function ccEncryptMessage(message) {
+  const enc = new TextEncoder().encode(message);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+// For consistency, decrypted messages are just the hash
+// In a real implementation, you would use proper encryption/decryption
+async function ccDecryptMessage(hash) {
+  return hash;
+}
+
+// Redirect to login if not authenticated
 function ccRequireAuth() {
-  if (ccIsAuthenticated()) return;
-  const hash = window.location.hash || '';
-  const suffix = hash ? hash : '';
-  window.location.href = '/connect/26/' + suffix;
+  if (!ccIsAuthenticated()) {
+    window.location.href = '/connect/26/';
+  }
 }
 
+// Initialize topbar with apps menu
 function ccInitTopbar() {
+  const topbar = document.getElementById('topbar');
+  if (!topbar) return;
+
+  const appsBtn = document.getElementById('appsBtn');
   const appsMenu = document.getElementById('appsMenu');
   const userBtn = document.getElementById('userBtn');
   const userMenu = document.getElementById('userMenu');
   const logoutBtn = document.getElementById('logoutBtn');
-  const userInfo = document.getElementById('userInfo');
-  if (!userBtn || !userMenu) return;
 
-  const user = ccGetUser();
-  if (userInfo && user?.username) userInfo.textContent = user.username;
+  if (!appsBtn || !appsMenu || !userBtn || !userMenu) {
+    return; // Elements not found, skip initialization
+  }
 
   const apps = [
-    { name: 'Apps Home', path: '/connect/26/apps/' },
     { name: 'Chat', path: '/connect/26/chat/' },
     { name: 'Books', path: '/connect/26/books/' },
-    { name: 'Draw', path: '/connect/26/draw/' },
-    { name: 'AI', path: '/connect/26/ai/' }
+    { name: 'Draw', path: '/connect/26/draw/' }
   ];
 
-  if (appsMenu) {
-    appsMenu.innerHTML = apps.map(app => `<a href="${app.path}" class="dropdown-item">${app.name}</a>`).join('');
+  appsMenu.innerHTML = apps.map(app => `
+    <a href="${app.path}" class="dropdown-item">📱 ${app.name}</a>
+  `).join('') + '<a href="/connect/26/settings/" class="dropdown-item">⚙️ Settings</a>';
+
+  appsBtn.onclick = (e) => {
+    e.stopPropagation();
+    appsMenu.classList.toggle("show");
+  };
+
+  userBtn.onclick = (e) => {
+    e.stopPropagation();
+    userMenu.classList.toggle("show");
+  };
+
+  if (logoutBtn) {
+    logoutBtn.onclick = (e) => {
+      e.preventDefault();
+      ccLogout();
+    };
   }
 
-  userBtn.onclick = (e) => { e.stopPropagation(); userMenu.classList.toggle('show'); };
-  const appsToggle = document.getElementById('appsToggle');
-  if (appsToggle && appsMenu) {
-    appsToggle.onclick = (e) => { e.preventDefault(); e.stopPropagation(); appsMenu.classList.toggle('show'); };
-  }
-
-  if (logoutBtn) logoutBtn.onclick = (e) => { e.preventDefault(); ccLogout(); };
-
-  document.addEventListener('click', () => {
-    userMenu.classList.remove('show');
-    if (appsMenu) appsMenu.classList.remove('show');
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.dropdown-container')) {
+      appsMenu.classList.remove("show");
+      userMenu.classList.remove("show");
+    }
   });
 }
 
-document.addEventListener('DOMContentLoaded', ccInitTopbar);
+// Initialize on DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', ccInitTopbar);
+} else {
+  ccInitTopbar();
+}
