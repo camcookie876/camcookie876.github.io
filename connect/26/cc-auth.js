@@ -14,17 +14,6 @@ const CC_STORAGE_KEY_USERNAME = 'username';
 const CC_STORAGE_KEY_PHOTO = 'profile_photo';
 const CC_STORAGE_KEY_APP_REDIRECT = 'app_redirect';
 
-const CC_STORAGE_KEY_SESSION_MODE = 'cc_session_mode';
-
-function ccGetStorage() {
-  const mode = localStorage.getItem(CC_STORAGE_KEY_SESSION_MODE);
-  return mode === 'session' ? sessionStorage : localStorage;
-}
-
-function ccSetSessionMode(mode) {
-  localStorage.setItem(CC_STORAGE_KEY_SESSION_MODE, mode === 'session' ? 'session' : 'local');
-}
-
 // Legacy keys (for migration)
 const CC_STORAGE_KEY_OLD_USER = 'cc-user';
 const CC_STORAGE_KEY_OLD_TOKEN = 'cc-token';
@@ -33,7 +22,7 @@ const CC_STORAGE_KEY_OLD_TOKEN = 'cc-token';
  * Get session token
  */
 function ccGetToken() {
-  return ccGetStorage().getItem(CC_STORAGE_KEY_TOKEN) || localStorage.getItem(CC_STORAGE_KEY_TOKEN) || sessionStorage.getItem(CC_STORAGE_KEY_TOKEN);
+  return localStorage.getItem(CC_STORAGE_KEY_TOKEN);
 }
 
 /**
@@ -41,10 +30,9 @@ function ccGetToken() {
  * @returns {Object|null} User object with {id, username, profile_photo}
  */
 function ccGetUser() {
-  const storage = ccGetStorage();
-  const userId = storage.getItem(CC_STORAGE_KEY_USER_ID) || localStorage.getItem(CC_STORAGE_KEY_USER_ID) || sessionStorage.getItem(CC_STORAGE_KEY_USER_ID);
-  const username = storage.getItem(CC_STORAGE_KEY_USERNAME) || localStorage.getItem(CC_STORAGE_KEY_USERNAME) || sessionStorage.getItem(CC_STORAGE_KEY_USERNAME);
-  const photo = storage.getItem(CC_STORAGE_KEY_PHOTO) || localStorage.getItem(CC_STORAGE_KEY_PHOTO) || sessionStorage.getItem(CC_STORAGE_KEY_PHOTO) || '';
+  const userId = localStorage.getItem(CC_STORAGE_KEY_USER_ID);
+  const username = localStorage.getItem(CC_STORAGE_KEY_USERNAME);
+  const photo = localStorage.getItem(CC_STORAGE_KEY_PHOTO) || '';
 
   if (!userId || !username) return null;
   return { id: userId, username, profile_photo: photo };
@@ -61,17 +49,16 @@ function ccIsAuthenticated() {
  * Set user data in new format
  */
 function ccSetUser(userId, username, profilePhoto = '') {
-  const storage = ccGetStorage();
-  storage.setItem(CC_STORAGE_KEY_USER_ID, userId);
-  storage.setItem(CC_STORAGE_KEY_USERNAME, username);
-  storage.setItem(CC_STORAGE_KEY_PHOTO, profilePhoto || '');
+  localStorage.setItem(CC_STORAGE_KEY_USER_ID, userId);
+  localStorage.setItem(CC_STORAGE_KEY_USERNAME, username);
+  localStorage.setItem(CC_STORAGE_KEY_PHOTO, profilePhoto || '');
 }
 
 /**
  * Set session token
  */
 function ccSetToken(token) {
-  ccGetStorage().setItem(CC_STORAGE_KEY_TOKEN, token);
+  localStorage.setItem(CC_STORAGE_KEY_TOKEN, token);
 }
 
 /**
@@ -79,15 +66,10 @@ function ccSetToken(token) {
  */
 function ccLogout() {
   localStorage.removeItem(CC_STORAGE_KEY_TOKEN);
-  sessionStorage.removeItem(CC_STORAGE_KEY_TOKEN);
   localStorage.removeItem(CC_STORAGE_KEY_USER_ID);
-  sessionStorage.removeItem(CC_STORAGE_KEY_USER_ID);
   localStorage.removeItem(CC_STORAGE_KEY_USERNAME);
-  sessionStorage.removeItem(CC_STORAGE_KEY_USERNAME);
   localStorage.removeItem(CC_STORAGE_KEY_PHOTO);
-  sessionStorage.removeItem(CC_STORAGE_KEY_PHOTO);
   localStorage.removeItem(CC_STORAGE_KEY_APP_REDIRECT);
-  sessionStorage.removeItem(CC_STORAGE_KEY_APP_REDIRECT);
   localStorage.removeItem(CC_STORAGE_KEY_OLD_USER);
   localStorage.removeItem(CC_STORAGE_KEY_OLD_TOKEN);
   window.location.href = '/connect/26/';
@@ -162,7 +144,7 @@ function ccInitTopbarLegacy() {
   }
 
   const apps = [
-    { name: 'Dashboard', path: '/connect/26/dashboard/' },
+    { name: 'Apps Home', path: '/connect/26/apps/' },
     { name: 'Chat', path: '/connect/26/chat/' },
     { name: 'Books', path: '/connect/26/books/' },
     { name: 'Draw', path: '/connect/26/draw/' },

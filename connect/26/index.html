@@ -5,65 +5,357 @@
   <title>Camcookie Connect 26</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/connect/26/cc-auth.js"></script>
-  <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+
   <style>
-    :root { --blue:#2563eb; --blue-dark:#1d4ed8; --bg:#eef3ff; --card:#fff; --text:#0f172a; --muted:#64748b; --border:#dbe4ff; --danger:#dc2626; --radius:16px; --shadow:0 14px 30px rgba(37,99,235,.16);} *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;background:radial-gradient(circle at top right,#dbeafe,#f8fbff 45%,#eef2ff 100%)}
-    #topbar{position:sticky;top:0;z-index:100;padding:12px 18px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:space-between}
-    #topbar .brand{font-weight:800}
-    #main{width:min(1240px,100%);margin:0 auto;padding:18px}
-    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:20px}
-    #loginBox{width:min(480px,100%);margin:42px auto}
-    input{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:10px}
-    button{width:100%;margin-top:12px;border:none;border-radius:10px;padding:10px 14px;background:var(--blue);color:#fff;font-weight:600;cursor:pointer}
-    button.secondary{background:#fff;color:var(--blue-dark);border:1px solid var(--blue)}
-    .muted{color:var(--muted)}
-    .remember-row{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:14px}
-    .remember-row input{width:auto;margin:0}
-    #loadingOverlay{position:fixed;inset:0;background:rgba(238,243,255,.75);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:150}
-    .spinner{width:42px;height:42px;border:4px solid #bfdbfe;border-top-color:var(--blue);border-radius:999px;animation:spin .9s linear infinite;margin:0 auto 12px}
-    @keyframes spin{to{transform:rotate(360deg)}}
+    :root {
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --cyan: #06b6d4;
+      --bg: #eef3ff;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #dbe4ff;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --radius: 16px;
+      --shadow: 0 14px 30px rgba(37, 99, 235, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: radial-gradient(circle at top right, #dbeafe, #f8fbff 45%, #eef2ff 100%);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      width: 420px;
+      height: 420px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.25), rgba(37, 99, 235, 0));
+      pointer-events: none;
+      z-index: -1;
+      animation: drift 20s ease-in-out infinite;
+    }
+
+    body::before { top: -140px; right: -110px; }
+    body::after { bottom: -160px; left: -120px; animation-delay: -8s; }
+
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(16px, -14px) scale(1.05); }
+    }
+
+    #topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px 18px;
+      background: var(--blue);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    #topbar .brand {
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    #loginBox {
+      width: min(480px, 100%);
+      margin: 60px auto;
+      animation: rise .3s ease;
+    }
+
+    @keyframes rise {
+      from { opacity: .5; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--blue-dark);
+    }
+
+    .muted { color: var(--muted); }
+
+    input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      margin-top: 10px;
+    }
+
+    input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    button {
+      width: 100%;
+      margin-top: 12px;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease;
+    }
+
+    button:hover { background: var(--blue-dark); transform: translateY(-1px); }
+
+    button.secondary {
+      background: #fff;
+      color: var(--blue-dark);
+      border: 1px solid var(--blue);
+    }
+
+    #popup {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(30px);
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s ease;
+      z-index: 999;
+      background: var(--blue);
+      color: #fff;
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 8px 18px rgba(37,99,235,.35);
+    }
+
+    #popup.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
+  <script src="/connect/topbar-utils.js"></script>
+  <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
 </head>
 <body>
-  <div id="topbar"><div class="brand">Camcookie Connect 26</div><a href="/connect/" style="color:white;text-decoration:none;border:1px solid rgba(255,255,255,.55);padding:6px 11px;border-radius:999px;">← Back to Connect</a></div>
-  <div id="main">
-    <div id="loginBox" class="card">
-      <h1>Camcookie Connect</h1>
-      <p class="muted">Sign in to your account or create one to continue.</p>
-      <div style="display:flex; gap:10px; margin-bottom:8px;"><button id="modeLogin" class="secondary" style="margin-top:0;">Sign in mode</button><button id="modeSignup" class="secondary" style="margin-top:0;">Sign up mode</button></div>
-      <input id="username" placeholder="Username" autocomplete="username" />
-      <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
-      <label id="termsWrap" style="display:none; margin-top:12px; font-size:14px;"><input id="agreeTerms" type="checkbox" style="width:auto; margin-right:8px;"> I agree to the <a href="/connect/26/terms/" target="_blank" rel="noopener">Terms &amp; Conditions</a>.</label>
-      <label class="remember-row"><input id="keepLoggedIn" type="checkbox" checked> Keep me logged in on this device</label>
-      <div class="h-captcha" data-sitekey="2d84955c-0708-469a-aaf6-80ca0ba86d64" style="margin-top:12px; display:flex; justify-content:center;"></div>
-      <button id="submitBtn">Sign in</button>
-      <p class="muted" style="font-size: .85rem; margin-top: 12px;">By continuing, you agree to the <a href="/connect/26/terms/" target="_blank" rel="noopener">Terms &amp; Privacy</a>.</p>
-      <p id="errorMsg" class="muted" style="color:var(--danger); margin-top:8px;"></p>
+  <noscript>
+    <div style="background: #dc2626; color: white; padding: 20px; text-align: center; font-weight: 600;">
+      JavaScript is required to use Camcookie Connect 26. Please enable JavaScript in your browser settings.
     </div>
+  </noscript>
+
+  <div id="topbar">
+  <div class="brand">Camcookie Connect 26</div>
+  <a href="/" style="margin-left: auto; color: white; text-decoration: none; font-size: 14px; padding: 6px 11px; border: 1px solid rgba(255, 255, 255, 0.55); border-radius: 999px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='transparent'">← Back to Connect</a>
+</div>
+<a href="https://camcookie876.github.io/connect/" style="position:fixed;top:12px;left:12px;font-size:14px;color:var(--muted);text-decoration:none;z-index:1000;"></a>
+  <div id="loadingSpinner" style="display:none; text-align:center; padding:20px;">
+    <div style="width:42px; height:42px; border:4px solid #bfdbfe; border-top-color:#2563eb; border-radius:999px; animation:spin .9s linear infinite; margin:0 auto 12px;"></div>
+    <p class="muted">Processing…</p>
   </div>
-  <div id="loadingOverlay"><div class="card" style="width:min(340px,92vw);text-align:center;"><div class="spinner"></div><p class="muted">Processing sign in…</p></div></div>
-<script>
-const SUPABASE_URL = "https://uexubxzlmyjuktgeqfsf.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVleHVieHpsbXlqdWt0Z2VxZnNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MzUxODYsImV4cCI6MjA5MjIxMTE4Nn0.yuWkhA7b21uL2BGVn5zij6fSiBWQdCGXwevZyJN5EDE";
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const $ = (id)=>document.getElementById(id);
-let authMode = 'login';
 
-if (ccIsAuthenticated()) window.location.href='/connect/26/dashboard/';
+  <div id="loginBox" class="card">
+    <h1>Camcookie Connect</h1>
+    <p class="muted">Choose sign in or sign up, then continue with username and password.</p>
 
-function setLoading(s){$('loadingOverlay').style.display=s?'flex':'none';}
-async function hashPassword(str){const enc=new TextEncoder().encode(str);const buf=await crypto.subtle.digest('SHA-256',enc);return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
-async function createToken(user_id){const token=crypto.randomUUID().replace(/-/g,'');const expires=new Date(Date.now()+24*60*60*1000).toISOString();await client.from('tokens').insert({user_id,token,expires_at:expires});return token;}
-function storeSession(token,user){const keep=$('keepLoggedIn').checked;ccSetSessionMode(keep?'local':'session');ccSetToken(token);ccSetUser(user.id,user.username,user.photo||'');}
+    <div style="display:flex; gap:10px; margin-bottom:8px;">
+      <button id="modeLogin" class="secondary" style="margin-top:0;">Sign in mode</button>
+      <button id="modeSignup" class="secondary" style="margin-top:0;">Sign up mode</button>
+    </div>
 
-async function login(){const u=$('username').value.trim(),p=$('password').value.trim();if(!u||!p){$('errorMsg').textContent='Enter username and password.';return;}if(!hcaptcha.getResponse()){ $('errorMsg').textContent='Please complete the captcha.'; return; }
-setLoading(true);const hash=await hashPassword(p);const {data:user}=await client.from('users').select('*').eq('username',u).eq('password_hash',hash).maybeSingle();if(!user){$('errorMsg').textContent='Incorrect username or password.';setLoading(false);hcaptcha.reset();return;}const token=await createToken(user.id);storeSession(token,user);window.location.href='/connect/26/dashboard/';}
-async function signup(){if(!$('agreeTerms').checked){$('errorMsg').textContent='You must agree to the Terms & Conditions.';return;}const u=$('username').value.trim(),p=$('password').value.trim();if(!u||!p){$('errorMsg').textContent='Enter username and password.';return;}if(!hcaptcha.getResponse()){ $('errorMsg').textContent='Please complete the captcha.'; return; }
-setLoading(true);const hash=await hashPassword(p);const {data:exists}=await client.from('users').select('id').eq('username',u).maybeSingle();if(exists){$('errorMsg').textContent='Username already taken.';setLoading(false);hcaptcha.reset();return;}const {data,error}=await client.from('users').insert({username:u,password_hash:hash}).select().single();if(error){$('errorMsg').textContent='Failed to create account.';setLoading(false);hcaptcha.reset();return;}const token=await createToken(data.id);storeSession(token,data);window.location.href='/connect/26/dashboard/';}
-function setMode(mode){authMode=mode;const signupMode=mode==='signup';$('termsWrap').style.display=signupMode?'block':'none';$('submitBtn').textContent=signupMode?'Create account':'Sign in';$('errorMsg').textContent='';}
-$('submitBtn').onclick=()=>authMode==='signup'?signup():login();$('modeLogin').onclick=()=>setMode('login');$('modeSignup').onclick=()=>setMode('signup');setMode('login');
-</script>
+    <input id="username" placeholder="Username" autocomplete="username" />
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+
+    <label id="termsWrap" style="display:none; margin-top:12px; font-size:14px;"><input id="agreeTerms" type="checkbox" style="width:auto; margin-right:8px;"> I agree to the <a href="/connect/26/terms/" target="_blank">Terms & Conditions</a>.</label>
+
+    <div class="h-captcha" data-sitekey="2d84955c-0708-469a-aaf6-80ca0ba86d64" style="margin-top:12px; display:flex; justify-content:center;"></div>
+
+    <button id="submitBtn">Sign in</button>
+
+    <p id="errorMsg" class="muted" style="color:var(--danger); margin-top:8px;"></p>
+  </div>
+
+  <div id="popup"></div>
+
+  <script>
+    const SUPABASE_URL = "https://uexubxzlmyjuktgeqfsf.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVleHVieHpsbXlqdWt0Z2VxZnNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MzUxODYsImV4cCI6MjA5MjIxMTE4Nn0.yuWkhA7b21uL2BGVn5zij6fSiBWQdCGXwevZyJN5EDE";
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function $(id){ return document.getElementById(id); }
+
+    function popup(msg) {
+      const el = $("popup");
+      el.textContent = msg;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 2200);
+    }
+
+    async function hashPassword(str) {
+      const enc = new TextEncoder().encode(str);
+      const buf = await crypto.subtle.digest("SHA-256", enc);
+      return Array.from(new Uint8Array(buf))
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("");
+    }
+
+    async function createToken(user_id) {
+      const token = crypto.randomUUID().replace(/-/g,"");
+      const expires = new Date(Date.now() + 24*60*60*1000).toISOString();
+
+      await client.from("tokens").insert({
+        user_id,
+        token,
+        expires_at: expires
+      });
+
+      return token;
+    }
+
+    let authMode = "login";
+
+    async function login() {
+      const u = $("username").value.trim();
+      const p = $("password").value.trim();
+      if (!u || !p) {
+        $("errorMsg").textContent = "Enter username and password.";
+        return;
+      }
+
+      // Check hCaptcha
+      const captchaToken = hcaptcha.getResponse();
+      if (!captchaToken) {
+        $("errorMsg").textContent = "Please complete the captcha.";
+        return;
+      }
+
+      $("loadingSpinner").style.display = "block";
+
+      const hash = await hashPassword(p);
+
+      const { data: user } = await client
+        .from("users")
+        .select("*")
+        .eq("username", u)
+        .eq("password_hash", hash)
+        .maybeSingle();
+
+      if (!user) {
+        $("errorMsg").textContent = "Incorrect username or password.";
+        $("loadingSpinner").style.display = "none";
+        hcaptcha.reset();
+        return;
+      }
+
+      const token = await createToken(user.id);
+      redirect(token, user);
+    }
+
+    async function signup() {
+      const agreed = $("agreeTerms").checked;
+      if (!agreed) { $("errorMsg").textContent = "You must agree to the Terms & Conditions."; return; }
+      const u = $("username").value.trim();
+      const p = $("password").value.trim();
+      if (!u || !p) {
+        $("errorMsg").textContent = "Enter username and password.";
+        return;
+      }
+
+      // Check hCaptcha
+      const captchaToken = hcaptcha.getResponse();
+      if (!captchaToken) {
+        $("errorMsg").textContent = "Please complete the captcha.";
+        return;
+      }
+
+      $("loadingSpinner").style.display = "block";
+
+      const hash = await hashPassword(p);
+
+      const { data: exists } = await client
+        .from("users")
+        .select("id")
+        .eq("username", u)
+        .maybeSingle();
+
+      if (exists) {
+        $("errorMsg").textContent = "Username already taken.";
+        $("loadingSpinner").style.display = "none";
+        hcaptcha.reset();
+        return;
+      }
+
+      const { data, error } = await client
+        .from("users")
+        .insert({ username: u, password_hash: hash })
+        .select()
+        .single();
+
+      if (error) {
+        $("errorMsg").textContent = "Failed to create account.";
+        $("loadingSpinner").style.display = "none";
+        hcaptcha.reset();
+        return;
+      }
+
+      const token = await createToken(data.id);
+      redirect(token, data);
+    }
+
+    function redirect(token, user) {
+      // Use new local storage format
+      localStorage.setItem("session_token", token);
+      localStorage.setItem("user_id", user.id);
+      localStorage.setItem("username", user.username);
+      localStorage.setItem("profile_photo", user.photo || "");
+      // Legacy keys for backward compatibility (can be removed later)
+      localStorage.setItem("cc-token", token);
+      localStorage.setItem("cc-user", JSON.stringify({ id: user.id, username: user.username, profile_photo: user.photo || "" }));
+      
+      const appHash = window.location.hash && window.location.hash.startsWith("#app=") ? window.location.hash : "";
+      window.location.href = "/connect/26/dashboard/" + appHash;
+    }
+
+    function setMode(mode) {
+      authMode = mode;
+      const signup = mode === "signup";
+      $("termsWrap").style.display = signup ? "block" : "none";
+      $("submitBtn").textContent = signup ? "Create account" : "Sign in";
+      $("errorMsg").textContent = "";
+    }
+
+    $("submitBtn").onclick = () => authMode === "signup" ? signup() : login();
+    $("modeLogin").onclick = () => setMode("login");
+    $("modeSignup").onclick = () => setMode("signup");
+    setMode("login");
+  </script>
+<script src="https://camcookie876.github.io/connect/camcookie-data.js"></script>
+
+  <footer style="padding: 24px 18px 18px; text-align: center; font-size: .85rem; color: var(--muted); position: relative; display: flex; justify-content: center; gap: 16px;">
+    <a href="/connect/26/terms" style="color: var(--blue-dark); text-decoration: none; font-weight: 600;">Terms & Conditions</a>
+  </footer>
 </body>
 </html>

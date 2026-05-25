@@ -2,82 +2,1402 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Chat - Camcookie Connect 26</title>
+  <title>Chat BETA - Camcookie Connect 26</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/connect/26/cc-auth.js"></script>
+  <script src="/connect/26/cc-friends.js"></script>
   <script src="/connect/26/cc-topbar.js"></script>
+  <script src="/connect/26/cc-icons.js"></script>
+
   <style>
-    :root { --blue:#2563eb; --blue-dark:#1d4ed8; --bg:#eef3ff; --card:#fff; --text:#0f172a; --muted:#64748b; --border:#dbe4ff; --radius:16px; --shadow:0 14px 30px rgba(37,99,235,.16);} *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;color:var(--text);background:radial-gradient(circle at top right,#dbeafe,#f8fbff 45%,#eef2ff 100%)}
-    #main{width:min(980px,100%);margin:0 auto;padding:18px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
-    .muted{color:var(--muted)}
-    .messages{height:min(60vh,520px);overflow:auto;background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px}
-    .msg{max-width:72%;padding:8px 10px;border-radius:12px;border:1px solid var(--border);background:#fff}
-    .me{margin-left:auto;background:#dbeafe;border-color:#93c5fd}
-    .meta{font-size:.75rem;color:var(--muted);margin-bottom:2px}
-    .bar{display:flex;gap:8px;margin-top:10px}
-    input,button{font:inherit}
-    input{flex:1;border:1px solid var(--border);border-radius:10px;padding:10px}
-    button{border:none;border-radius:10px;padding:10px 14px;background:var(--blue);color:#fff;font-weight:600;cursor:pointer}
+    :root {
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --cyan: #06b6d4;
+      --bg: #eef3ff;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #dbe4ff;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --radius: 16px;
+      --shadow: 0 14px 30px rgba(37, 99, 235, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: radial-gradient(circle at top right, #dbeafe, #f8fbff 45%, #eef2ff 100%);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      width: 420px;
+      height: 420px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.25), rgba(37, 99, 235, 0));
+      pointer-events: none;
+      z-index: -1;
+      animation: drift 20s ease-in-out infinite;
+    }
+
+    body::before { top: -140px; right: -110px; }
+    body::after { bottom: -160px; left: -120px; animation-delay: -8s; }
+
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(16px, -14px) scale(1.05); }
+    }
+
+    .hidden { display: none !important; }
+    .muted { color: var(--muted); }
+
+    input, textarea, button { font: inherit; }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease;
+    }
+
+    button:hover { background: var(--blue-dark); transform: translateY(-1px); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    button.secondary {
+      background: #fff;
+      color: var(--blue-dark);
+      border: 1px solid var(--blue);
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    #loadingScreen, #errorView {
+      min-height: 100vh;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .panel {
+      width: min(520px, 100%);
+      text-align: left;
+      animation: rise .3s ease;
+    }
+
+    @keyframes rise {
+      from { opacity: .5; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .spinner {
+      width: 42px;
+      height: 42px;
+      border: 4px solid #bfdbfe;
+      border-top-color: var(--blue);
+      border-radius: 999px;
+      animation: spin .9s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #appShell {
+      display: none;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    #main {
+      width: min(1240px, 100%);
+      margin: 0 auto;
+      padding: 18px;
+      flex: 1;
+    }
+
+    .view { display: none; }
+    .view.active { display: block; animation: fade .2s ease; }
+    @keyframes fade { from { opacity: .5; } to { opacity: 1; } }
+
+    .welcome { display: flex; gap: 12px; align-items: center; }
+    .avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      background: #dbeafe;
+      border: 2px solid var(--blue);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      color: var(--blue-dark);
+    }
+
+    .app-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 14px; }
+    .tile {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fff;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .chat-layout { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 12px; min-height: 72vh; }
+    .chat-sidebar, .chat-main { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); }
+    .chat-sidebar { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .chat-list { display: flex; flex-direction: column; gap: 8px; min-height: 160px; overflow: auto; }
+    .chat-item { width: 100%; text-align: left; border: 1px solid var(--border); border-radius: 10px; background: #fff; color: var(--text); padding: 10px; }
+    .chat-item.active, .chat-item:hover { border-color: var(--blue); background: #f8fbff; }
+
+    .chat-main { display: flex; flex-direction: column; }
+    .chat-header { padding: 12px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .messages { flex: 1; padding: 12px; background: #f8fafc; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .msg { max-width: 72%; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 8px 10px; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; }
+    .msg.me { margin-left: auto; background: #dbeafe; border-color: #93c5fd; }
+    .msghead { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: .75rem; margin-bottom: 2px; }
+
+    .input-bar { border-top: 1px solid var(--border); padding: 10px; display: flex; gap: 8px; }
+    .inline { display: flex; gap: 8px; flex-wrap: wrap; }
+    .settings-grid { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(0,1fr); gap: 12px; }
+    .list { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow: auto; }
+    .list-item { border: 1px solid var(--border); border-radius: 8px; background: #f9fafb; padding: 8px; display:flex; justify-content:space-between; align-items:center; }
+
+    #popup {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(30px);
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s ease;
+      z-index: 999;
+      background: var(--blue);
+      color: #fff;
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 8px 18px rgba(37,99,235,.35);
+    }
+
+    #popup.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    #modalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 998;
+    }
+
+    #modal {
+      width: min(420px, 100%);
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    #modalTitle { margin-top: 0; margin-bottom: 8px; }
+    #modalBody { display: grid; gap: 8px; margin-bottom: 12px; }
+    #modalActions { display: flex; justify-content: flex-end; gap: 8px; }
+
+    footer {
+      padding: 12px 18px 18px;
+      text-align: center;
+      font-size: .85rem;
+      color: var(--muted);
+    }
+
+    footer a {
+      color: var(--blue-dark);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 980px) {
+      .chat-layout,
+      .settings-grid { grid-template-columns: 1fr; }
+    }
+    .beta {display: inline-block; background: var(--cyan); color: #fff; padding: 2px 6px; border-radius: 6px; font-size: .7rem; margin-left: 6px;}
   </style>
+  <script src="/connect/topbar-utils.js"></script>
 </head>
 <body>
-<div id="topbar"></div>
-<div id="main">
-  <div class="card">
-    <h2 style="margin-top:0">Camcookie Chat</h2>
-    <p class="muted">Simple live chat room for signed-in users.</p>
-    <div id="messages" class="messages"></div>
-    <div class="bar">
-      <input id="msgInput" placeholder="Type a message…" maxlength="500" />
-      <button id="sendBtn">Send</button>
+
+  <!-- Loading -->
+  <div id="loadingScreen">
+    <div class="panel card">
+      <div class="spinner"></div>
+      <h2>Loading Camcookie Chat…</h2>
+      <p class="muted">Checking your login and getting your chats ready.</p>
     </div>
   </div>
-</div>
-<script>
-  ccRequireAuth();
-  document.getElementById('topbar').innerHTML = ccCreateTopbarHTML();
-  ccInitTopbar();
 
-  const STORAGE_KEY = 'cc26_chat_room_v1';
-  const user = ccGetUser();
-  const box = document.getElementById('messages');
-  const input = document.getElementById('msgInput');
+  <!-- Error -->
+  <div id="errorView" class="hidden">
+    <div class="panel card">
+      <h2>Something went wrong.</h2>
+      <p>Reload this page to try again.</p>
+      <p class="muted" id="errorText"></p>
+    </div>
+  </div>
 
-  function getMessages(){
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-    catch { return []; }
+  <!-- App Shell -->
+  <div id="appShell">
+    <div id="topbar"></div>
+      </div>
+    </div>
+
+    <div id="main">
+      <!-- Home -->
+      <div id="homeView" class="view active">
+        <div class="welcome">
+          <div class="avatar" id="avatar">?</div>
+          <div>
+            <h2 id="welcomeName">Welcome</h2>
+            <p class="muted" id="orgLabel">No organization selected.</p>
+          </div>
+        </div>
+
+        <div class="app-grid">
+          <div class="tile" id="tileNewChat">
+            <h3>New chat</h3>
+            <p class="muted">Create a chat with a name and a join code.</p>
+          </div>
+          <div class="tile" id="tileOpenChats">
+            <h3>Your chats</h3>
+            <p class="muted">Open chats you’re already in.</p>
+          </div>
+          <div class="tile" id="tileOpenChats">
+            <h3>Safe and Reliable</h3>
+            <p class="muted">Fully encrypted and secure messaging.</p>
+          </div>
+          <div class="tile" id="tileSpaces">
+            <h3>Organizations</h3>
+            <p class="muted">Create or join shared spaces with multiple chats.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chats -->
+      <div id="chatsView" class="view">
+        <div class="chat-layout">
+          <div class="chat-sidebar">
+            <div class="inline">
+              <button id="newChatBtn">New chat</button>
+              <button id="joinChatByCodeBtn" class="secondary">Join by code</button>
+            </div>
+            <p class="muted" style="font-size:.85rem;">Your chats</p>
+            <div class="chat-list" id="chatList"></div>
+          </div>
+
+          <div class="chat-main">
+            <div class="chat-header">
+              <div>
+                <div id="chatHeaderTitle" class="muted">No chat selected</div>
+                <div id="chatOrgLabel" class="muted" style="font-size:.8rem;"></div>
+              </div>
+              <div class="inline">
+                <button id="chatShareCodeBtn" class="secondary">Share code</button>
+                <button id="chatShareLinkBtn" class="secondary">Copy link</button>
+                <button id="chatInviteUserBtn" class="secondary">Invite by username</button>
+                <button id="deleteChatBtn" class="secondary" style="border-color:var(--danger);color:var(--danger);">Delete chat</button>
+              </div>
+            </div>
+            <div class="messages" id="messages">
+              <div class="muted" style="font-size:.9rem;">Select or create a chat to start messaging.</div>
+            </div>
+            <div class="input-bar">
+              <input id="msgInput" placeholder="Type a message…" disabled />
+              <button id="sendBtn" disabled>Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Spaces / Organizations -->
+      <div id="settingsView" class="view">
+        <h2>Spaces</h2>
+        <div class="settings-grid">
+          <div class="card">
+            <h3>Your organizations</h3>
+            <p class="muted" style="font-size:.85rem;">You can be in multiple organizations or none at all.</p>
+            <div class="inline" style="margin-top:8px;">
+              <button id="createOrgBtn">New organization</button>
+              <button id="joinOrgByCodeBtn" class="secondary">Join by code</button>
+            </div>
+            <div class="list" id="orgList" style="margin-top:10px;"></div>
+
+            <div id="orgControls" class="inline" style="margin-top:10px; display:none;">
+              <button id="orgGoBtn">Go to chats</button>
+              <button id="orgStopBtn" class="secondary">Stop editing</button>
+              <button id="orgCodeBtn" class="secondary">Show code</button>
+              <button id="deleteOrgBtn" class="secondary" style="border-color:var(--danger);color:var(--danger);">Delete organization</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Invites & requests</h3>
+            <p class="muted" style="font-size:.85rem;">Chat and organization join requests sent to you.</p>
+            <div class="list" id="requestsList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <a href="/connect/26/terms" target="_blank">Terms &amp; Conditions</a>
+    </footer>
+  </div>
+
+  <!-- Toast popup -->
+  <div id="popup"></div>
+
+  <!-- Modal -->
+  <div id="modalOverlay">
+    <div id="modal">
+      <h3 id="modalTitle"></h3>
+      <div id="modalBody"></div>
+      <div id="modalActions">
+        <button id="modalCancelBtn" class="secondary">Cancel</button>
+        <button id="modalOkBtn">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://uexubxzlmyjuktgeqfsf.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVleHVieHpsbXlqdWt0Z2VxZnNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MzUxODYsImV4cCI6MjA5MjIxMTE4Nn0.yuWkhA7b21uL2BGVn5zij6fSiBWQdCGXwevZyJN5EDE";
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function $(id){ return document.getElementById(id); }
+
+    let currentUser = null;
+    let currentKey = null;
+    let currentOrg = null;
+    let currentChat = null;
+    let messagesChannel = null;
+
+    function getParams() {
+      // Get from localStorage for new system
+      const token = localStorage.getItem('cc-token');
+      const user = localStorage.getItem('cc-user');
+      
+      // Still support legacy URL params for backward compatibility
+      const p = new URLSearchParams(window.location.search);
+      return {
+        token: token || p.get("token"),
+        chat: p.get("chat"),
+        org: p.get("org"),
+        legacyUser: user
+      };
+    }
+
+    function popup(msg) {
+      const el = $("popup");
+      el.textContent = msg;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 2200);
+    }
+
+    function showModal(title, bodyHTML, onOk) {
+      $("modalTitle").textContent = title;
+      $("modalBody").innerHTML = bodyHTML;
+      $("modalOverlay").style.display = "flex";
+
+      const okBtn = $("modalOkBtn");
+      const cancelBtn = $("modalCancelBtn");
+
+      const cleanup = () => {
+        $("modalOverlay").style.display = "none";
+        okBtn.onclick = null;
+        cancelBtn.onclick = null;
+      };
+
+      cancelBtn.onclick = cleanup;
+      okBtn.onclick = () => {
+        if (onOk) onOk();
+        cleanup();
+      };
+    }
+
+    async function hashString(str) {
+      const enc = new TextEncoder().encode(str);
+      const buf = await crypto.subtle.digest("SHA-256", enc);
+      return Array.from(new Uint8Array(buf))
+        .map(b => b.toString(16).padStart(2,"0"))
+        .join("");
+    }
+
+    // encryption placeholders (you can wire real crypto later)
+    async function encryptString(str, key) { return str; }
+    async function decryptString(str, key) { return str; }
+
+    async function loadUserFromToken(token) {
+      const now = new Date().toISOString();
+
+      const { data, error } = await client
+        .from("tokens")
+        .select("*, users(*)")
+        .eq("token", token)
+        .gt("expires_at", now)
+        .maybeSingle();
+
+      if (error || !data) return null;
+      return data.users;
+    }
+
+    async function requireUser() {
+      const params = getParams();
+
+      // Try new localStorage-based auth first
+      const storedUser = localStorage.getItem('cc-user');
+      if (storedUser) {
+        try {
+          return JSON.parse(storedUser);
+        } catch (e) {
+          console.error("Failed to parse stored user", e);
+        }
+      }
+
+      // Fall back to legacy token-based system
+      if (!params.token) {
+        const q = new URLSearchParams();
+        if (params.chat) q.set("chat", params.chat);
+        if (params.org) q.set("org", params.org);
+        window.location.href = "/connect/26/?" + q.toString();
+        return null;
+      }
+
+      const user = await loadUserFromToken(params.token);
+      if (!user) {
+        const q = new URLSearchParams();
+        if (params.chat) q.set("chat", params.chat);
+        if (params.org) q.set("org", params.org);
+        window.location.href = "/connect/26/?" + q.toString();
+        return null;
+      }
+
+      return user;
+    }
+
+    function setView(viewId) {
+      ["homeView","chatsView","settingsView"].forEach(id => {
+        $(id).classList.toggle("active", id === viewId);
+      });
+    }
+
+    function generateCode(len) {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let out = "";
+      for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random()*chars.length)];
+      return out;
+    }
+
+    async function loadOrgs() {
+      const { data, error } = await client
+        .from("org_members")
+        .select("org_id, organizations(id,name,share_code)")
+        .eq("user_id", currentUser.id);
+
+      const list = $("orgList");
+      list.innerHTML = "";
+      $("orgControls").style.display = "none";
+      currentOrg = null;
+      $("orgLabel").textContent = "No organization selected.";
+      $("chatOrgLabel").textContent = "";
+
+      if (!data || data.length === 0) {
+        list.innerHTML = '<div class="muted">No organizations yet.</div>';
+        return;
+      }
+
+      data.forEach(row => {
+        const org = row.organizations;
+        const item = document.createElement("div");
+        item.className = "list-item";
+
+        const left = document.createElement("div");
+        left.textContent = org.name;
+
+        const right = document.createElement("div");
+        right.className = "inline";
+
+        const selectBtn = document.createElement("button");
+        selectBtn.className = "secondary";
+        selectBtn.textContent = "Edit";
+        selectBtn.onclick = () => selectOrg(org);
+
+        const codeBtn = document.createElement("button");
+        codeBtn.className = "secondary";
+        codeBtn.textContent = "Code";
+        codeBtn.onclick = () => showOrgCode(org);
+
+        right.appendChild(selectBtn);
+        right.appendChild(codeBtn);
+
+        item.appendChild(left);
+        item.appendChild(right);
+        list.appendChild(item);
+      });
+    }
+
+    function selectOrg(org) {
+      currentOrg = org;
+      $("orgLabel").textContent = "Organization: " + org.name;
+      $("chatOrgLabel").textContent = "Organization: " + org.name;
+      $("orgControls").style.display = "flex";
+      loadChats();
+    }
+
+    function stopEditingOrg() {
+      currentOrg = null;
+      $("orgLabel").textContent = "No organization selected.";
+      $("chatOrgLabel").textContent = "";
+      $("orgControls").style.display = "none";
+      loadChats();
+    }
+
+    function showOrgCode(org) {
+      showModal("Organization code",
+        `<p>Share this code to invite others:</p><p><strong>${org.share_code}</strong></p>`
+      );
+    }
+
+    async function createOrg() {
+      showModal(
+        "New organization",
+        `<label>Name</label><input id="orgNameInput" placeholder="Organization name" />`,
+        async () => {
+          const name = $("orgNameInput").value.trim();
+          if (!name) return;
+
+          const code = generateCode(10);
+          const share_code = code;
+          const share_code_hash = await hashString(code);
+
+          const { data, error } = await client
+            .from("organizations")
+            .insert({
+              name,
+              share_code,
+              share_code_hash
+            })
+            .select()
+            .single();
+
+          await client.from("org_members").insert({
+            org_id: data.id,
+            user_id: currentUser.id
+          });
+
+          await loadOrgs();
+          selectOrg(data);
+          popup("Organization created.");
+        }
+      );
+    }
+
+    async function joinOrgByCode() {
+      showModal(
+        "Join organization",
+        `<label>Organization code</label><input id="orgCodeInput" placeholder="Enter code" />`,
+        async () => {
+          const code = $("orgCodeInput").value.trim();
+          if (!code) return;
+          await autoJoinOrgFromCode(code);
+        }
+      );
+    }
+
+    async function autoJoinOrgFromCode(code) {
+      const hash = await hashString(code);
+
+      const { data: org } = await client
+        .from("organizations")
+        .select("*")
+        .eq("share_code_hash", hash)
+        .maybeSingle();
+
+      if (!org) {
+        popup("Invalid organization code.");
+        return;
+      }
+
+      const { data: existing } = await client
+        .from("org_members")
+        .select("id")
+        .eq("org_id", org.id)
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+
+      if (!existing) {
+        await client.from("org_members").insert({
+          org_id: org.id,
+          user_id: currentUser.id
+        });
+      }
+
+      await loadOrgs();
+      selectOrg(org);
+      popup("Joined organization.");
+    }
+
+    async function autoJoinOrgFromURL(code) {
+      if (!code) return;
+      await autoJoinOrgFromCode(code.trim());
+    }
+
+    async function deleteOrg() {
+      if (!currentOrg) return;
+      const org = currentOrg;
+      showModal(
+        "Delete organization",
+        `<p>This will delete <strong>${org.name}</strong> and all its chats and messages.</p><p>Are you sure?</p>`,
+        async () => {
+          await client.from("organizations").delete().eq("id", org.id);
+          currentOrg = null;
+          await loadOrgs();
+          await loadChats();
+          popup("Organization deleted.");
+        }
+      );
+    }
+
+    async function loadChats() {
+      const list = $("chatList");
+      list.innerHTML = "";
+
+      let chats = [];
+
+      // If an organization is selected, show all chats in that organization
+      if (currentOrg) {
+        const { data, error } = await client
+          .from("chats")
+          .select("id,name,org_id,share_code")
+          .eq("org_id", currentOrg.id);
+
+        if (data) {
+          chats = data;
+        }
+      } else {
+        // If no organization, show only chats the user is a member of
+        const { data, error } = await client
+          .from("chat_members")
+          .select("chat_id, chats(id,name,org_id,share_code)")
+          .eq("user_id", currentUser.id);
+
+        if (data) {
+          chats = data.map(row => row.chats);
+        }
+      }
+
+      if (!chats || chats.length === 0) {
+        list.innerHTML = '<div class="muted">No chats yet.</div>';
+        return;
+      }
+
+      chats.forEach(chat => {
+        const btn = document.createElement("button");
+        btn.className = "chat-item";
+        btn.textContent = chat.name;
+        btn.onclick = () => openChat(chat);
+        if (currentChat && currentChat.id === chat.id) btn.classList.add("active");
+        list.appendChild(btn);
+      });
+    }
+
+    async function createChat() {
+      showModal(
+        "New chat",
+        `<label>Chat name</label><input id="chatNameInput" placeholder="Chat name" />`,
+        async () => {
+          const name = $("chatNameInput").value.trim();
+          if (!name) return;
+
+          const code = generateCode(8);
+          const encrypted_code = await encryptString(code, currentKey);
+          const code_hash = await hashString(code);
+          const share_code = code;
+          const share_code_hash = await hashString(code);
+
+          const { data, error } = await client
+            .from("chats")
+            .insert({
+              name,
+              org_id: currentOrg ? currentOrg.id : null,
+              encrypted_code,
+              code_hash,
+              share_code,
+              share_code_hash
+            })
+            .select()
+            .single();
+
+          await client.from("chat_members").insert({
+            chat_id: data.id,
+            user_id: currentUser.id
+          });
+
+          await loadChats();
+          await openChat(data);
+          popup("Chat created.");
+        }
+      );
+    }
+
+    async function joinChatByCode() {
+      showModal(
+        "Join chat",
+        `<label>Chat code</label><input id="chatCodeInput" placeholder="Enter code" />`,
+        async () => {
+          const code = $("chatCodeInput").value.trim();
+          if (!code) return;
+          await autoJoinChatFromCode(code);
+        }
+      );
+    }
+
+    async function autoJoinChatFromCode(code) {
+      const hash = await hashString(code);
+
+      const { data: chat } = await client
+        .from("chats")
+        .select("*")
+        .eq("code_hash", hash)
+        .maybeSingle();
+
+      if (!chat) {
+        popup("Invalid chat code.");
+        return;
+      }
+
+      const { data: existing } = await client
+        .from("chat_members")
+        .select("id")
+        .eq("chat_id", chat.id)
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+
+      if (!existing) {
+        await client.from("chat_members").insert({
+          chat_id: chat.id,
+          user_id: currentUser.id
+        });
+      }
+
+      await loadChats();
+      await openChat(chat);
+      popup("Joined chat.");
+    }
+
+    async function autoJoinChatFromURL(code) {
+      if (!code) return;
+      await autoJoinChatFromCode(code.trim());
+    }
+
+    async function deleteChat() {
+      if (!currentChat) return;
+      const chat = currentChat;
+      showModal(
+        "Delete chat",
+        `<p>This will delete <strong>${chat.name}</strong> and all its messages.</p><p>Are you sure?</p>`,
+        async () => {
+          await client.from("chats").delete().eq("id", chat.id);
+          currentChat = null;
+          $("chatHeaderTitle").textContent = "No chat selected";
+          $("chatOrgLabel").textContent = "";
+          $("messages").innerHTML = '<div class="muted" style="font-size:.9rem;">Select or create a chat to start messaging.</div>';
+          $("msgInput").disabled = true;
+          $("sendBtn").disabled = true;
+          await loadChats();
+          popup("Chat deleted.");
+        }
+      );
+    }
+
+    async function openChat(chat) {
+      currentChat = chat;
+      $("chatHeaderTitle").textContent = chat.name;
+
+      if (chat.org_id && currentOrg && currentOrg.id === chat.org_id) {
+        $("chatOrgLabel").textContent = "Organization: " + currentOrg.name;
+      } else if (chat.org_id) {
+        $("chatOrgLabel").textContent = "Organization chat";
+      } else {
+        $("chatOrgLabel").textContent = "No organization";
+      }
+
+      $("msgInput").disabled = false;
+      $("sendBtn").disabled = false;
+
+      await loadMessages();
+      setupMessagesRealtime();
+      await loadChatRequests();
+    }
+
+    async function loadMessages() {
+      const box = $("messages");
+      box.innerHTML = "";
+
+      const { data, error } = await client
+        .from("messages")
+        .select("*")
+        .eq("chat_id", currentChat.id)
+        .order("created_at", { ascending: true });
+
+      if (!data || data.length === 0) {
+        box.innerHTML = '<div class="muted">No messages yet.</div>';
+        return;
+      }
+
+      for (const msg of data) {
+        await renderMessage(msg);
+      }
+    }
+
+    async function renderMessage(msg) {
+      const box = $("messages");
+      const div = document.createElement("div");
+      div.className = "msg";
+      if (msg.user_id === currentUser.id) div.classList.add("me");
+
+      // Fetch the sender's username
+      let senderName = "User";
+      if (msg.user_id === currentUser.id) {
+        senderName = currentUser.username || "You";
+      } else {
+        const { data: user } = await client
+          .from("users")
+          .select("username")
+          .eq("id", msg.user_id)
+          .maybeSingle();
+        if (user && user.username) senderName = user.username;
+      }
+
+      const head = document.createElement("div");
+      head.className = "msghead";
+      head.innerHTML = `<span>${senderName}</span>
+                        <span>${new Date(msg.created_at).toLocaleTimeString()}</span>`;
+
+      const body = document.createElement("div");
+      const decrypted = await decryptString(msg.encrypted_content, currentKey);
+      body.textContent = decrypted;
+      body.style.wordWrap = "break-word";
+      body.style.overflowWrap = "break-word";
+      body.style.wordBreak = "break-word";
+
+      div.appendChild(head);
+      div.appendChild(body);
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function sendMessage() {
+      if (!currentChat) return;
+      const raw = $("msgInput").value.trim();
+      if (!raw) return;
+
+      const encrypted = await encryptString(raw, currentKey);
+      $("msgInput").value = "";
+
+      await client.from("messages").insert({
+        chat_id: currentChat.id,
+        user_id: currentUser.id,
+        encrypted_content: encrypted
+      });
+    }
+
+    function setupMessagesRealtime() {
+      if (messagesChannel) messagesChannel.unsubscribe();
+
+      messagesChannel = client
+        .channel("messages-" + currentChat.id)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, async payload => {
+          if (payload.new.chat_id !== currentChat.id) return;
+          await renderMessage(payload.new);
+        })
+        .subscribe();
+    }
+
+    async function inviteByUsername() {
+      if (!currentChat) {
+        popup("No chat selected.");
+        return;
+      }
+
+      showModal(
+        "Invite by username",
+        `<label>Username</label><input id="inviteUsernameInput" placeholder="Username" />`,
+        async () => {
+          const uname = $("inviteUsernameInput").value.trim();
+          if (!uname) return;
+
+          const { data: user } = await client
+            .from("users")
+            .select("id,username")
+            .eq("username", uname)
+            .maybeSingle();
+
+          if (!user) {
+            popup("User not found.");
+            return;
+          }
+
+          const { data: existing } = await client
+            .from("chat_members")
+            .select("id")
+            .eq("chat_id", currentChat.id)
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+          if (!existing) {
+            await client.from("chat_members").insert({
+              chat_id: currentChat.id,
+              user_id: user.id
+            });
+          }
+
+          popup("User invited to chat.");
+        }
+      );
+    }
+
+    async function copyChatCode() {
+      if (!currentChat) {
+        popup("No chat selected.");
+        return;
+      }
+
+      const { data } = await client
+        .from("chats")
+        .select("share_code")
+        .eq("id", currentChat.id)
+        .maybeSingle();
+
+      if (!data || !data.share_code) {
+        popup("No code for this chat.");
+        return;
+      }
+
+      showModal(
+        "Chat code",
+        `<p>Share this code to invite others:</p><p><strong>${data.share_code}</strong></p>`,
+        () => {}
+      );
+    }
+
+    async function copyChatLink() {
+      if (!currentChat) {
+        popup("No chat selected.");
+        return;
+      }
+
+      const { data } = await client
+        .from("chats")
+        .select("share_code")
+        .eq("id", currentChat.id)
+        .maybeSingle();
+
+      if (!data || !data.share_code) {
+        popup("No code for this chat.");
+        return;
+      }
+
+      const base = new URL("/connect/26/", window.location.origin).toString();
+      const link = base + "?chat=" + encodeURIComponent(data.share_code);
+
+      try {
+        await navigator.clipboard.writeText(link);
+        popup("Link copied.");
+      } catch {
+        popup("Link: " + link);
+      }
+    }
+
+    async function loadChatRequests() {
+      // placeholder for future requests system
+      // currently just clears the list
+      $("requestsList").innerHTML = '<div class="muted">No pending requests.</div>';
+    }
+
+    (async function init() {
+      try {
+        currentUser = await requireUser();
+        if (!currentUser) return;
+
+        // Initialize unified topbar
+        const topbarDiv = document.getElementById('topbar');
+        topbarDiv.innerHTML = ccCreateTopbarHTML();
+        ccInitTopbar();
+
+        currentKey = await hashString(currentUser.id);
+
+        $("welcomeName").textContent = "Welcome, " + currentUser.username;
+        $("avatar").textContent = currentUser.username.slice(0,1).toUpperCase();
+
+        $("loadingScreen").classList.add("hidden");
+        $("appShell").style.display = "flex";
+
+        await loadOrgs();
+        await loadChats();
+
+        const params = getParams();
+        if (params.org) await autoJoinOrgFromURL(params.org);
+        if (params.chat) await autoJoinChatFromURL(params.chat);
+
+        $("tileNewChat").onclick = () => { setView("chatsView"); createChat(); };
+        $("tileOpenChats").onclick = () => setView("chatsView");
+        $("tileSpaces").onclick = () => setView("settingsView");
+
+        $("newChatBtn").onclick = createChat;
+        $("joinChatByCodeBtn").onclick = joinChatByCode;
+
+        $("createOrgBtn").onclick = createOrg;
+        $("joinOrgByCodeBtn").onclick = joinOrgByCode;
+
+        $("orgGoBtn").onclick = () => {
+          if (!currentOrg) return;
+          setView("chatsView");
+          loadChats();
+        };
+        $("orgStopBtn").onclick = stopEditingOrg;
+        $("orgCodeBtn").onclick = () => {
+          if (!currentOrg) return;
+          showOrgCode(currentOrg);
+        };
+        $("deleteOrgBtn").onclick = deleteOrg;
+
+        $("sendBtn").onclick = sendMessage;
+        $("msgInput").addEventListener("keydown", e => {
+          if (e.key === "Enter") sendMessage();
+        });
+
+        $("chatShareCodeBtn").onclick = copyChatCode;
+        $("chatShareLinkBtn").onclick = copyChatLink;
+        $("chatInviteUserBtn").onclick = inviteByUsername;
+        $("deleteChatBtn").onclick = deleteChat;
+      } catch (e) {
+        $("loadingScreen").classList.add("hidden");
+        $("errorView").classList.remove("hidden");
+        $("errorText").textContent = "Failed to load chat. Please refresh or try again.";
+        console.error(e);
+      }
+    })();
+    
+  /* ============================================================
+   CAMCOOKIE CONNECT — BOOKS PAGE PATCH
+   Fixes + upgrades for the new SQL schema
+   ============================================================ */
+
+console.log("Books Patch Loaded");
+
+/* -----------------------------
+   1. LOAD ALL STORIES
+   ----------------------------- */
+async function loadStories() {
+  const { data, error } = await client
+    .from("stories")
+    .select("id, title, summary, author_id, created_at, updated_at, users(username)")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    showToast("Failed to load stories.");
+    return;
   }
-  function saveMessages(msgs){ localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs.slice(-250))); }
 
-  function render(){
-    const msgs = getMessages();
-    box.innerHTML = '';
-    msgs.forEach(m => {
-      const el = document.createElement('div');
-      el.className = 'msg' + (m.userId === user.id ? ' me' : '');
-      const d = new Date(m.time);
-      el.innerHTML = `<div class="meta">${m.username} · ${d.toLocaleString()}</div><div>${m.text.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</div>`;
-      box.appendChild(el);
+  stories = data || [];
+  renderStories();
+}
+
+/* -----------------------------
+   2. LOAD A SINGLE STORY
+   ----------------------------- */
+async function loadStory(storyId) {
+  const { data, error } = await client
+    .from("stories")
+    .select("*, users(username)")
+    .eq("id", storyId)
+    .single();
+
+  if (error) {
+    console.error(error);
+    showToast("Failed to load story.");
+    return;
+  }
+
+  currentStory = data;
+  await Promise.all([
+    loadChapters(storyId),
+    loadTags(storyId),
+    loadComments(storyId),
+    loadBookmarks(storyId)
+  ]);
+
+  renderStory();
+}
+
+/* -----------------------------
+   3. LOAD CHAPTERS
+   ----------------------------- */
+async function loadChapters(storyId) {
+  const { data, error } = await client
+    .from("story_chapters")
+    .select("*")
+    .eq("story_id", storyId)
+    .order("position", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    showToast("Failed to load chapters.");
+    return;
+  }
+
+  chapters = data || [];
+  renderChapters();
+}
+
+/* -----------------------------
+   4. LOAD TAGS
+   ----------------------------- */
+async function loadTags(storyId) {
+  const { data, error } = await client
+    .from("story_tags")
+    .select("tags(name)")
+    .eq("story_id", storyId);
+
+  if (error) {
+    console.error(error);
+    showToast("Failed to load tags.");
+    return;
+  }
+
+  tags = data.map(t => t.tags.name);
+  renderTags();
+}
+
+/* -----------------------------
+   5. LOAD COMMENTS
+   ----------------------------- */
+async function loadComments(storyId) {
+  const { data, error } = await client
+    .from("story_comments")
+    .select("*, users(username)")
+    .eq("story_id", storyId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    showToast("Failed to load comments.");
+    return;
+  }
+
+  comments = data || [];
+  renderComments();
+}
+
+/* -----------------------------
+   6. LOAD BOOKMARKS
+   ----------------------------- */
+async function loadBookmarks(storyId) {
+  const { data, error } = await client
+    .from("story_bookmarks")
+    .select("user_id")
+    .eq("story_id", storyId);
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  bookmarks = data || [];
+  renderBookmarkButton();
+}
+
+/* -----------------------------
+   7. RENDER STORIES LIST
+   ----------------------------- */
+function renderStories() {
+  const box = document.getElementById("storiesList");
+  box.innerHTML = "";
+
+  stories.forEach(story => {
+    const div = document.createElement("div");
+    div.className = "story-card";
+
+    div.innerHTML = `
+      <h3>${story.title}</h3>
+      <p class="muted">${story.summary || "No summary."}</p>
+      <p class="meta">By ${story.users?.username || "Unknown"} • ${new Date(story.created_at).toLocaleDateString()}</p>
+    `;
+
+    div.onclick = () => loadStory(story.id);
+    box.appendChild(div);
+  });
+}
+
+/* -----------------------------
+   8. RENDER STORY VIEW
+   ----------------------------- */
+function renderStory() {
+  if (!currentStory) return;
+
+  document.getElementById("storyTitle").textContent = currentStory.title;
+  document.getElementById("storySummary").textContent = currentStory.summary || "No summary.";
+  document.getElementById("storyAuthor").textContent =
+    currentStory.users?.username || "Unknown";
+
+  renderBookmarkButton();
+}
+
+/* -----------------------------
+   9. RENDER CHAPTERS
+   ----------------------------- */
+function renderChapters() {
+  const box = document.getElementById("chaptersBox");
+  box.innerHTML = "";
+
+  chapters.forEach(ch => {
+    const div = document.createElement("div");
+    div.className = "chapter-card";
+
+    div.innerHTML = `
+      <h4>Chapter ${ch.position}: ${ch.title}</h4>
+      <div class="chapter-content">${ch.content}</div>
+    `;
+
+    box.appendChild(div);
+  });
+}
+
+/* -----------------------------
+   10. RENDER TAGS
+   ----------------------------- */
+function renderTags() {
+  const box = document.getElementById("tagsBox");
+  box.innerHTML = "";
+
+  tags.forEach(t => {
+    const span = document.createElement("span");
+    span.className = "tag-pill";
+    span.textContent = t;
+    box.appendChild(span);
+  });
+}
+
+/* -----------------------------
+   11. RENDER COMMENTS
+   ----------------------------- */
+function renderComments() {
+  const box = document.getElementById("commentsBox");
+  box.innerHTML = "";
+
+  comments.forEach(c => {
+    const div = document.createElement("div");
+    div.className = "comment";
+
+    div.innerHTML = `
+      <div class="comment-header">
+        <span class="comment-user">${c.users?.username || "Unknown"}</span>
+        <span class="comment-time">${new Date(c.created_at).toLocaleString()}</span>
+      </div>
+      <div class="comment-body">${c.content}</div>
+    `;
+
+    box.appendChild(div);
+  });
+}
+
+/* -----------------------------
+   12. BOOKMARK BUTTON
+   ----------------------------- */
+function renderBookmarkButton() {
+  const btn = document.getElementById("bookmarkBtn");
+  if (!currentStory) return;
+
+  const isBookmarked = bookmarks.some(b => b.user_id === currentUser.id);
+
+  btn.textContent = isBookmarked ? "Bookmarked ✓" : "Bookmark";
+  btn.classList.toggle("active", isBookmarked);
+}
+
+/* -----------------------------
+   13. ADD COMMENT
+   ----------------------------- */
+async function addComment() {
+  const text = document.getElementById("commentInput").value.trim();
+  if (!text || !currentStory) return;
+
+  const { error } = await client
+    .from("story_comments")
+    .insert({
+      story_id: currentStory.id,
+      user_id: currentUser.id,
+      content: text
     });
-    box.scrollTop = box.scrollHeight;
+
+  if (error) {
+    console.error(error);
+    showToast("Failed to add comment.");
+    return;
   }
 
-  function send(){
-    const text = input.value.trim();
-    if(!text) return;
-    const msgs = getMessages();
-    msgs.push({ userId:user.id, username:user.username || 'User', text, time:new Date().toISOString() });
-    saveMessages(msgs);
-    input.value = '';
-    render();
-  }
+  document.getElementById("commentInput").value = "";
+  await loadComments(currentStory.id);
+}
 
-  document.getElementById('sendBtn').onclick = send;
-  input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') send(); });
-  window.addEventListener('storage', (e)=>{ if(e.key===STORAGE_KEY) render(); });
-  render();
+/* -----------------------------
+   14. REALTIME UPDATES
+   ----------------------------- */
+client
+  .channel("books-realtime")
+  .on("postgres_changes", { event: "INSERT", schema: "public", table: "story_comments" }, payload => {
+    if (currentStory && payload.new.story_id === currentStory.id) {
+      comments.push(payload.new);
+      renderComments();
+    }
+  })
+  .subscribe();
 </script>
+<script src="https://camcookie876.github.io/connect/camcookie-data.js"></script>
 </body>
 </html>

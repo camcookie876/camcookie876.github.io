@@ -7,7 +7,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/connect/26/cc-auth.js"></script>
   <script src="/connect/26/cc-topbar.js"></script>
-  <script src="/connect/26/cc-tracking.js"></script>
 
   <style>
     :root {
@@ -293,7 +292,7 @@
 
 <div id="appShell">
   <div class="settings-container">
-    <a href="/connect/26/dashboard/" class="back-button">← Back to Dashboard</a>
+    <a href="/connect/26/apps/" class="back-button">← Back to Apps</a>
     <div class="card">
       <h1>Settings</h1>
 
@@ -408,59 +407,15 @@
     return toggleEl.classList.contains('active');
   }
 
-
-  async function loadPrivacySettings(userId) {
-    const fallback = {
-      public: ccGetSetting('public', true),
-      participate_leaderboard: ccGetSetting('participate_leaderboard', true),
-      participate_usage: ccGetSetting('participate_usage', true)
-    };
-
-    const { data, error } = await client
-      .from("users")
-      .select("info")
-      .eq("id", userId)
-      .maybeSingle();
-
-    if (error || !data) return fallback;
-
-    const info = data.info || {};
-    return {
-      public: info.public ?? fallback.public,
-      participate_leaderboard: info.participate_leaderboard ?? fallback.participate_leaderboard,
-      participate_usage: info.participate_usage ?? fallback.participate_usage
-    };
-  }
-
-  async function savePrivacySettings(userId, settings) {
-    const { data: existing, error: fetchError } = await client
-      .from("users")
-      .select("info")
-      .eq("id", userId)
-      .maybeSingle();
-
-    if (fetchError) return { error: fetchError };
-
-    const nextInfo = {
-      ...(existing?.info || {}),
-      ...settings,
-      privacy_updated_at: new Date().toISOString()
-    };
-
-    return client
-      .from("users")
-      .update({ info: nextInfo })
-      .eq("id", userId);
-  }
-
-  async function initUI() {
+  function initUI() {
     const user = ccGetUser();
     if (!user) return;
 
-    const privacy = await loadPrivacySettings(user.id);
-    const isPublic = privacy.public;
-    const participateLeaderboard = privacy.participate_leaderboard;
-    const participateUsage = privacy.participate_usage;
+    // TODO: Load privacy settings from Supabase
+    // For now, set defaults
+    const isPublic = ccGetSetting('public', true);
+    const participateLeaderboard = ccGetSetting('participate_leaderboard', true);
+    const participateUsage = ccGetSetting('participate_usage', true);
 
     setToggleState($("publicToggle"), isPublic);
     setToggleState($("leaderboardToggle"), participateLeaderboard);
@@ -504,7 +459,7 @@
       }
 
       user.username = newUsername;
-      ccSetUser(user.id, newUsername, user.profile_photo || user.photo || '');
+      localStorage.setItem('username', newUsername);
       $("usernameMsg").textContent = "Username changed successfully!";
       $("usernameMsg").className = "success";
       $("newUsername").value = "";
@@ -570,17 +525,10 @@
       const participateLeaderboard = getToggleState($("leaderboardToggle"));
       const participateUsage = getToggleState($("usageToggle"));
 
-      const { error } = await savePrivacySettings(user.id, {
-        public: isPublic,
-        participate_leaderboard: participateLeaderboard,
-        participate_usage: participateUsage
-      });
-
-      if (error) {
-        $("privacyMsg").textContent = "Failed to save privacy settings.";
-        $("privacyMsg").className = "danger";
-        return;
-      }
+      // TODO: Save to Supabase
+      // UPDATE public.users
+      // SET info = info || '{}' | jsonb_set(info, '{public}', ... )
+      // WHERE id = USER_ID
 
       ccSetSetting('public', isPublic);
       ccSetSetting('participate_leaderboard', participateLeaderboard);
@@ -594,7 +542,7 @@
 
   function init() {
     showLoading();
-    const token = ccGetToken();
+    const token = localStorage.getItem('session_token');
     const user = ccGetUser();
 
     if (!token || !user) {
@@ -603,10 +551,7 @@
     }
 
     renderTopbar();
-    initUI().catch((err) => {
-      console.error(err);
-      showError('Unable to load settings. Please try again.');
-    });
+    initUI();
     ccInitTopbar();
     showSettings();
   }
