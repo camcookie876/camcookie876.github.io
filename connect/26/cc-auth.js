@@ -162,7 +162,7 @@ function ccInitTopbarLegacy() {
   }
 
   const apps = [
-    { name: 'Apps Home', path: '/connect/26/apps/' },
+    { name: 'Dashboard', path: '/connect/26/dashboard/' },
     { name: 'Chat', path: '/connect/26/chat/' },
     { name: 'Books', path: '/connect/26/books/' },
     { name: 'Draw', path: '/connect/26/draw/' },
