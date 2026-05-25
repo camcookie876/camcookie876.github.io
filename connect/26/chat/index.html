@@ -9,6 +9,8 @@
   <script src="/connect/26/cc-friends.js"></script>
   <script src="/connect/26/cc-topbar.js"></script>
   <script src="/connect/26/cc-icons.js"></script>
+  <script src="/connect/26/cc-tracking.js"></script>
+  <script src="/connect/26/cc-tracking.js"></script>
 
   <style>
     :root {
@@ -138,9 +140,17 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     #appShell {
-      display: none;
-      min-height: 100vh;
+      display: flex;
       flex-direction: column;
+      min-height: 100vh;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    #appShell.loaded {
+      visibility: visible;
+      opacity: 1;
     }
 
     #main {
@@ -148,6 +158,44 @@
       margin: 0 auto;
       padding: 18px;
       flex: 1;
+    }
+
+    @media (max-width: 768px) {
+      #main {
+        padding: 12px;
+      }
+      .chat-layout {
+        grid-template-columns: 1fr !important;
+      }
+      .chat-sidebar {
+        display: none;
+        position: fixed;
+        left: 0;
+        top: 56px;
+        width: 280px;
+        height: calc(100vh - 56px);
+        background: white;
+        z-index: 50;
+        border-right: 1px solid var(--border);
+        overflow-y: auto;
+      }
+      .chat-sidebar.open {
+        display: block;
+      }
+      .sidebar-toggle {
+        display: block;
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 8px 12px;
+        margin-bottom: 8px;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .sidebar-toggle {
+        display: none !important;
+      }
     }
 
     .view { display: none; }
@@ -1068,6 +1116,10 @@
         const topbarDiv = document.getElementById('topbar');
         topbarDiv.innerHTML = ccCreateTopbarHTML();
         ccInitTopbar();
+        
+        // Start tracking
+        const session = ccStartSessionTracking(currentUser.id, 'chat');
+        window.addEventListener('beforeunload', () => session.stop());
 
         currentKey = await hashString(currentUser.id);
 
