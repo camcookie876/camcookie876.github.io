@@ -5,6 +5,8 @@
   <title>Settings - Camcookie Connect 26</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/connect/26/cc-auth.js"></script>
+  <script src="/connect/26/cc-topbar.js"></script>
 
   <style>
     :root {
@@ -52,89 +54,6 @@
     @keyframes drift {
       0%, 100% { transform: translate(0, 0) scale(1); }
       50% { transform: translate(16px, -14px) scale(1.05); }
-    }
-
-    #topbar {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      padding: 12px 18px;
-      background: var(--blue);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    #topbar .brand {
-      font-weight: 800;
-      letter-spacing: 0.02em;
-    }
-
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-left: auto;
-    }
-
-    button {
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.55);
-      border-radius: 999px;
-      color: white;
-      font-size: 0.9rem;
-      padding: 6px 11px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    button:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    .dropdown-container {
-      position: relative;
-      display: inline-block;
-    }
-
-    .dropdown-menu {
-      position: absolute;
-      top: 100%;
-      right: 0;
-      background: white;
-      border: 1px solid #dbe4ff;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      min-width: 160px;
-      margin-top: 4px;
-      z-index: 1000;
-      overflow: hidden;
-      display: none;
-    }
-
-    .dropdown-menu.show {
-      display: block;
-    }
-
-    .dropdown-item {
-      display: block;
-      padding: 10px 14px;
-      color: #0f172a;
-      text-decoration: none;
-      border-bottom: 1px solid #dbe4ff;
-      cursor: pointer;
-      transition: background 0.15s ease;
-      font-size: 14px;
-    }
-
-    .dropdown-item:last-child {
-      border-bottom: none;
-    }
-
-    .dropdown-item:hover {
-      background: #f0f7ff;
     }
 
     .hidden { display: none !important; }
@@ -301,23 +220,56 @@
     .back-button:hover {
       text-decoration: underline;
     }
+
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      background: #f8fbff;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .toggle-label {
+      flex: 1;
+      margin: 0;
+    }
+
+    .toggle-switch {
+      width: 48px;
+      height: 28px;
+      background: #ccc;
+      border-radius: 14px;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.3s ease;
+    }
+
+    .toggle-switch.active {
+      background: var(--success);
+    }
+
+    .toggle-switch::before {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background: white;
+      border-radius: 12px;
+      top: 2px;
+      left: 2px;
+      transition: left 0.3s ease;
+    }
+
+    .toggle-switch.active::before {
+      left: 22px;
+    }
   </style>
-  <script src="/connect/26/cc-auth.js"></script>
 </head>
 <body>
-<div id="topbar">
-  <div class="brand">Camcookie Connect 26</div>
-  <div class="topbar-right">
-    <div class="dropdown-container">
-      <button id="userBtn" style="padding:0;border:none;background:transparent;"><img id="userPhoto" style="width:36px;height:36px;border-radius:999px;border:2px solid rgba(255,255,255,.65);object-fit:cover;" alt="Account"></button>
-      <div class="dropdown-menu" id="userMenu">
-        <a href="#" id="appsToggle" class="dropdown-item">Apps</a>
-        <div class="dropdown-menu" id="appsMenu" style="position:static;box-shadow:none;border-left:none;border-right:none;display:none;"></div>
-        <a href="#" class="dropdown-item" id="logoutBtn">Logout</a>
-      </div>
-    </div>
-  </div>
-</div>
+
+<div id="topbar"></div>
 
 <div id="loadingScreen" class="hidden">
   <div class="panel">
@@ -339,14 +291,16 @@
     <div class="card">
       <h1>Settings</h1>
 
+      <!-- Account Section -->
       <div class="settings-section">
-        <h2>Username</h2>
+        <h2>Account</h2>
         <label for="newUsername">New Username</label>
         <input type="text" id="newUsername" placeholder="Enter new username">
         <button class="submit" id="changeUsernameBtn">Change Username</button>
         <p id="usernameMsg"></p>
       </div>
 
+      <!-- Password Section -->
       <div class="settings-section">
         <h2>Password</h2>
         <label for="currentPassword">Current Password</label>
@@ -357,6 +311,32 @@
         <input type="password" id="confirmPassword" placeholder="Confirm new password">
         <button class="submit" id="changePasswordBtn">Change Password</button>
         <p id="passwordMsg"></p>
+      </div>
+
+      <!-- Privacy & Leaderboard Section -->
+      <div class="settings-section">
+        <h2>Privacy & Leaderboard</h2>
+        
+        <div class="toggle-group">
+          <label class="toggle-label">Public Profile</label>
+          <div class="toggle-switch" id="publicToggle"></div>
+        </div>
+        <p class="muted" style="font-size: 0.85rem;">When enabled, your profile is visible to others.</p>
+
+        <div class="toggle-group">
+          <label class="toggle-label">Participate in Leaderboard</label>
+          <div class="toggle-switch" id="leaderboardToggle"></div>
+        </div>
+        <p class="muted" style="font-size: 0.85rem;">When enabled, your score appears on the leaderboard.</p>
+
+        <div class="toggle-group">
+          <label class="toggle-label">Track Usage Score</label>
+          <div class="toggle-switch" id="usageToggle"></div>
+        </div>
+        <p class="muted" style="font-size: 0.85rem;">When enabled, your activity is included in scoring.</p>
+        
+        <button class="submit" id="savePrivacyBtn">Save Privacy Settings</button>
+        <p id="privacyMsg"></p>
       </div>
     </div>
   </div>
@@ -370,12 +350,6 @@
   const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   function $(id) { return document.getElementById(id); }
-
-  const apps = [
-    { name: 'Chat', path: '/connect/26/chat/' },
-    { name: 'Books', path: '/connect/26/books/' },
-    { name: 'Draw', path: '/connect/26/draw/' }
-  ];
 
   async function hashPassword(str) {
     const enc = new TextEncoder().encode(str);
@@ -411,19 +385,41 @@
     $("appShell").style.display = "block";
   }
 
+  function renderTopbar() {
+    const topbarDiv = $("topbar");
+    topbarDiv.innerHTML = ccCreateTopbarHTML();
+  }
+
+  function setToggleState(toggleEl, state) {
+    if (state) {
+      toggleEl.classList.add('active');
+    } else {
+      toggleEl.classList.remove('active');
+    }
+  }
+
+  function getToggleState(toggleEl) {
+    return toggleEl.classList.contains('active');
+  }
+
   function initUI() {
-    const appsMenu = $("appsMenu");
-    appsMenu.innerHTML = apps.map(app => `
-      <a href="${app.path}" class="dropdown-item">${app.name}</a>
-    `).join('') + '<a href="/connect/26/settings/" class="dropdown-item">Settings</a>';
+    const user = ccGetUser();
+    if (!user) return;
 
-    $("logoutBtn").onclick = (e) => {
-      e.preventDefault();
-      localStorage.removeItem('cc-token');
-      localStorage.removeItem('cc-user');
-      window.location.href = '/connect/26/';
-    };
+    // TODO: Load privacy settings from Supabase
+    // For now, set defaults
+    const isPublic = ccGetSetting('public', true);
+    const participateLeaderboard = ccGetSetting('participate_leaderboard', true);
+    const participateUsage = ccGetSetting('participate_usage', true);
 
+    setToggleState($("publicToggle"), isPublic);
+    setToggleState($("leaderboardToggle"), participateLeaderboard);
+    setToggleState($("usageToggle"), participateUsage);
+
+    // Setup toggle clicks
+    $("publicToggle").onclick = () => $("publicToggle").classList.toggle('active');
+    $("leaderboardToggle").onclick = () => $("leaderboardToggle").classList.toggle('active');
+    $("usageToggle").onclick = () => $("usageToggle").classList.toggle('active');
 
     // Change username
     $("changeUsernameBtn").onclick = async () => {
@@ -434,7 +430,6 @@
         return;
       }
 
-      const user = JSON.parse(localStorage.getItem('cc-user') || '{}');
       const { data: exists } = await client
         .from("users")
         .select("id")
@@ -459,7 +454,7 @@
       }
 
       user.username = newUsername;
-      localStorage.setItem('cc-user', JSON.stringify(user));
+      localStorage.setItem('username', newUsername);
       $("usernameMsg").textContent = "Username changed successfully!";
       $("usernameMsg").className = "success";
       $("newUsername").value = "";
@@ -484,7 +479,6 @@
         return;
       }
 
-      const user = JSON.parse(localStorage.getItem('cc-user') || '{}');
       const currentHash = await hashPassword(currentPass);
       const newHash = await hashPassword(newPass);
 
@@ -519,18 +513,39 @@
       $("confirmPassword").value = "";
       popup("Password updated!");
     };
+
+    // Save privacy settings
+    $("savePrivacyBtn").onclick = async () => {
+      const isPublic = getToggleState($("publicToggle"));
+      const participateLeaderboard = getToggleState($("leaderboardToggle"));
+      const participateUsage = getToggleState($("usageToggle"));
+
+      // TODO: Save to Supabase
+      // UPDATE public.users
+      // SET info = info || '{}' | jsonb_set(info, '{public}', ... )
+      // WHERE id = USER_ID
+
+      ccSetSetting('public', isPublic);
+      ccSetSetting('participate_leaderboard', participateLeaderboard);
+      ccSetSetting('participate_usage', participateUsage);
+
+      $("privacyMsg").textContent = "Privacy settings saved!";
+      $("privacyMsg").className = "success";
+      popup("Settings updated!");
+    };
   }
 
   function init() {
     showLoading();
-    const token = localStorage.getItem('cc-token');
-    const user = localStorage.getItem('cc-user');
+    const token = localStorage.getItem('session_token');
+    const user = ccGetUser();
 
     if (!token || !user) {
       showError('Please log in first.');
       return;
     }
 
+    renderTopbar();
     initUI();
     ccInitTopbar();
     showSettings();

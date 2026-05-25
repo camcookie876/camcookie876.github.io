@@ -9,7 +9,9 @@
 <body>
 <script>
   ccRequireAuth();
-  window.location.replace('/connect/26/ai4now/');
+  // Redirect to AI app
+  const appHash = window.location.hash || '';
+  window.location.replace('/connect/26/ai4now/' + appHash);
 </script>
 </body>
 </html>

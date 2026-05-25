@@ -286,10 +286,17 @@
     }
 
     function redirect(token, user) {
+      // Use new local storage format
+      localStorage.setItem("session_token", token);
+      localStorage.setItem("user_id", user.id);
+      localStorage.setItem("username", user.username);
+      localStorage.setItem("profile_photo", user.photo || "");
+      // Legacy keys for backward compatibility (can be removed later)
       localStorage.setItem("cc-token", token);
-      localStorage.setItem("cc-user", JSON.stringify({ id: user.id, username: user.username, photo: user.photo || "" }));
+      localStorage.setItem("cc-user", JSON.stringify({ id: user.id, username: user.username, profile_photo: user.photo || "" }));
+      
       const appHash = window.location.hash && window.location.hash.startsWith("#app=") ? window.location.hash : "";
-      window.location.href = "/connect/26/apps/" + appHash;
+      window.location.href = "/connect/26/dashboard/" + appHash;
     }
 
     function setMode(mode) {

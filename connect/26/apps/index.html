@@ -5,6 +5,9 @@
   <title>Apps - Camcookie Connect 26</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/connect/26/cc-auth.js"></script>
+  <script src="/connect/26/cc-topbar.js"></script>
+  <script src="/connect/26/cc-icons.js"></script>
 
   <style>
     :root {
@@ -52,103 +55,6 @@
     @keyframes drift {
       0%, 100% { transform: translate(0, 0) scale(1); }
       50% { transform: translate(16px, -14px) scale(1.05); }
-    }
-
-    #topbar {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      padding: 12px 18px;
-      background: var(--blue);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    #topbar .brand {
-      font-weight: 800;
-      letter-spacing: 0.02em;
-    }
-
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-left: auto;
-    }
-
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-    }
-
-    button {
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.55);
-      border-radius: 999px;
-      color: white;
-      font-size: 0.9rem;
-      padding: 6px 11px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-weight: inherit;
-    }
-
-    button:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    .dropdown-container {
-      position: relative;
-      display: inline-block;
-    }
-
-    .dropdown-menu {
-      position: absolute;
-      top: 100%;
-      right: 0;
-      background: white;
-      border: 1px solid #dbe4ff;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      min-width: 160px;
-      margin-top: 4px;
-      z-index: 1000;
-      overflow: hidden;
-      display: none;
-    }
-
-    .dropdown-menu.show {
-      display: block;
-    }
-
-    .dropdown-item {
-      display: block;
-      padding: 10px 14px;
-      color: #0f172a;
-      text-decoration: none;
-      border-bottom: 1px solid #dbe4ff;
-      cursor: pointer;
-      transition: background 0.15s ease;
-      font-size: 14px;
-    }
-
-    .dropdown-item:last-child {
-      border-bottom: none;
-    }
-
-    .dropdown-item:hover {
-      background: #f0f7ff;
-    }
-
-    .dropdown-item.active {
-      background: #eff6ff;
-      font-weight: 600;
-      color: #1d4ed8;
     }
 
     .hidden { display: none !important; }
@@ -281,24 +187,10 @@
 
     #popup.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
-  <script src="/connect/26/cc-auth.js"></script>
 </head>
 <body>
-<div id="topbar">
-  <div class="brand">Camcookie Connect 26</div>
-  <div class="topbar-right">
-    <div class="user-info" id="userInfo"></div>
-    <div class="dropdown-container">
-      <button id="userBtn" style="padding:0;border:none;background:transparent;"><img id="userPhoto" style="width:36px;height:36px;border-radius:999px;border:2px solid rgba(255,255,255,.65);object-fit:cover;" alt="Account"></button>
-      <div class="dropdown-menu" id="userMenu">
-        <a href="#" id="appsToggle" class="dropdown-item">Apps</a>
-        <div class="dropdown-menu" id="appsMenu" style="position:static;box-shadow:none;border-left:none;border-right:none;display:none;"></div>
-        <a href="/connect/26/settings/" class="dropdown-item">Settings</a>
-        <a href="#" class="dropdown-item" id="logoutBtn">Logout</a>
-      </div>
-    </div>
-  </div>
-</div>
+
+<div id="topbar"></div>
 
 <div id="loadingScreen" class="hidden">
   <div class="panel">
@@ -427,6 +319,11 @@
     $("appShell").style.display = "flex";
   }
 
+  function renderTopbar() {
+    const topbarDiv = $("topbar");
+    topbarDiv.innerHTML = ccCreateTopbarHTML();
+  }
+
   function initUI() {
 
     const grid = $("appGrid");
@@ -437,31 +334,19 @@
         <p>${app.description}</p>
       </a>
     `).join('');
-
-    const appsMenu = $("appsMenu");
-    appsMenu.innerHTML = apps.map(app => `
-      <a href="${app.path}" class="dropdown-item">${app.name}</a>
-    `).join('') + '<a href="/connect/26/settings/" class="dropdown-item">Settings</a>';
-
-    $("logoutBtn").onclick = (e) => {
-      e.preventDefault();
-      localStorage.removeItem('cc-token');
-      localStorage.removeItem('cc-user');
-      window.location.href = '/connect/26/';
-    };
-
   }
 
   function init() {
     showLoading();
-    const token = localStorage.getItem('cc-token');
-    const user = localStorage.getItem('cc-user');
+    const token = localStorage.getItem('session_token');
+    const user = ccGetUser();
 
     if (!token || !user) {
       showError('Please log in first.');
       return;
     }
 
+    renderTopbar();
     initUI();
     ccInitTopbar();
     const h = window.location.hash || "";
