@@ -152,21 +152,20 @@ const TOPBAR_STYLES = `
  */
 function ccCreateTopbarHTML() {
   return `
-    <div id="topbar">
-      <div class="brand">Camcookie Connect 26</div>
-      <div class="topbar-right">
-        <div class="user-info" id="userInfo"></div>
-        <div class="dropdown-container">
-          <div class="user-photo-wrapper">
-            <button id="userBtn" style="padding:0;border:none;background:transparent;"><img id="userPhoto" alt="Account"></button>
-            <div id="rankBadge" class="rank-badge" style="display:none;"></div>
-          </div>
-          <div class="dropdown-menu" id="userMenu">
-            <a href="/connect/26/apps/" class="dropdown-item">Apps</a>
-            <a href="/connect/26/dashboard/" class="dropdown-item">Dashboard</a>
-            <a href="/connect/26/settings/" class="dropdown-item">Settings</a>
-            <a href="#" class="dropdown-item" id="logoutBtn">Logout</a>
-          </div>
+    <div class="brand">Camcookie Connect 26</div>
+    <div class="topbar-right">
+      <div class="user-info" id="userInfo"></div>
+      <div class="dropdown-container">
+        <div class="user-photo-wrapper">
+          <button id="userBtn" style="padding:0;border:none;background:transparent;"><img id="userPhoto" alt="Account"></button>
+          <div id="rankBadge" class="rank-badge" style="display:none;"></div>
+        </div>
+        <div class="dropdown-menu" id="userMenu">
+          <div class="dropdown-item" id="scoreDisplay" style="font-weight:600;color:var(--blue-dark, #1d4ed8);cursor:default;border-bottom:1px solid var(--border, #dbe4ff);"></div>
+          <a href="/connect/26/dashboard/" class="dropdown-item">Dashboard</a>
+          <a href="/connect/26/settings/" class="dropdown-item">Settings</a>
+          <a href="/connect/26/friends/" class="dropdown-item">Friends</a>
+          <a href="#" class="dropdown-item" id="logoutBtn">Logout</a>
         </div>
       </div>
     </div>
@@ -192,12 +191,31 @@ function ccInitTopbar() {
   const userInfo = document.getElementById('userInfo');
   const userPhoto = document.getElementById('userPhoto');
   const rankBadge = document.getElementById('rankBadge');
+  const scoreDisplay = document.getElementById('scoreDisplay');
 
   if (!userBtn || !userMenu) return;
 
   // Get user from new local storage format
   const user = ccGetUser();
   const userRank = ccGetUserRank();
+  
+  // Get user score
+  let userScore = 0;
+  if (typeof ccCalculateUsageScore === 'function' && user?.id) {
+    // Try to get user data and calculate score
+    try {
+      const friendCount = ccGetFriendCount(user.id);
+      // For demo: simple score based on friends
+      userScore = friendCount * 50 || 0;
+    } catch (e) {
+      userScore = 0;
+    }
+  }
+
+  // Update score display
+  if (scoreDisplay) {
+    scoreDisplay.textContent = `Points: ${userScore}`;
+  }
 
   // Update user info display
   if (userInfo && user?.username) {

@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Connect 26 – Drawing & Animation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/connect/26/cc-auth.js"></script>
+  <script src="/connect/26/cc-friends.js"></script>
+  <script src="/connect/26/cc-topbar.js"></script>
+  <script src="/connect/26/cc-icons.js"></script>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -200,14 +205,7 @@
 </head>
 <body>
 
-<div id="topbar">
-  <div class="brand">Camcookie Draw</div>
-  <div id="userInfo" style="margin-left: auto; font-size: 14px;">Loading…</div>
-  <div class="btn-row">
-    <button id="exportPngBtn" class="primary" style="background: transparent; border: 1px solid rgba(255, 255, 255, 0.55); color: white; font-size: 0.9rem; padding: 6px 11px; border-radius: 999px; cursor: pointer;">Export PNG</button>
-    <button id="saveBtn" class="primary" style="background: transparent; border: 1px solid rgba(255, 255, 255, 0.55); color: white; font-size: 0.9rem; padding: 6px 11px; border-radius: 999px; cursor: pointer;">Save</button>
-  </div>
-</div>
+<div id="topbar"></div>
 
 <div id="main">
   <!-- LEFT: Tools -->
@@ -332,8 +330,12 @@ async function loadUserFromToken() {
   }
 
   CURRENT_USER = data.users;
-  document.getElementById("userInfo").innerHTML =
-    `Logged in as <strong>${CURRENT_USER.username}</strong>`;
+  
+  // Render unified topbar
+  const topbarDiv = document.getElementById('topbar');
+  topbarDiv.innerHTML = ccCreateTopbarHTML();
+  ccInitTopbar();
+  
   loadGallery();
 }
 

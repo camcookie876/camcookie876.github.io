@@ -6,7 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/connect/26/cc-auth.js"></script>
+  <script src="/connect/26/cc-friends.js"></script>
   <script src="/connect/26/cc-topbar.js"></script>
+  <script src="/connect/26/cc-icons.js"></script>
 
   <style>
     :root {
@@ -281,13 +283,7 @@
 
   <!-- App Shell -->
   <div id="appShell">
-    <div id="topbar">
-      <div class="brand">Camcookie Chat <span class="beta">BETA</span></div>
-      <div class="top-actions">
-        <button id="homeBtn" class="active">Home</button>
-        <button id="chatsBtn">Chats</button>
-        <button id="settingsBtn">Spaces</button>
-        <button id="logoutBtn" class="secondary">Sign out</button>
+    <div id="topbar"></div>
       </div>
     </div>
 
@@ -527,12 +523,6 @@
       ["homeView","chatsView","settingsView"].forEach(id => {
         $(id).classList.toggle("active", id === viewId);
       });
-      ["homeBtn","chatsBtn","settingsBtn"].forEach(id => {
-        $(id).classList.remove("active");
-      });
-      if (viewId === "homeView") $("homeBtn").classList.add("active");
-      if (viewId === "chatsView") $("chatsBtn").classList.add("active");
-      if (viewId === "settingsView") $("settingsBtn").classList.add("active");
     }
 
     function generateCode(len) {
@@ -1074,6 +1064,11 @@
         currentUser = await requireUser();
         if (!currentUser) return;
 
+        // Initialize unified topbar
+        const topbarDiv = document.getElementById('topbar');
+        topbarDiv.innerHTML = ccCreateTopbarHTML();
+        ccInitTopbar();
+
         currentKey = await hashString(currentUser.id);
 
         $("welcomeName").textContent = "Welcome, " + currentUser.username;
@@ -1088,10 +1083,6 @@
         const params = getParams();
         if (params.org) await autoJoinOrgFromURL(params.org);
         if (params.chat) await autoJoinChatFromURL(params.chat);
-
-        $("homeBtn").onclick = () => setView("homeView");
-        $("chatsBtn").onclick = () => setView("chatsView");
-        $("settingsBtn").onclick = () => setView("settingsView");
 
         $("tileNewChat").onclick = () => { setView("chatsView"); createChat(); };
         $("tileOpenChats").onclick = () => setView("chatsView");
@@ -1124,12 +1115,6 @@
         $("chatShareLinkBtn").onclick = copyChatLink;
         $("chatInviteUserBtn").onclick = inviteByUsername;
         $("deleteChatBtn").onclick = deleteChat;
-
-        $("logoutBtn").onclick = () => {
-          localStorage.removeItem('cc-token');
-          localStorage.removeItem('cc-user');
-          window.location.href = '/connect/26/';
-        };
       } catch (e) {
         $("loadingScreen").classList.add("hidden");
         $("errorView").classList.remove("hidden");

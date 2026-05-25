@@ -5,6 +5,10 @@
   <title>Books - Camcookie Connect 26</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/connect/26/cc-auth.js"></script>
+  <script src="/connect/26/cc-friends.js"></script>
+  <script src="/connect/26/cc-topbar.js"></script>
+  <script src="/connect/26/cc-icons.js"></script>
 
   <style>
     :root {
@@ -580,18 +584,7 @@
 
   <!-- App Shell -->
   <div id="appShell">
-    <div id="topbar">
-      <div class="brand">Camcookie Connect</div>
-      <div class="top-nav">
-      </div>
-      <div class="top-right">
-        <div class="search-wrap">
-          <span class="search-icon"></span>
-          <input id="searchInput" placeholder="Search title, tags, author, summary…" />
-        </div>
-        <button id="logoutBtn" class="secondary">Sign out</button>
-      </div>
-    </div>
+    <div id="topbar"></div>
 
     <div id="main">
       <div class="layout">
@@ -1696,6 +1689,11 @@
         $("loadingScreen").classList.add("hidden");
         $("appShell").style.display = "flex";
 
+        // Initialize unified topbar
+        const topbarDiv = document.getElementById('topbar');
+        topbarDiv.innerHTML = ccCreateTopbarHTML();
+        ccInitTopbar();
+
         await loadStories();
 
         const params = getParams();
@@ -1722,14 +1720,7 @@
           window.location.href = "/connect/26/?" + q.toString() + "#spaces";
         };
 
-        $("logoutBtn").onclick = () => {
-          const params = getParams();
-          const q = new URLSearchParams();
-          if (params.story) q.set("story", params.story);
-          window.location.href = "/connect/26/?" + q.toString();
-        };
-
-        $("searchInput").addEventListener("input", () => {
+      } catch (e) {
           renderStoryList($("searchInput").value);
         });
 
