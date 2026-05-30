@@ -151,9 +151,29 @@ const TOPBAR_STYLES = `
  * @returns {string} HTML for topbar
  */
 function ccCreateTopbarHTML() {
+  const currentPath = window.location.pathname;
+  const pages = [
+    { name: 'Apps', path: '/connect/26/apps/' },
+    { name: 'Chat', path: '/connect/26/chat/' },
+    { name: 'Books', path: '/connect/26/books/' },
+    { name: 'Draw', path: '/connect/26/draw/' },
+    { name: 'AI', path: '/connect/26/ai/' }
+  ];
+
+  const navItems = pages
+    .map(page => `
+      <a href="${page.path}" class="dropdown-item${currentPath.startsWith(page.path) ? ' active' : ''}">${page.name}</a>`)
+    .join('');
+
   return `
     <div class="brand">Camcookie Connect 26</div>
     <div class="topbar-right">
+      <div class="dropdown-container">
+        <button id="navBtn">Apps ▼</button>
+        <div class="dropdown-menu" id="navMenu">
+          ${navItems}
+        </div>
+      </div>
       <div class="user-info" id="userInfo"></div>
       <div class="dropdown-container">
         <div class="user-photo-wrapper">
@@ -187,6 +207,8 @@ function ccInitTopbar() {
 
   const userBtn = document.getElementById('userBtn');
   const userMenu = document.getElementById('userMenu');
+  const navBtn = document.getElementById('navBtn');
+  const navMenu = document.getElementById('navMenu');
   const logoutBtn = document.getElementById('logoutBtn');
   const userInfo = document.getElementById('userInfo');
   const userPhoto = document.getElementById('userPhoto');
@@ -248,7 +270,17 @@ function ccInitTopbar() {
   userBtn.onclick = (e) => {
     e.stopPropagation();
     userMenu.classList.toggle('show');
+    if (navMenu) navMenu.classList.remove('show');
   };
+
+  // Setup nav menu toggle
+  if (navBtn && navMenu) {
+    navBtn.onclick = (e) => {
+      e.stopPropagation();
+      navMenu.classList.toggle('show');
+      userMenu.classList.remove('show');
+    };
+  }
 
   // Setup logout
   if (logoutBtn) {
@@ -261,10 +293,12 @@ function ccInitTopbar() {
   // Close menu when clicking outside
   document.addEventListener('click', () => {
     userMenu.classList.remove('show');
+    if (navMenu) navMenu.classList.remove('show');
   });
 
-  // Stop propagation when clicking inside menu
+  // Stop propagation when clicking inside menus
   userMenu.addEventListener('click', (e) => e.stopPropagation());
+  if (navMenu) navMenu.addEventListener('click', (e) => e.stopPropagation());
 }
 
 /**
