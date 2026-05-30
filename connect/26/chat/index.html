@@ -257,6 +257,32 @@
       .chat-layout,
       .settings-grid { grid-template-columns: 1fr; }
     }
+    .chat-page-nav {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-left: 12px;
+    }
+    .chat-page-nav button {
+      border: 1px solid rgba(255,255,255,0.65);
+      background: rgba(255,255,255,0.15);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease;
+    }
+    .chat-page-nav button:hover {
+      background: rgba(255,255,255,0.25);
+      transform: translateY(-1px);
+    }
+    .chat-page-nav button.active {
+      background: white;
+      color: var(--blue-dark);
+      border-color: rgba(37,99,235,0.35);
+    }
     .beta {display: inline-block; background: var(--cyan); color: #fff; padding: 2px 6px; border-radius: 6px; font-size: .7rem; margin-left: 6px;}
   </style>
 </head>
@@ -518,6 +544,41 @@
     function setView(viewId) {
       ["homeView","chatsView","settingsView"].forEach(id => {
         $(id).classList.toggle("active", id === viewId);
+      });
+      updateChatNavActive();
+    }
+
+    function initChatTopbarNavigation() {
+      const topbar = document.getElementById('topbar');
+      if (!topbar) return;
+      if (topbar.querySelector('.chat-page-nav')) return;
+
+      const nav = document.createElement('div');
+      nav.className = 'chat-page-nav';
+      const pages = [
+        { id: 'homeView', label: 'Home' },
+        { id: 'chatsView', label: 'Chats' },
+        { id: 'settingsView', label: 'Spaces' }
+      ];
+
+      pages.forEach(page => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = page.label;
+        btn.dataset.view = page.id;
+        btn.onclick = () => setView(page.id);
+        nav.appendChild(btn);
+      });
+
+      const topbarRight = topbar.querySelector('.topbar-right');
+      topbar.insertBefore(nav, topbarRight);
+      updateChatNavActive();
+    }
+
+    function updateChatNavActive() {
+      const activeView = ['homeView','chatsView','settingsView'].find(id => $(id)?.classList.contains('active')) || 'homeView';
+      document.querySelectorAll('.chat-page-nav button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === activeView);
       });
     }
 
@@ -1064,6 +1125,7 @@
         const topbarDiv = document.getElementById('topbar');
         topbarDiv.innerHTML = ccCreateTopbarHTML();
         ccInitTopbar();
+        initChatTopbarNavigation();
 
         currentKey = await hashString(currentUser.id);
 
