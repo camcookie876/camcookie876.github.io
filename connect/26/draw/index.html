@@ -308,8 +308,20 @@ let CURRENT_USER = null;
    ============================================================ */
 async function loadUserFromToken() {
   const params = getParams();
+  const storedUser = ccGetUser();
+  const storedToken = ccGetToken();
 
-  if (!params.token) {
+  if (ccIsAuthenticated() && storedUser) {
+    CURRENT_USER = storedUser;
+    const topbarDiv = document.getElementById('topbar');
+    topbarDiv.innerHTML = ccCreateTopbarHTML();
+    ccInitTopbar();
+    await loadGallery();
+    return;
+  }
+
+  const token = params.token || storedToken || localStorage.getItem('cc-token');
+  if (!token) {
     window.location.href = LOGIN_PAGE;
     return;
   }
@@ -319,7 +331,7 @@ async function loadUserFromToken() {
   const { data, error } = await client
     .from("tokens")
     .select("*, users(*)")
-    .eq("token", params.token)
+    .eq("token", token)
     .gt("expires_at", now)
     .maybeSingle();
 
@@ -329,13 +341,13 @@ async function loadUserFromToken() {
   }
 
   CURRENT_USER = data.users;
-  
-  // Render unified topbar
+  ccSetToken(token);
+  ccSetUser(CURRENT_USER.id, CURRENT_USER.username, CURRENT_USER.photo || '');
+
   const topbarDiv = document.getElementById('topbar');
   topbarDiv.innerHTML = ccCreateTopbarHTML();
   ccInitTopbar();
-  
-  loadGallery();
+  await loadGallery();
 }
 
 /* ============================================================
