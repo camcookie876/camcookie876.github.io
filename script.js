@@ -1,13 +1,13 @@
 const PADGE_FILE = '/padge.json';
 
 const mainLinks = [
-  { name: 'Home', url: '/' },
+  { name: 'HOME', url: '/' },
   { name: 'DOCS', url: '/DOCS/' },
   { name: 'EMBER', url: '/ember/' },
-  { name: 'Music', url: '/music/' },
-  { name: 'Books', url: '/books/' },
-  { name: 'Games', url: '/game/' },
-  { name: 'Connect', url: '/connect/' }
+  { name: 'MUSIC', url: '/music/' },
+  { name: 'BOOKS', url: '/books/' },
+  { name: 'GAMES', url: '/game/' },
+  { name: 'CONNECT', url: '/connect/' }
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
