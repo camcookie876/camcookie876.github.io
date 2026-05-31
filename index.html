@@ -11,17 +11,70 @@
       .homepage-hero {
         background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
         color: white;
-        padding: 80px 24px;
+        padding: 100px 24px;
         text-align: center;
-        margin: -60px 0 60px 0;
+        margin: -60px 0 80px 0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .homepage-hero::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
+        border-radius: 999px;
       }
 
       .homepage-hero h1 {
         font-size: 3.5rem;
+        position: relative;
+        z-index: 1;
+        animation: slideUp 0.6s ease 0.1s backwards;
+      }
+
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px);
+        to { opacity: 1; transform: translateY(0);
+        position: relative;
+        z-index: 1;
         font-weight: 800;
         margin-bottom: 16px;
         letter-spacing: -1px;
+        position: relative;
+        z-index: 1;
+        animation: slid10px;
+        cursor: pointer;
+        transition: var(--transition);
+        text-decoration: none;
+        display: inline-block;
+        position: relative;
+        overflow: hidden;
       }
+
+      .cta-button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.2);
+        transition: left 0.4s ease;
+      }
+
+      .cta-button:hover::before {
+        left: 100%;
+      }
+/*
+      .cta-button > * {
+        position: relative;
+        z-index: 1ansform: translateY(-20px);
+        to { opacity: 1; transform: translateY(0);
+      }*/
 
       .homepage-hero .tagline {
         font-size: 1.25rem;
@@ -37,54 +90,95 @@
         display: flex;
         gap: 16px;
         justify-content: center;
-        flex-wrap: wrap;
-        margin-bottom: 20px;
+        flex-wrap: wvar(--bg-white);
+        border-radius: var(--border-radius);
+        padding: 48px 32px;
+        margin-bottom: 60px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        align-items: center;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
       }
 
-      .cta-button {
-        padding: 14px 32px;
-        font-size: 1rem;
-        font-weight: 600;
-        border: none;
-        border-radius: 8px;
+      .featured-service::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(37, 99, 235, 0.08), transparent);
+        border-radius: 999px;
+      }
+/*
+      .featured-service:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-4px)
         cursor: pointer;
         transition: var(--transition);
         text-decoration: none;
         display: inline-block;
-      }
+      }*/
 
       .cta-button-primary {
-        background: white;
-        color: var(--primary-color);
-      }
-
-      .cta-button-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+        position: relative;
+        z-index: 2;
+        animation: slideUp 0.6s ease 0.2s backwards6px rgba(0, 0, 0, 0.2);
       }
 
       .cta-button-secondary {
         background: rgba(255, 255, 255, 0.2);
         color: white;
         border: 2px solid white;
+      }/*
+      var(--bg-white) {
+        border-radius: var(--border-radius);
+        padding: 32px 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: var(--transition);
+        border: 1px solid var(--border-color);
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }*/
+
+      .service-card::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -30%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(6, 182, 212, 0.1), transparent);
+        border-radius: 999px;
+        opacity: 0;
+        transition: opacity 0.4s ease;
       }
 
-      .cta-button-secondary:hover {
-        background: rgba(255, 255, 255, 0.3);
-        transform: translateY(-2px);
+      .service-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-color);
       }
 
-      .services-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 24px;
-      }
-
-      .section-title {
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 40px;
-        margin-top: 60px;
+      .service-card:hover::before {
+        opacity: 1;
         text-align: center;
         color: var(--text-dark);
       }
@@ -200,10 +294,12 @@
       }
 
       .stats-section {
-        background: var(--bg-light);
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%);
         padding: 60px 24px;
         margin: 60px 0;
-        border-radius: 12px;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+        backdrop-filter: blur(10px);
       }
 
       .stats-grid {
@@ -219,7 +315,10 @@
       }
 
       .stat-number {
-        font-size: 2.5rem;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--cyan) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         font-weight: 700;
         color: var(--primary-color);
       }
@@ -382,31 +481,134 @@
     <h2 class="section-title">Explore All Services</h2>
     <div class="services-grid">
       <a href="/game/" class="service-card">
-        <svg class="service-card-icon" viewBox="0 0 64 64" width="60" height="60">
-          <rect x="12" y="16" width="40" height="32" rx="4" fill="none" stroke="var(--primary-color)" stroke-width="2"/>
-          <circle cx="28" cy="32" r="3" fill="var(--primary-color)"/>
-          <circle cx="36" cy="32" r="3" fill="var(--primary-color)"/>
-          <circle cx="32" cy="28" r="3" fill="var(--primary-color)"/>
-          <circle cx="32" cy="36" r="3" fill="var(--primary-color)"/>
-          <rect x="44" y="28" width="6" height="8" rx="1" fill="var(--primary-color)"/>
+        <svg class="service-card-icon" viewBox="0 0 120 120" width="80" height="80" style="margin: 0 auto 16px;">
+          <!-- Circle background with gradient -->
+          <defs>
+            <linearGradient id="gameGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <!-- Circle -->
+          <circle cx="60" cy="60" r="50" fill="url(#gameGrad)" opacity="0.9"/>
+          <!-- Beak (corner notification) -->
+          <polygon points="90,30 100,30 90,40" fill="#fbbf24"/>
+          <!-- Game controller icon -->
+          <rect x="35" y="50" width="50" height="35" rx="6" fill="none" stroke="white" stroke-width="2.5"/>
+          <circle cx="45" cy="60" r="3" fill="white"/>
+          <circle cx="55" cy="60" r="3" fill="white"/>
+          <circle cx="50" cy="50" r="3" fill="white"/>
+          <circle cx="50" cy="70" r="3" fill="white"/>
+          <rect x="65" y="58" width="8" height="10" rx="1" fill="white"/>
         </svg>
         <h3>Games</h3>
         <p>Play fun and engaging games built by Camcookie. From puzzle games to space adventures, there's something for everyone to enjoy.</p>
         <div class="service-link">Play Games →</div>
       </a>
 
-      <a href="/DOCS/" class="service-card">
-        <svg class="service-card-icon" viewBox="0 0 64 64" width="60" height="60">
-          <rect x="16" y="12" width="32" height="40" rx="2" fill="none" stroke="var(--primary-color)" stroke-width="2"/>
-          <line x1="20" y1="20" x2="44" y2="20" stroke="var(--primary-color)" stroke-width="1.5"/>
-          <line x1="20" y1="28" x2="44" y2="28" stroke="var(--primary-color)" stroke-width="1.5"/>
-          <line x1="20" y1="36" x2="44" y2="36" stroke="var(--primary-color)" stroke-width="1.5"/>
-          <line x1="20" y1="44" x2="36" y2="44" stroke="var(--primary-color)" stroke-width="1.5"/>
+      <a href="/books4now/" class="service-card">
+        <svg class="service-card-icon" viewBox="0 0 120 120" width="80" height="80" style="margin: 0 auto 16px;">
+          <!-- Circle background with gradient -->
+          <defs>
+            <linearGradient id="booksGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#7c3aed;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <!-- Circle -->
+          <circle cx="60" cy="60" r="50" fill="url(#booksGrad)" opacity="0.9"/>
+          <!-- Beak (corner notification) -->
+          <polygon points="90,30 100,30 90,40" fill="#ec4899"/>
+          <!-- Book icon -->
+          <path d="M 35 45 L 35 75 Q 35 80 40 80 L 60 80 Q 60 75 60 45" fill="white" opacity="0.4"/>
+          <path d="M 85 45 L 85 75 Q 85 80 80 80 L 60 80 Q 60 75 60 45" fill="white"/>
+          <line x1="60" y1="45" x2="60" y2="80" stroke="white" stroke-width="2"/>
         </svg>
-        <h3>DOCS</h3>
+        <h3>Books4Now</h3>
+        <p>Read stories and series curated by Camcookie. Explore unique narratives from independent authors and creative writers.</p>
+        <div class="service-link">Read Books →</div>
+      </a>
+
+      <a href="/DOCS4now/" class="service-card">
+        <svg class="service-card-icon" viewBox="0 0 120 120" width="80" height="80" style="margin: 0 auto 16px;">
+          <!-- Circle background with gradient -->
+          <defs>
+            <linearGradient id="docsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#16a34a;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <!-- Circle -->
+          <circle cx="60" cy="60" r="50" fill="url(#docsGrad)" opacity="0.9"/>
+          <!-- Beak (corner notification) -->
+          <polygon points="90,30 100,30 90,40" fill="#f59e0b"/>
+          <!-- Document icon -->
+          <rect x="38" y="40" width="24" height="40" rx="2" fill="none" stroke="white" stroke-width="2"/>
+          <line x1="42" y1="48" x2="58" y2="48" stroke="white" stroke-width="1.5"/>
+          <line x1="42" y1="56" x2="58" y2="56" stroke="white" stroke-width="1.5"/>
+          <line x1="42" y1="64" x2="54" y2="64" stroke="white" stroke-width="1.5"/>
+          <!-- Checkmark -->
+          <circle cx="68" cy="68" r="8" fill="none" stroke="white" stroke-width="2"/>
+          <path d="M 65 68 L 67 70 L 71 66" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h3>Documentation</h3>
         <p>Complete guides and documentation for all Camcookie projects. Learn how to use our tools and build amazing things.</p>
         <div class="service-link">Read Docs →</div>
       </a>
+
+      <a href="/links/" class="service-card">
+        <svg class="service-card-icon" viewBox="0 0 120 120" width="80" height="80" style="margin: 0 auto 16px;">
+          <!-- Circle background with gradient -->
+          <defs>
+            <linearGradient id="linksGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#d97706;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <!-- Circle -->
+          <circle cx="60" cy="60" r="50" fill="url(#linksGrad)" opacity="0.9"/>
+          <!-- Beak (corner notification) -->
+          <polygon points="90,30 100,30 90,40" fill="#06b6d4"/>
+          <!-- Link/network icon -->
+          <circle cx="42" cy="48" r="6" fill="none" stroke="white" stroke-width="2"/>
+          <circle cx="78" cy="48" r="6" fill="none" stroke="white" stroke-width="2"/>
+          <circle cx="60" cy="72" r="6" fill="none" stroke="white" stroke-width="2"/>
+          <line x1="46" y1="50" x2="74" y2="50" stroke="white" stroke-width="2"/>
+          <line x1="56" y1="64" x2="56" y2="68" stroke="white" stroke-width="2"/>
+          <line x1="64" y1="64" x2="64" y2="68" stroke="white" stroke-width="2"/>
+        </svg>
+        <h3>Links</h3>
+        <p>Quick access to all Camcookie resources, social profiles, and community links. Your one-stop navigation hub.</p>
+        <div class="service-link">View Links →</div>
+      </a>
+
+      <a href="/DOCS/" class="service-card">
+        <svg class="service-card-icon" viewBox="0 0 120 120" width="80" height="80" style="margin: 0 auto 16px;">
+          <!-- Circle background with gradient -->
+          <defs>
+            <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#0891b2;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <!-- Circle -->
+          <circle cx="60" cy="60" r="50" fill="url(#mainGrad)" opacity="0.9"/>
+          <!-- Beak (corner notification) -->
+          <polygon points="90,30 100,30 90,40" fill="#f472b6"/>
+          <!-- Settings/cog icon -->
+          <circle cx="60" cy="60" r="8" fill="none" stroke="white" stroke-width="2"/>
+          <circle cx="60" cy="38" r="3" fill="white"/>
+          <circle cx="73" cy="50" r="3" fill="white"/>
+          <circle cx="73" cy="70" r="3" fill="white"/>
+          <circle cx="60" cy="82" r="3" fill="white"/>
+          <circle cx="47" cy="70" r="3" fill="white"/>
+          <circle cx="47" cy="50" r="3" fill="white"/>
+        </svg>
+        <h3>Main Docs</h3>
+        <p>In-depth documentation covering Camcookie projects. Technical guides and project information.</p>
+        <div class="service-link">View Main Docs →</div>
+      </a>
+    </div>
 
     <!-- FOOTER CTA -->
     <section style="text-align: center; padding: 60px 24px; margin-top: 60px;">
