@@ -64,18 +64,12 @@ body {
   max-width: 1400px;
   margin: 0 auto;
 }
-/*
-.site-brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 20px;
-  font-weight: 700;
-  color: #ffffff;
-  text-decoration: none;
-  letter-spacing: 0.1em;
+
+.site-brand img {
+  height: 32px;
+  width: auto;
 }
-*/
+
 .site-brand:hover {
   opacity: 0.85;
 }
