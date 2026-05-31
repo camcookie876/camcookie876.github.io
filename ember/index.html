@@ -1,2 +1,67 @@
-<h1>Coming Soon!</h1>
-<p>The Camcookie Search Engine: Ember</p>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" href="/logo.png">
+    <meta charset="UTF-8">
+    <title>Home - Ember</title>
+    <link rel="stylesheet" href="/styles.css">
+    <meta name="description" content="Ember — a clean, fast, independent search engine.">
+  </head>
+
+<body>
+
+<!-- Your existing topbar JS -->
+<script src="/script.js"></script>
+
+<noscript>
+  <div style="background: #ffe6e6; border: 2px solid #ff4444; border-radius: 12px; padding: 16px; margin: 20px auto; max-width: 600px; text-align: center;">
+    <h3 style="color: #cc0000; margin: 0 0 8px;">JavaScript Required</h3>
+    <p style="margin: 0; color: #333;">This site requires JavaScript for navigation and search. Please enable JavaScript in your browser settings.</p>
+  </div>
+</noscript>
+
+<main class="content">
+
+  <!-- HERO -->
+  <section class="hero">
+    <h1 class="header">EMBER</h1>
+    <p>Your fast, independent search engine made by Camcookie.</p>
+    <p>.</p>
+
+    <!-- EMBER SEARCH BAR -->
+    <div class="ember-search-wrapper">
+      <form id="emberSearchForm" class="ember-search-box">
+        <input 
+          type="text" 
+          id="emberQuery" 
+          class="ember-search-input" 
+          placeholder="Search Ember…" 
+          autocomplete="off"
+          required
+        >
+        <button type="submit" class="ember-search-btn">Search</button>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p>Ember Search • Prototype</p>
+</footer>
+
+<!-- EMBER SEARCH JS -->
+<script>
+document.getElementById("emberSearchForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  const q = document.getElementById("emberQuery").value.trim();
+  if (!q) return;
+
+  // Redirect to your search results page
+  window.location.href = "results/?q=" + encodeURIComponent(q);
+});
+</script>
+
+</body>
+</html>

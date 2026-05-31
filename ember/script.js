@@ -1,5 +1,3 @@
-const PADGE_FILE = '/padge.json';
-
 const mainLinks = [
   { name: 'Home', url: '/' },
   { name: 'DOCS', url: '/DOCS/' },
@@ -80,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const brand = document.createElement('a');
     brand.className = 'site-brand';
     brand.href = '/';
-    brand.innerHTML = '<img src="/logo.png" alt="Camcookie Logo"> <span>Camcookie</span>';
+    brand.innerHTML = '<img src="/logo.png" alt="Ember Logo"> <span>Ember</span>';
 
     const nav = document.createElement('nav');
     nav.className = 'site-nav';
@@ -137,8 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const footer = document.createElement('footer');
     footer.className = 'footer';
     footer.innerHTML = `
-      <p>&copy; 2026 Camcookie. All rights reserved.</p>
-      <p><a href="/connect/">Connect</a></p>
+      <p>&copy; 2026 Ember by Camcookie. All rights reserved.</p>
+      <p><a href="/">Back To Camcookie</a></p>
     `;
     document.body.appendChild(footer);
   }
