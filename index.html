@@ -1,416 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <link rel="icon" href="/logo.png">
-    <meta charset="UTF-8">
-    <title>Camcookie - Connect, Create, Explore</title>
-    <link rel="stylesheet" href="/styles.css">
-    <meta name="msvalidate.01" content="BA29E5D43C9034AD40033C6209A01213" />
-    <meta name="description" content="Camcookie: Your gateway to Connect 26 (personal internet), Ember (independent search), and creative tools. Free, open-source, powerful.">
-    <style>
-      .homepage-hero {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-        color: white;
-        padding: 100px 24px;
-        text-align: center;
-        margin: -60px 0 80px 0;
-        position: relative;
-        overflow: hidden;
-      }
+<html>
+<head>
+  <link rel="icon" href="/logo.png">
+  <meta charset="UTF-8">
+  <title>Home - Camcookie</title>
+  <link rel="stylesheet" href="/styles.css">
+  <meta name="msvalidate.01" content="BA29E5D43C9034AD40033C6209A01213" />
+  <meta name="description" content="Camcookie homepage with quick access to docs, music, books, games, and Connect.">
+</head>
 
-      .homepage-hero::before {
-        content: "";
-        position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 500px;
-        height: 500px;
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
-        border-radius: 999px;
-      }
-
-      .homepage-hero h1 {
-        font-size: 3.5rem;
-        position: relative;
-        z-index: 1;
-        animation: slideUp 0.6s ease 0.1s backwards;
-      }
-
-      @keyframes slideUp {
-        from { opacity: 0; transform: translateY(20px);
-        to { opacity: 1; transform: translateY(0);
-        position: relative;
-        z-index: 1;
-        font-weight: 800;
-        margin-bottom: 16px;
-        letter-spacing: -1px;
-        position: relative;
-        z-index: 1;
-        animation: slid10px;
-        cursor: pointer;
-        transition: var(--transition);
-        text-decoration: none;
-        display: inline-block;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .cta-button::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.2);
-        transition: left 0.4s ease;
-      }
-
-      .cta-button:hover::before {
-        left: 100%;
-      }
-/*
-      .cta-button > * {
-        position: relative;
-        z-index: 1ansform: translateY(-20px);
-        to { opacity: 1; transform: translateY(0);
-      }*/
-
-      .homepage-hero .tagline {
-        font-size: 1.25rem;
-        margin-bottom: 32px;
-        opacity: 0.95;
-        font-weight: 300;
-        max-width: 700px;
-        margin-left: auto;
-        margin-right: auto;
-      }
-
-      .cta-buttons {
-        display: flex;
-        gap: 16px;
-        justify-content: center;
-        flex-wrap: wvar(--bg-white);
-        border-radius: var(--border-radius);
-        padding: 48px 32px;
-        margin-bottom: 60px;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 40px;
-        align-items: center;
-        transition: var(--transition);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .featured-service::before {
-        content: "";
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(37, 99, 235, 0.08), transparent);
-        border-radius: 999px;
-      }
-/*
-      .featured-service:hover {
-        box-shadow: var(--shadow-lg);
-        transform: translateY(-4px)
-        cursor: pointer;
-        transition: var(--transition);
-        text-decoration: none;
-        display: inline-block;
-      }*/
-
-      .cta-button-primary {
-        background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
-        color: white;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        margin-bottom: 16px;
-        position: relative;
-        z-index: 2;
-        animation: slideUp 0.6s ease 0.2s backwards6px rgba(0, 0, 0, 0.2);
-      }
-
-      .cta-button-secondary {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        border: 2px solid white;
-      }/*
-      var(--bg-white) {
-        border-radius: var(--border-radius);
-        padding: 32px 24px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        transition: var(--transition);
-        border: 1px solid var(--border-color);
-        text-decoration: none;
-        color: inherit;
-        display: flex;
-        flex-direction: column;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-      }*/
-
-      .service-card::before {
-        content: "";
-        position: absolute;
-        top: -50%;
-        right: -30%;
-        width: 300px;
-        height: 300px;
-        background: radial-gradient(circle, rgba(6, 182, 212, 0.1), transparent);
-        border-radius: 999px;
-        opacity: 0;
-        transition: opacity 0.4s ease;
-      }
-
-      .service-card:hover {
-        transform: translateY(-8px);
-        box-shadow: var(--shadow-lg);
-        border-color: var(--primary-color);
-      }
-
-      .service-card:hover::before {
-        opacity: 1;
-        text-align: center;
-        color: var(--text-dark);
-      }
-
-      .featured-service {
-        background: white;
-        border-radius: 12px;
-        padding: 48px 32px;
-        margin-bottom: 60px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        border-left: 6px solid var(--primary-color);
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 40px;
-        align-items: center;
-      }
-
-      .featured-service.reverse {
-        grid-template-columns: 1fr 1fr;
-        direction: rtl;
-      }
-
-      .featured-service.reverse > * {
-        direction: ltr;
-      }
-
-      .featured-content h2 {
-        font-size: 2.2rem;
-        margin-bottom: 16px;
-        color: var(--text-dark);
-      }
-
-      .featured-content p {
-        font-size: 1.1rem;
-        line-height: 1.7;
-        color: var(--text-light);
-        margin-bottom: 20px;
-      }
-
-      .feature-badge {
-        display: inline-block;
-        background: var(--primary-light);
-        color: white;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        margin-bottom: 16px;
-      }
-
-      .services-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 24px;
-        margin-bottom: 60px;
-      }
-
-      .service-card {
-        background: white;
-        border-radius: 12px;
-        padding: 32px 24px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        transition: var(--transition);
-        border-top: 4px solid var(--primary-color);
-        text-decoration: none;
-        color: inherit;
-        display: flex;
-        flex-direction: column;
-        text-align: center;
-      }
-
-      .service-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-        border-top-color: var(--primary-dark);
-      }
-
-      .service-card-icon {
-        font-size: 2.5rem;
-        margin-bottom: 16px;
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        width: 80px;
-        height: 80px;
-      }
-
-      .service-card h3 {
-        font-size: 1.4rem;
-        margin-bottom: 12px;
-        color: var(--text-dark);
-      }
-
-      .service-card p {
-        font-size: 0.95rem;
-        color: var(--text-light);
-        line-height: 1.6;
-        flex-grow: 1;
-        margin-bottom: 16px;
-      }
-
-      .service-link {
-        color: var(--primary-color);
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .service-link:hover {
-        text-decoration: underline;
-      }
-
-      .stats-section {
-        background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%);
-        padding: 60px 24px;
-        margin: 60px 0;
-        border-radius: var(--border-radius);
-        border: 1px solid var(--border-color);
-        backdrop-filter: blur(10px);
-      }
-
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 30px;
-        max-width: 1000px;
-        margin: 0 auto;
-      }
-
-      .stat-item {
-        text-align: center;
-      }
-
-      .stat-number {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--cyan) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-weight: 700;
-        color: var(--primary-color);
-      }
-
-      .stat-label {
-        font-size: 0.95rem;
-        color: var(--text-light);
-        margin-top: 8px;
-      }
-
-      @media (max-width:900px){
-        .featured-service,.featured-service.reverse{grid-template-columns:1fr;}
-        .homepage-hero h1{font-size:1.9rem}
-      }
-    </style>
-  </head>
 <body>
 <script src="/script.js"></script>
 
 <noscript>
-  <div style="background: #ffe6e6; border: 2px solid #ff4444; border-radius: 12px; padding: 16px; margin: 20px auto; max-width: 600px; text-align: center;">
-    <h3 style="color: #cc0000; margin: 0 0 8px;">JavaScript Required</h3>
-    <p style="margin: 0; color: #333;">This site requires JavaScript for navigation and search. Please enable JavaScript in your browser settings.</p>
+  <div style="background:#ffeeee;padding:16px;border:1px solid #cc0000;border-radius:8px;margin:20px;">
+    <h3 style="color:#cc0000;margin:0 0 8px;">JavaScript Required</h3>
+    <p style="margin:0;color:#333;">This site requires JavaScript for navigation and search. Please enable JavaScript in your browser settings.</p>
+    <div style="margin-top:12px;">
+      <a href="/DOCS/" style="display:inline-block;background:#0f67ff;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;margin:4px;">DOCS</a>
+      <a href="/books/" style="display:inline-block;background:#0f67ff;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;margin:4px;">Books</a>
+      <a href="/links/" style="display:inline-block;background:#0f67ff;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;margin:4px;">Links</a>
+    </div>
   </div>
 </noscript>
 
 <main class="content">
-  <header style="max-width:1100px;margin:20px auto;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 20px;">
-    <a href="/" style="display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;"><img src="/logo.png" alt="Camcookie" style="width:48px;height:48px;border-radius:8px;object-fit:cover"><div style="line-height:1"><strong style="font-size:1.05rem">Camcookie</strong><div style="font-size:0.8rem;color:var(--text-light)">Connect · Create · Explore</div></div></a>
-    <nav style="display:flex;gap:12px;align-items:center">
-      <a class="cta-button cta-button-secondary" href="/connect/">Connect 26</a>
-      <a class="cta-button cta-button-secondary" href="/ember/">Ember</a>
-      <a class="cta-button cta-button-secondary" href="/DOCS/">Docs</a>
-      <a class="cta-button cta-button-secondary" href="/game/">Games</a>
-    </nav>
-  </header>
 
-  <section class="homepage-hero" aria-labelledby="hero-title">
-    <div style="max-width:1100px;margin:0 auto;padding:0 20px;">
-      <h1 id="hero-title">Build your internet — simple, safe, powerful.</h1>
-      <p class="tagline">Camcookie builds tools that help you connect, learn, and play — hand-crafted with care. Start with one project or explore them all.</p>
-      <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:18px;">
-        <a href="/connect/" class="cta-button cta-button-primary">Get Started — Connect 26</a>
-        <a href="/ember/" class="cta-button cta-button-secondary">Try Ember Search</a>
-        <a href="/DOCS/" class="cta-button cta-button-secondary">Read Docs</a>
-      </div>
-      <p style="margin-top:18px;color:rgba(255,255,255,0.9);font-size:0.95rem;">Built by a young creator — growing fast. Join the journey.</p>
+  <section class="hero">
+    <h1 class="header">Welcome to Camcookie</h1>
+    <p>Camcookie is your free site for docs, music, books, and games.</p>
+    <p>THIS HOMEPAGE IS TEMPORARY. THE REAL ONE IS BEING CREATED.</p>
+
+    <div class="link-grid">
+      <a class="links pill" href="/music/">Music</a>
+      <a class="links pill" href="/game/">Games</a>
+      <a class="links pill" href="/connect/">Connect</a>
     </div>
   </section>
 
-  <section style="max-width:1100px;margin:40px auto;padding:0 20px;">
-    <h2 class="section-title">Featured Projects</h2>
-    <div class="services-grid">
-      <a href="/connect/" class="service-card">
-        <svg class="service-card-icon" viewBox="0 0 120 120" width="80" height="80" aria-hidden="true"> <circle cx="60" cy="60" r="50" fill="#2563eb"/></svg>
-        <h3>Connect 26</h3>
-        <p>All-in-one internet system. Accounts, permissions, family controls — made approachable.</p>
-        <div class="service-link">Explore Connect 26 →</div>
-      </a>
-
-      <a href="/ember/" class="service-card">
-        <svg class="service-card-icon" viewBox="0 0 120 120" width="80" height="80" aria-hidden="true"> <circle cx="60" cy="60" r="50" fill="#06b6d4"/></svg>
-        <h3>Ember Search</h3>
-        <p>Fast, focused search for the things you care about — minimal UI, maximal results.</p>
-        <div class="service-link">Try Ember →</div>
-      </a>
-
-      <a href="/game/" class="service-card">
-        <svg class="service-card-icon" viewBox="0 0 120 120" width="80" height="80" aria-hidden="true"> <circle cx="60" cy="60" r="50" fill="#7c3aed"/></svg>
-        <h3>Games</h3>
-        <p>Play original games — quick to pick up and fun to master. Built with care.</p>
-        <div class="service-link">Play Games →</div>
-      </a>
-    </div>
-  </section>
-
-  <section style="max-width:1100px;margin:20px auto;padding:0 20px;">
-    <h2 class="section-title">Why People Love Camcookie</h2>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;">
-      <div style="background:#fff;padding:18px;border-radius:10px;box-shadow:var(--shadow)"><strong>Accessible</strong><p style="margin:8px 0;color:var(--text-light)">Easy to use interfaces for everyone.</p></div>
-      <div style="background:#fff;padding:18px;border-radius:10px;box-shadow:var(--shadow)"><strong>Open</strong><p style="margin:8px 0;color:var(--text-light)">Open-source values and transparent development.</p></div>
-      <div style="background:#fff;padding:18px;border-radius:10px;box-shadow:var(--shadow)"><strong>Growing</strong><p style="margin:8px 0;color:var(--text-light)">New features and projects added regularly.</p></div>
-    </div>
-  </section>
-
-  <footer style="max-width:1100px;margin:36px auto;padding:20px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center">
-    <div style="color:var(--text-light)">© Camcookie — Built with curiosity.</div>
-    <div style="display:flex;gap:8px;">
-      <a href="/DOCS/" class="cta-button cta-button-secondary">Docs</a>
-      <a href="https://github.com/camcookie876/" class="cta-button cta-button-secondary">GitHub</a>
-    </div>
-  </footer>
 </main>
+
 </body>
 </html>
