@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Apps - Camcookie Connect 26</title>
+  <title>Apps - Camcookie Connect 26 — Discord</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/connect/discord/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/connect/26/cc-auth.js"></script>
-  <script src="/connect/26/cc-topbar.js"></script>
-  <script src="/connect/26/cc-icons.js"></script>
+  <script src="/connect/discord/cc-auth.js"></script>
+  <script src="/connect/discord/cc-topbar.js"></script>
+  <script src="/connect/discord/cc-icons.js"></script>
 
   <style>
     :root {
@@ -121,8 +122,8 @@
 
     .app-tile:hover {
       transform: translateY(-4px);
-      box-shadow: 0 20px 40px rgba(37, 99, 235, 0.2);
-      border-color: var(--blue);
+      box-shadow: 0 20px 40px rgba(124, 58, 237, 0.12);
+      border-color: var(--brand);
     }
 
     .app-icon {
@@ -202,7 +203,7 @@
 <div id="errorView" class="hidden">
   <div class="panel">
     <p id="errorMsg" class="muted" style="color:var(--danger);"></p>
-    <button onclick="window.location.href='/connect/26/';">Return to Login</button>
+    <button onclick="window.location.href='/connect/discord/';">Return to Login</button>
   </div>
 </div>
 
@@ -223,7 +224,7 @@
   const apps = [
     {
       name: 'Chat',
-      path: '/connect/26/chat/',
+      path: '/connect/discord/chat/',
       icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <g fill="none" stroke="#0099ff" stroke-width="55" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="480" cy="512" r="360" />
@@ -247,7 +248,7 @@
     },
     {
       name: 'Books',
-      path: '/connect/26/books/',
+      path: '/connect/discord/books/',
       icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <g fill="none" stroke="#0099ff" stroke-width="55" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="480" cy="512" r="360" />
@@ -278,7 +279,7 @@
     },
     {
       name: 'Draw',
-      path: '/connect/26/draw/',
+      path: '/connect/discord/draw/',
       icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <g fill="none" stroke="#0099ff" stroke-width="55" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="480" cy="512" r="360" />

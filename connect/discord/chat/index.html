@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Chat BETA - Camcookie Connect 26</title>
+  <title>Chat BETA - Camcookie Connect 26 — Discord</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/connect/26/cc-auth.js"></script>
-  <script src="/connect/26/cc-friends.js"></script>
-  <script src="/connect/26/cc-topbar.js"></script>
-  <script src="/connect/26/cc-icons.js"></script>
+  <link rel="stylesheet" href="/connect/discord/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/connect/discord/cc-auth.js"></script>
+  <script src="/connect/discord/cc-friends.js"></script>
+  <script src="/connect/discord/cc-topbar.js"></script>
+  <script src="/connect/discord/cc-icons.js"></script>
 
   <style>
     :root {
@@ -74,22 +76,22 @@
     }
 
     input:focus, textarea:focus {
-      border-color: var(--blue);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.10);
     }
 
     button {
       border: none;
       border-radius: 10px;
       padding: 10px 14px;
-      background: var(--blue);
+      background: var(--brand);
       color: #fff;
       font-weight: 600;
       cursor: pointer;
       transition: transform .15s ease, background .15s ease;
     }
 
-    button:hover { background: var(--blue-dark); transform: translateY(-1px); }
+    button:hover { background: var(--brand-dark); transform: translateY(-1px); }
     button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
     button.secondary {
@@ -406,7 +408,7 @@
     </div>
 
     <footer>
-      <a href="/connect/26/terms" target="_blank">Terms &amp; Conditions</a>
+      <a href="/connect/discord/terms" target="_blank">Terms &amp; Conditions</a>
     </footer>
   </div>
 
@@ -525,7 +527,7 @@
         const q = new URLSearchParams();
         if (params.chat) q.set("chat", params.chat);
         if (params.org) q.set("org", params.org);
-        window.location.href = "/connect/26/?" + q.toString();
+        window.location.href = "/connect/discord/?" + q.toString();
         return null;
       }
 
@@ -534,7 +536,7 @@
         const q = new URLSearchParams();
         if (params.chat) q.set("chat", params.chat);
         if (params.org) q.set("org", params.org);
-        window.location.href = "/connect/26/?" + q.toString();
+        window.location.href = "/connect/discord/?" + q.toString();
         return null;
       }
 
@@ -1099,7 +1101,7 @@
         return;
       }
 
-      const base = new URL("/connect/26/", window.location.origin).toString();
+      const base = new URL("/connect/discord/", window.location.origin).toString();
       const link = base + "?chat=" + encodeURIComponent(data.share_code);
 
       try {

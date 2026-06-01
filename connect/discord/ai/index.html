@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI - Camcookie Connect 26</title>
-  <script src="/connect/26/cc-auth.js"></script>
+  <title>AI - Camcookie Connect 26 — Discord</title>
+  <link rel="stylesheet" href="/connect/discord/styles.css">
+  <script src="/connect/discord/cc-auth.js"></script>
 </head>
 <body>
 <script>
   ccRequireAuth();
   // Redirect to AI app
   const appHash = window.location.hash || '';
-  window.location.replace('/connect/26/ai4now/' + appHash);
+  window.location.replace('/connect/discord/ai4now/' + appHash);
 </script>
 </body>
 </html>

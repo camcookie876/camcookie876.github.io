@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AI - Camcookie Connect 26</title>
+  <title>AI - Camcookie Connect 26 — Discord</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/connect/26/cc-auth.js"></script>
-  <script src="/connect/26/cc-friends.js"></script>
-  <script src="/connect/26/cc-topbar.js"></script>
-  <script src="/connect/26/cc-icons.js"></script>
+  <link rel="stylesheet" href="/connect/discord/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/connect/discord/cc-auth.js"></script>
+  <script src="/connect/discord/cc-friends.js"></script>
+  <script src="/connect/discord/cc-topbar.js"></script>
+  <script src="/connect/discord/cc-icons.js"></script>
 
   <style>
     :root {
@@ -65,14 +67,14 @@
       border: none;
       border-radius: 10px;
       padding: 10px 14px;
-      background: var(--blue);
+      background: var(--brand);
       color: #fff;
       font-weight: 600;
       cursor: pointer;
       transition: transform .15s ease, background .15s ease;
     }
 
-    button:hover { background: var(--blue-dark); transform: translateY(-1px); }
+    button:hover { background: var(--brand-dark); transform: translateY(-1px); }
     button:disabled { opacity: 0.6; cursor: not-allowed; }
     button.secondary { background: #fff; color: var(--blue-dark); border: 1px solid var(--blue); }
 

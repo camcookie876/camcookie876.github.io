@@ -4,27 +4,15 @@
   <meta charset="UTF-8" />
   <title>Dashboard - Camcookie Connect 26</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/connect/discord/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/connect/26/cc-auth.js"></script>
-  <script src="/connect/26/cc-topbar.js"></script>
-  <script src="/connect/26/cc-icons.js"></script>
-  <script src="/connect/26/cc-scoring.js"></script>
+  <script src="/connect/discord/cc-auth.js"></script>
+  <script src="/connect/discord/cc-topbar.js"></script>
+  <script src="/connect/discord/cc-icons.js"></script>
+  <script src="/connect/discord/cc-scoring.js"></script>
 
   <style>
-    :root {
-      --blue: #2563eb;
-      --blue-dark: #1d4ed8;
-      --cyan: #06b6d4;
-      --bg: #eef3ff;
-      --card: #ffffff;
-      --text: #0f172a;
-      --muted: #64748b;
-      --border: #dbe4ff;
-      --danger: #dc2626;
-      --success: #16a34a;
-      --radius: 16px;
-      --shadow: 0 14px 30px rgba(37, 99, 235, 0.16);
-    }
+    /* core visuals moved to styles.css */
 
     * { box-sizing: border-box; }
 
@@ -462,7 +450,7 @@
 <div id="errorView" class="hidden">
   <div class="panel">
     <p id="errorMsg" class="muted" style="color:var(--danger);"></p>
-    <button onclick="window.location.href='/connect/26/';">Return to Login</button>
+    <button onclick="window.location.href='/connect/discord/';">Return to Login</button>
   </div>
 </div>
 
@@ -523,27 +511,27 @@
         <div class="widget">
           <h2>Quick Launch</h2>
           <div class="apps-grid">
-            <a href="/connect/26/apps/" class="app-item">
+            <a href="/connect/discord/apps/" class="app-item">
               <div class="app-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></div>
               <div class="app-name">Apps</div>
             </a>
-            <a href="/connect/26/chat/" class="app-item">
+            <a href="/connect/discord/chat/" class="app-item">
               <div class="app-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
               <div class="app-name">Chat</div>
             </a>
-            <a href="/connect/26/books/" class="app-item">
+            <a href="/connect/discord/books/" class="app-item">
               <div class="app-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></div>
               <div class="app-name">Books</div>
             </a>
-            <a href="/connect/26/draw/" class="app-item">
+            <a href="/connect/discord/draw/" class="app-item">
               <div class="app-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div>
               <div class="app-name">Draw</div>
             </a>
-            <a href="/connect/26/ai/" class="app-item">
+            <a href="/connect/discord/ai/" class="app-item">
               <div class="app-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"></circle><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m3.08 3.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m3.08-3.08l4.24-4.24M19.78 19.78l-4.24-4.24m-3.08-3.08l-4.24-4.24"></path></svg></div>
               <div class="app-name">AI</div>
             </a>
-            <a href="/connect/26/settings/" class="app-item">
+            <a href="/connect/discord/settings/" class="app-item">
               <div class="app-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m3.08 3.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m3.08-3.08l4.24-4.24M19.78 19.78l-4.24-4.24m-3.08-3.08l-4.24-4.24"></path></svg></div>
               <div class="app-name">Settings</div>
             </a>

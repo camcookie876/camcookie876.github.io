@@ -72,7 +72,7 @@ function ccLogout() {
   localStorage.removeItem(CC_STORAGE_KEY_APP_REDIRECT);
   localStorage.removeItem(CC_STORAGE_KEY_OLD_USER);
   localStorage.removeItem(CC_STORAGE_KEY_OLD_TOKEN);
-  window.location.href = '/connect/26/';
+  window.location.href = '/connect/discord/';
 }
 
 /**
@@ -105,7 +105,16 @@ function ccRequireAuth() {
   if (ccIsAuthenticated()) return;
   const hash = window.location.hash || '';
   const suffix = hash ? hash : '';
-  window.location.href = '/connect/26/' + suffix;
+  window.location.href = '/connect/discord/' + suffix;
+}
+
+/**
+ * Redirect to discord-rooted login
+ */
+function ccRequireAuthDiscord() {
+  if (ccIsAuthenticated()) return;
+  const hash = window.location.hash || '';
+  window.location.href = '/connect/discord/' + hash;
 }
 
 /**
@@ -144,11 +153,11 @@ function ccInitTopbarLegacy() {
   }
 
   const apps = [
-    { name: 'Apps Home', path: '/connect/26/apps/' },
-    { name: 'Chat', path: '/connect/26/chat/' },
-    { name: 'Books', path: '/connect/26/books/' },
-    { name: 'Draw', path: '/connect/26/draw/' },
-    { name: 'AI', path: '/connect/26/ai/' }
+    { name: 'Apps Home', path: '/connect/discord/apps/' },
+    { name: 'Chat', path: '/connect/discord/chat/' },
+    { name: 'Books', path: '/connect/discord/books/' },
+    { name: 'Draw', path: '/connect/discord/draw/' },
+    { name: 'AI', path: '/connect/discord/ai/' }
   ];
 
   if (appsMenu) {

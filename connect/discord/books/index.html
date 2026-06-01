@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Books - Camcookie Connect 26</title>
+  <title>Books - Camcookie Connect 26 — Discord</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/connect/discord/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/connect/26/cc-auth.js"></script>
-  <script src="/connect/26/cc-friends.js"></script>
-  <script src="/connect/26/cc-topbar.js"></script>
-  <script src="/connect/26/cc-icons.js"></script>
+  <script src="/connect/discord/cc-auth.js"></script>
+  <script src="/connect/discord/cc-friends.js"></script>
+  <script src="/connect/discord/cc-topbar.js"></script>
+  <script src="/connect/discord/cc-icons.js"></script>
 
   <style>
     :root {
@@ -74,8 +75,8 @@
     }
 
     input:focus, textarea:focus {
-      border-color: var(--blue);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.10);
     }
 
     textarea {
@@ -696,7 +697,7 @@
     </div>
 
     <footer>
-      <a href="/connect/26/terms" target="_blank">Terms &amp; Conditions</a>
+      <a href="/connect/discord/terms" target="_blank">Terms &amp; Conditions</a>
     </footer>
   </div>
 
@@ -805,7 +806,7 @@
       if (!params.token) {
         const q = new URLSearchParams();
         if (params.story) q.set("story", params.story);
-        window.location.href = "/connect/26/?" + q.toString();
+        window.location.href = "/connect/discord/?" + q.toString();
         return null;
       }
 
@@ -813,7 +814,7 @@
       if (!user) {
         const q = new URLSearchParams();
         if (params.story) q.set("story", params.story);
-        window.location.href = "/connect/26/?" + q.toString();
+        window.location.href = "/connect/discord/?" + q.toString();
         return null;
       }
 
@@ -1710,13 +1711,13 @@
           const params = getParams();
           const q = new URLSearchParams();
           if (params.token) q.set("token", params.token);
-          window.location.href = "/connect/26/?" + q.toString();
+          window.location.href = "/connect/discord/?" + q.toString();
         };
         $("navSpacesBtn").onclick = () => {
           const params = getParams();
           const q = new URLSearchParams();
           if (params.token) q.set("token", params.token);
-          window.location.href = "/connect/26/?" + q.toString() + "#spaces";
+          window.location.href = "/connect/discord/?" + q.toString() + "#spaces";
         };
 
       } catch (e) {

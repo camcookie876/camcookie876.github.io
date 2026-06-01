@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Settings - Camcookie Connect 26</title>
+  <title>Settings - Camcookie Connect 26 — Discord</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/connect/discord/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/connect/26/cc-auth.js"></script>
-  <script src="/connect/26/cc-topbar.js"></script>
+  <script src="/connect/discord/cc-auth.js"></script>
+  <script src="/connect/discord/cc-topbar.js"></script>
 
   <style>
     :root {
@@ -81,8 +82,8 @@
     .spinner {
       width: 42px;
       height: 42px;
-      border: 4px solid #bfdbfe;
-      border-top-color: var(--blue);
+      border: 4px solid #e9e2ff;
+      border-top-color: var(--brand);
       border-radius: 999px;
       animation: spin .9s linear infinite;
       margin: 0 auto 12px;
@@ -114,7 +115,7 @@
       margin-bottom: 24px;
       font-size: 1.8rem;
       font-weight: 800;
-      color: var(--blue-dark);
+      color: var(--brand-dark);
     }
 
     .settings-section {
@@ -286,13 +287,13 @@
 <div id="errorView" class="hidden">
   <div class="panel">
     <p id="errorMsg" class="muted" style="color:var(--danger);"></p>
-    <button onclick="window.location.href='/connect/26/';">Return to Login</button>
+    <button onclick="window.location.href='/connect/discord/';">Return to Login</button>
   </div>
 </div>
 
 <div id="appShell">
   <div class="settings-container">
-    <a href="/connect/26/apps/" class="back-button">← Back to Apps</a>
+    <a href="/connect/discord/apps/" class="back-button">← Back to Apps</a>
     <div class="card">
       <h1>Settings</h1>
 
@@ -332,7 +333,7 @@
       function connectDiscord() {
         const discordLoginUrl = "https://discord.com/oauth2/authorize" +
           "?client_id=1510450453350056156" +
-          "&redirect_uri=" + encodeURIComponent(window.location.origin + "/connect/26/discord/") +
+          "&redirect_uri=" + encodeURIComponent(window.location.origin + "/connect/discord/discord/") +
           "&response_type=token" +
           "&scope=identify";
 

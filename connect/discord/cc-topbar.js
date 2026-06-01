@@ -9,7 +9,7 @@ const TOPBAR_STYLES = `
     top: 0;
     z-index: 100;
     padding: 12px 18px;
-    background: var(--blue, #2563eb);
+    background: var(--brand, #7c3aed);
     color: white;
     display: flex;
     align-items: center;
@@ -99,15 +99,8 @@ const TOPBAR_STYLES = `
     border-bottom: none;
   }
 
-  .dropdown-item:hover {
-    background: #f0f7ff;
-  }
-
-  .dropdown-item.active {
-    background: #eff6ff;
-    font-weight: 600;
-    color: var(--blue-dark, #1d4ed8);
-  }
+  .dropdown-item:hover { background: #f6f2ff; }
+  .dropdown-item.active { background: #f3eefe; font-weight:600; color: var(--brand-dark, #6d28d9); }
 
   #userPhoto {
     width: 36px;
@@ -153,11 +146,11 @@ const TOPBAR_STYLES = `
 function ccCreateTopbarHTML() {
   const currentPath = window.location.pathname;
   const pages = [
-    { name: 'Apps', path: '/connect/26/apps/' },
-    { name: 'Chat', path: '/connect/26/chat/' },
-    { name: 'Books', path: '/connect/26/books/' },
-    { name: 'Draw', path: '/connect/26/draw/' },
-    { name: 'AI', path: '/connect/26/ai/' }
+    { name: 'Apps', path: '/connect/discord/apps/' },
+    { name: 'Chat', path: '/connect/discord/chat/' },
+    { name: 'Books', path: '/connect/discord/books/' },
+    { name: 'Draw', path: '/connect/discord/draw/' },
+    { name: 'AI', path: '/connect/discord/ai/' }
   ];
 
   const navItems = pages
@@ -182,9 +175,9 @@ function ccCreateTopbarHTML() {
         </div>
         <div class="dropdown-menu" id="userMenu">
           <div class="dropdown-item" id="scoreDisplay" style="font-weight:600;color:var(--blue-dark, #1d4ed8);cursor:default;border-bottom:1px solid var(--border, #dbe4ff);"></div>
-          <a href="/connect/26/dashboard/" class="dropdown-item">Dashboard</a>
-          <a href="/connect/26/settings/" class="dropdown-item">Settings</a>
-          <a href="/connect/26/friends/" class="dropdown-item">Friends</a>
+          <a href="/connect/discord/dashboard/" class="dropdown-item">Dashboard</a>
+          <a href="/connect/discord/settings/" class="dropdown-item">Settings</a>
+          <a href="/connect/discord/friends/" class="dropdown-item">Friends</a>
           <a href="#" class="dropdown-item" id="logoutBtn">Logout</a>
         </div>
       </div>
