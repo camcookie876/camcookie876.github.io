@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Connect Discord - Connect 26</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="/connect/26/cc-auth.js"></script>
+</head>
+<body>
+<h1>Connecting your Discord account…</h1>
+
+<script>
+// 1. Extract the Discord access token from the URL
+const hash = window.location.hash.substring(1);
+const params = new URLSearchParams(hash);
+const accessToken = params.get("access_token");
+
+if (!accessToken) {
+  document.body.innerHTML = "<p>Error: No Discord token found.</p>";
+  throw new Error("Missing token");
+}
+
+// 2. Fetch the Discord user's ID
+fetch("https://discord.com/api/users/@me", {
+  headers: {
+    "Authorization": "Bearer " + accessToken
+  }
+})
+  .then(res => res.json())
+  .then(async (discordUser) => {
+    const discordId = discordUser.id;
+
+    // 3. Verify local Connect 26 session using cc-auth helpers
+    const user = typeof ccGetUser === 'function' ? ccGetUser() : null;
+    if (!user) {
+      document.body.innerHTML = "<p>You must be logged into Connect 26.</p>";
+      return;
+    }
+
+    // 4. Persist the linked Discord ID locally (no backend required)
+    if (typeof ccSetSetting === 'function') {
+      ccSetSetting('discord_id', discordId);
+    } else {
+      localStorage.setItem('discord_id', discordId);
+    }
+
+    // Optionally store on the user object for legacy pages
+    try {
+      const stored = JSON.parse(localStorage.getItem('cc-user') || '{}');
+      stored.discord_id = discordId;
+      localStorage.setItem('cc-user', JSON.stringify(stored));
+    } catch (e) {}
+
+    document.body.innerHTML = "<p>Your Discord account is now linked! You can close this tab.</p>";
+  });
+</script>
+</body>
+</html>
