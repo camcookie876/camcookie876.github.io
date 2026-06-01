@@ -354,7 +354,7 @@
         // Try to fetch from Supabase users table
         try {
           const { data } = await client
-            .from('users')
+            .from('public.users')
             .select('discord')
             .eq('id', user.id)
             .maybeSingle();
@@ -390,7 +390,7 @@
         const user = ccGetUser ? ccGetUser() : null;
         if (user) {
           try {
-            await client.from('users').update({ discord: null }).eq('id', user.id);
+            await client.from('public.users').update({ discord: null }).eq('id', user.id);
           } catch (e) {
             console.error('Failed to update Supabase discord field', e);
           }
