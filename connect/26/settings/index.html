@@ -317,32 +317,63 @@
         <button class="submit" id="changePasswordBtn">Change Password</button>
         <p id="passwordMsg"></p>
       </div>
-
-      <!-- Privacy & Leaderboard Section -->
+<!-- DISCORD -->
       <div class="settings-section">
-        <h2>Privacy & Leaderboard</h2>
-        
-        <div class="toggle-group">
-          <label class="toggle-label">Public Profile</label>
-          <div class="toggle-switch" id="publicToggle"></div>
+        <h2>Discord</h2>
+        <p id="discordStatus" class="muted">Checking Discord connection…</p>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
+          <button class="submit" id="discordConnectBtn">Connect Discord</button>
+          <button class="submit" id="discordDisconnectBtn" style="display:none;background:#ef4444">Disconnect</button>
         </div>
-        <p class="muted" style="font-size: 0.85rem;">When enabled, your profile is visible to others.</p>
-
-        <div class="toggle-group">
-          <label class="toggle-label">Participate in Leaderboard</label>
-          <div class="toggle-switch" id="leaderboardToggle"></div>
-        </div>
-        <p class="muted" style="font-size: 0.85rem;">When enabled, your score appears on the leaderboard.</p>
-
-        <div class="toggle-group">
-          <label class="toggle-label">Track Usage Score</label>
-          <div class="toggle-switch" id="usageToggle"></div>
-        </div>
-        <p class="muted" style="font-size: 0.85rem;">When enabled, your activity is included in scoring.</p>
-        
-        <button class="submit" id="savePrivacyBtn">Save Privacy Settings</button>
-        <p id="privacyMsg"></p>
+        <p id="discordHelp" class="muted" style="margin-top:8px;font-size:0.9rem">Your Discord ID is stored locally. Use this to show presence or link accounts.</p>
       </div>
+
+      <script>
+      function connectDiscord() {
+        const discordLoginUrl = "https://discord.com/oauth2/authorize" +
+          "?client_id=1510450453350056156" +
+          "&redirect_uri=" + encodeURIComponent(window.location.origin + "/connect/26/discord/") +
+          "&response_type=token" +
+          "&scope=identify";
+
+        window.location.href = discordLoginUrl;
+      }
+
+      function updateDiscordUI() {
+        const discordId = ccGetSetting ? ccGetSetting('discord_id', null) : localStorage.getItem('discord_id');
+        const statusEl = document.getElementById('discordStatus');
+        const connectBtn = document.getElementById('discordConnectBtn');
+        const disconnectBtn = document.getElementById('discordDisconnectBtn');
+        if (discordId) {
+          statusEl.textContent = 'Linked to Discord ID: ' + discordId;
+          disconnectBtn.style.display = 'inline-block';
+          connectBtn.textContent = 'Re-link';
+        } else {
+          statusEl.textContent = 'No Discord account linked.';
+          disconnectBtn.style.display = 'none';
+          connectBtn.textContent = 'Connect Discord';
+        }
+      }
+
+      document.getElementById('discordConnectBtn').onclick = connectDiscord;
+      document.getElementById('discordDisconnectBtn').onclick = () => {
+        if (!confirm('Disconnect your Discord account from Connect 26?')) return;
+        if (typeof ccSetSetting === 'function') ccSetSetting('discord_id', null);
+        localStorage.removeItem('discord_id');
+        try {
+          const stored = JSON.parse(localStorage.getItem('cc-user') || '{}');
+          delete stored.discord_id;
+          localStorage.setItem('cc-user', JSON.stringify(stored));
+        } catch (e) {}
+        popup('Discord disconnected');
+        updateDiscordUI();
+      };
+
+      // initialize when DOM is ready
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', updateDiscordUI);
+      else updateDiscordUI();
+      </script>
+
     </div>
   </div>
 </div>

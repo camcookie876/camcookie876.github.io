@@ -7,7 +7,29 @@
   <script src="/connect/26/cc-auth.js"></script>
 </head>
 <body>
-<h1>Connecting your Discord account…</h1>
+<style>
+  :root{--blue:#2563eb;--border:#dbe4ff;--card:#fff;--radius:14px}
+  body{font-family:system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;background:linear-gradient(180deg,#f8fbff,#eef2ff);margin:0;display:flex;align-items:center;justify-content:center;height:100vh}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:0 12px 30px rgba(37,99,235,0.08);width:min(520px,94%);text-align:center}
+  .muted{color:#64748b}
+  .avatar{width:86px;height:86px;border-radius:12px;object-fit:cover;margin:0 auto 12px;display:block}
+  .actions{display:flex;gap:10px;justify-content:center;margin-top:12px}
+  .btn{background:var(--blue);color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+  .btn.secondary{background:#e5e7eb;color:#0f172a}
+  .danger{background:#ef4444}
+</style>
+
+<div class="card" id="card">
+  <h1 style="margin:0 0 8px">Connect Discord</h1>
+  <p id="status" class="muted">Verifying Discord response…</p>
+  <img id="avatar" class="avatar hidden" src="" alt="Discord avatar">
+  <div id="discordName" style="font-weight:700;margin-top:6px"></div>
+  <div id="discordSub" class="muted" style="font-size:0.9rem"></div>
+  <div class="actions" id="actions" style="display:none">
+    <button class="btn" id="confirmBtn">Link account</button>
+    <button class="btn secondary" id="cancelBtn">Cancel</button>
+  </div>
+</div>
 
 <script>
 // 1. Extract the Discord access token from the URL
@@ -16,8 +38,8 @@ const params = new URLSearchParams(hash);
 const accessToken = params.get("access_token");
 
 if (!accessToken) {
-  document.body.innerHTML = "<p>Error: No Discord token found.</p>";
-  throw new Error("Missing token");
+  document.getElementById('status').textContent = 'Error: No Discord token found.';
+  throw new Error('Missing token');
 }
 
 // 2. Fetch the Discord user's ID
@@ -29,29 +51,40 @@ fetch("https://discord.com/api/users/@me", {
   .then(res => res.json())
   .then(async (discordUser) => {
     const discordId = discordUser.id;
+    const username = (discordUser.username ? discordUser.username : '') + (discordUser.discriminator ? '#' + discordUser.discriminator : '');
+    const avatarHash = discordUser.avatar;
+    const avatarUrl = avatarHash ? `https://cdn.discordapp.com/avatars/${discordId}/${avatarHash}.png` : '';
 
     // 3. Verify local Connect 26 session using cc-auth helpers
     const user = typeof ccGetUser === 'function' ? ccGetUser() : null;
     if (!user) {
-      document.body.innerHTML = "<p>You must be logged into Connect 26.</p>";
+      document.getElementById('status').textContent = 'You must be logged into Connect 26.';
       return;
     }
 
-    // 4. Persist the linked Discord ID locally (no backend required)
-    if (typeof ccSetSetting === 'function') {
-      ccSetSetting('discord_id', discordId);
-    } else {
-      localStorage.setItem('discord_id', discordId);
-    }
+    // show UI and ask for confirmation
+    document.getElementById('status').textContent = 'Found Discord account';
+    const nameEl = document.getElementById('discordName');
+    const subEl = document.getElementById('discordSub');
+    const avatarEl = document.getElementById('avatar');
+    nameEl.textContent = username || discordId;
+    subEl.textContent = 'Discord ID: ' + discordId;
+    if (avatarUrl) { avatarEl.src = avatarUrl; avatarEl.classList.remove('hidden'); }
+    document.getElementById('actions').style.display = 'flex';
 
-    // Optionally store on the user object for legacy pages
-    try {
-      const stored = JSON.parse(localStorage.getItem('cc-user') || '{}');
-      stored.discord_id = discordId;
-      localStorage.setItem('cc-user', JSON.stringify(stored));
-    } catch (e) {}
+    const finish = async () => {
+      if (typeof ccSetSetting === 'function') ccSetSetting('discord_id', discordId);
+      else localStorage.setItem('discord_id', discordId);
+      try { const stored = JSON.parse(localStorage.getItem('cc-user') || '{}'); stored.discord_id = discordId; localStorage.setItem('cc-user', JSON.stringify(stored)); } catch (e){}
+      document.getElementById('status').textContent = 'Discord linked successfully! You can close this tab.';
+      document.getElementById('actions').style.display = 'none';
+    };
 
-    document.body.innerHTML = "<p>Your Discord account is now linked! You can close this tab.</p>";
+    document.getElementById('confirmBtn').onclick = () => {
+      if (!confirm('Link your Discord account to your Connect 26 profile?')) return;
+      finish();
+    };
+    document.getElementById('cancelBtn').onclick = () => { window.close(); };
   });
 </script>
 </body>
