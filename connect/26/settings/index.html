@@ -441,21 +441,28 @@
   function initUI() {
     const user = ccGetUser();
     if (!user) return;
+    try {
+      // TODO: Load privacy settings from Supabase
+      // For now, set defaults
+      const isPublic = typeof ccGetSetting === 'function' ? ccGetSetting('public', true) : true;
+      const participateLeaderboard = typeof ccGetSetting === 'function' ? ccGetSetting('participate_leaderboard', true) : true;
+      const participateUsage = typeof ccGetSetting === 'function' ? ccGetSetting('participate_usage', true) : true;
 
-    // TODO: Load privacy settings from Supabase
-    // For now, set defaults
-    const isPublic = ccGetSetting('public', true);
-    const participateLeaderboard = ccGetSetting('participate_leaderboard', true);
-    const participateUsage = ccGetSetting('participate_usage', true);
+      const publicToggle = $("publicToggle");
+      const leaderboardToggle = $("leaderboardToggle");
+      const usageToggle = $("usageToggle");
 
-    setToggleState($("publicToggle"), isPublic);
-    setToggleState($("leaderboardToggle"), participateLeaderboard);
-    setToggleState($("usageToggle"), participateUsage);
+      if (publicToggle) setToggleState(publicToggle, isPublic);
+      if (leaderboardToggle) setToggleState(leaderboardToggle, participateLeaderboard);
+      if (usageToggle) setToggleState(usageToggle, participateUsage);
 
-    // Setup toggle clicks
-    $("publicToggle").onclick = () => $("publicToggle").classList.toggle('active');
-    $("leaderboardToggle").onclick = () => $("leaderboardToggle").classList.toggle('active');
-    $("usageToggle").onclick = () => $("usageToggle").classList.toggle('active');
+      // Setup toggle clicks if elements exist
+      if (publicToggle) publicToggle.onclick = () => publicToggle.classList.toggle('active');
+      if (leaderboardToggle) leaderboardToggle.onclick = () => leaderboardToggle.classList.toggle('active');
+      if (usageToggle) usageToggle.onclick = () => usageToggle.classList.toggle('active');
+    } catch (e) {
+      console.error('Error initializing toggles', e);
+    }
 
     // Change username
     $("changeUsernameBtn").onclick = async () => {
@@ -550,25 +557,31 @@
       popup("Password updated!");
     };
 
-    // Save privacy settings
-    $("savePrivacyBtn").onclick = async () => {
-      const isPublic = getToggleState($("publicToggle"));
-      const participateLeaderboard = getToggleState($("leaderboardToggle"));
-      const participateUsage = getToggleState($("usageToggle"));
+    // Save privacy settings (if save button exists)
+    const savePrivacyBtn = $("savePrivacyBtn");
+    if (savePrivacyBtn) {
+      savePrivacyBtn.onclick = async () => {
+        const publicToggle = $("publicToggle");
+        const leaderboardToggle = $("leaderboardToggle");
+        const usageToggle = $("usageToggle");
 
-      // TODO: Save to Supabase
-      // UPDATE public.users
-      // SET info = info || '{}' | jsonb_set(info, '{public}', ... )
-      // WHERE id = USER_ID
+        const isPublic = publicToggle ? getToggleState(publicToggle) : true;
+        const participateLeaderboard = leaderboardToggle ? getToggleState(leaderboardToggle) : true;
+        const participateUsage = usageToggle ? getToggleState(usageToggle) : true;
 
-      ccSetSetting('public', isPublic);
-      ccSetSetting('participate_leaderboard', participateLeaderboard);
-      ccSetSetting('participate_usage', participateUsage);
+        // TODO: Save to Supabase
+        if (typeof ccSetSetting === 'function') ccSetSetting('public', isPublic);
+        if (typeof ccSetSetting === 'function') ccSetSetting('participate_leaderboard', participateLeaderboard);
+        if (typeof ccSetSetting === 'function') ccSetSetting('participate_usage', participateUsage);
 
-      $("privacyMsg").textContent = "Privacy settings saved!";
-      $("privacyMsg").className = "success";
-      popup("Settings updated!");
-    };
+        const privacyMsg = $("privacyMsg");
+        if (privacyMsg) {
+          privacyMsg.textContent = "Privacy settings saved!";
+          privacyMsg.className = "success";
+        }
+        popup("Settings updated!");
+      };
+    }
   }
 
   function init() {
