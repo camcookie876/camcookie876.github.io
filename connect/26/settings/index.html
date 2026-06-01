@@ -339,25 +339,62 @@
         window.location.href = discordLoginUrl;
       }
 
-      function updateDiscordUI() {
-        const discordId = ccGetSetting ? ccGetSetting('discord_id', null) : localStorage.getItem('discord_id');
+      async function updateDiscordUI() {
         const statusEl = document.getElementById('discordStatus');
         const connectBtn = document.getElementById('discordConnectBtn');
         const disconnectBtn = document.getElementById('discordDisconnectBtn');
-        if (discordId) {
-          statusEl.textContent = 'Linked to Discord ID: ' + discordId;
-          disconnectBtn.style.display = 'inline-block';
-          connectBtn.textContent = 'Re-link';
-        } else {
-          statusEl.textContent = 'No Discord account linked.';
+        const user = ccGetUser ? ccGetUser() : null;
+        if (!user) {
+          statusEl.textContent = 'Please log in to see Discord link status.';
+          connectBtn.disabled = true;
           disconnectBtn.style.display = 'none';
-          connectBtn.textContent = 'Connect Discord';
+          return;
+        }
+
+        // Try to fetch from Supabase users table
+        try {
+          const { data } = await client
+            .from('users')
+            .select('discord')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          const discordId = data?.discord || null;
+          if (discordId) {
+            statusEl.textContent = 'Linked to Discord ID: ' + discordId;
+            disconnectBtn.style.display = 'inline-block';
+            connectBtn.textContent = 'Re-link';
+          } else {
+            statusEl.textContent = 'No Discord account linked.';
+            disconnectBtn.style.display = 'none';
+            connectBtn.textContent = 'Connect Discord';
+          }
+        } catch (e) {
+          // Fallback to local storage if Supabase fails
+          const discordId = ccGetSetting ? ccGetSetting('discord_id', null) : localStorage.getItem('discord_id');
+          if (discordId) {
+            statusEl.textContent = 'Linked to Discord ID: ' + discordId + ' (local)';
+            disconnectBtn.style.display = 'inline-block';
+            connectBtn.textContent = 'Re-link';
+          } else {
+            statusEl.textContent = 'No Discord account linked.';
+            disconnectBtn.style.display = 'none';
+            connectBtn.textContent = 'Connect Discord';
+          }
         }
       }
 
       document.getElementById('discordConnectBtn').onclick = connectDiscord;
-      document.getElementById('discordDisconnectBtn').onclick = () => {
+      document.getElementById('discordDisconnectBtn').onclick = async () => {
         if (!confirm('Disconnect your Discord account from Connect 26?')) return;
+        const user = ccGetUser ? ccGetUser() : null;
+        if (user) {
+          try {
+            await client.from('users').update({ discord: null }).eq('id', user.id);
+          } catch (e) {
+            console.error('Failed to update Supabase discord field', e);
+          }
+        }
         if (typeof ccSetSetting === 'function') ccSetSetting('discord_id', null);
         localStorage.removeItem('discord_id');
         try {
