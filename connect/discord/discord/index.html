@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Connect Discord - Connect 26</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="/connect/26/cc-auth.js"></script>
+</head>
+<body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Link Discord - Connect 26</title>
+  <script src="/connect/26/cc-auth.js"></script>
+  <style>
+    :root{--blue:#2563eb;--border:#dbe4ff;--card:#fff;--radius:14px}
+    body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;background:radial-gradient(circle at top right,#dbeafe,#f8fbff 45%,#eef2ff 100%);margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:0 14px 30px rgba(37,99,235,0.08);width:min(520px,94%);text-align:center}
+    .muted{color:#64748b}
+    .avatar{width:86px;height:86px;border-radius:12px;object-fit:cover;margin:0 auto 12px;display:block}
+    .actions{display:flex;gap:10px;justify-content:center;margin-top:12px}
+    .btn{background:var(--blue);color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+    .btn.secondary{background:#e5e7eb;color:#0f172a}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 style="margin:0 0 8px">Linking your Discord account…</h1>
+    <p id="status" class="muted">Processing...</p>
+    <img id="avatar" class="avatar" style="display:none" src="" alt="Discord avatar">
+    <div id="discordName" style="font-weight:700;margin-top:6px"></div>
+    <div id="discordSub" class="muted" style="font-size:0.9rem"></div>
+    <div class="actions" id="actions" style="display:none">
+      <button class="btn" id="confirmBtn">Confirm link</button>
+      <button class="btn secondary" id="cancelBtn">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+  (async function(){
+    // Extract token from URL hash
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    const accessToken = params.get('access_token');
+
+    const statusEl = document.getElementById('status');
+    const nameEl = document.getElementById('discordName');
+    const subEl = document.getElementById('discordSub');
+    const avatarEl = document.getElementById('avatar');
+    const actionsEl = document.getElementById('actions');
+
+    if (!accessToken) {
+      statusEl.textContent = 'Error: No Discord token found.';
+      return;
+    }
+
+    // Fetch Discord profile
+    let discordUser;
+    try {
+      const res = await fetch('https://discord.com/api/users/@me', { headers: { Authorization: 'Bearer ' + accessToken } });
+      if (!res.ok) throw new Error('Discord API error');
+      discordUser = await res.json();
+    } catch (e) {
+      statusEl.textContent = 'Failed to fetch Discord profile.';
+      return;
+    }
+
+    const discordId = discordUser.id;
+    const username = (discordUser.username || '') + (discordUser.discriminator ? '#' + discordUser.discriminator : '');
+    const avatarHash = discordUser.avatar;
+    const avatarUrl = avatarHash ? `https://cdn.discordapp.com/avatars/${discordId}/${avatarHash}.png` : '';
+
+    // Ensure user is logged into Connect 26
+    const user = typeof ccGetUser === 'function' ? ccGetUser() : null;
+    if (!user) {
+      statusEl.textContent = 'You must be logged into Connect 26.';
+      return;
+    }
+
+    // Show confirmation UI
+    statusEl.textContent = 'Discord account found';
+    nameEl.textContent = username || discordId;
+    subEl.textContent = 'Discord ID: ' + discordId;
+    if (avatarUrl) { avatarEl.src = avatarUrl; avatarEl.style.display = 'block'; }
+    actionsEl.style.display = 'flex';
+
+    async function finishLink() {
+      // Save locally
+      if (typeof ccSetSetting === 'function') ccSetSetting('discord_id', discordId);
+      else localStorage.setItem('discord_id', discordId);
+      try { const stored = JSON.parse(localStorage.getItem('cc-user')||'{}'); stored.discord_id = discordId; localStorage.setItem('cc-user', JSON.stringify(stored)); } catch(e){}
+
+      // Optionally persist to Supabase if keys are set in page via global SUPABASE_URL / SUPABASE_KEY
+      if (window.SUPABASE_URL && window.SUPABASE_KEY) {
+        try {
+          const sup = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+          await sup.from('users').update({ discord }).eq('id', user.id);
+        } catch (e) {
+          // ignore server persistence errors
+        }
+      }
+
+      statusEl.textContent = 'Discord linked successfully! You can close this tab.';
+      actionsEl.style.display = 'none';
+    }
+
+    document.getElementById('confirmBtn').onclick = () => {
+      if (!confirm('Link this Discord account to your Connect 26 profile?')) return;
+      finishLink();
+    };
+    document.getElementById('cancelBtn').onclick = () => window.close();
+  })();
+  </script>
+</body>
+</html>
+// 1. Extract the Discord access token from the URL
+const hash = window.location.hash.substring(1);
+const params = new URLSearchParams(hash);
+const accessToken = params.get("access_token");
+
+if (!accessToken) {
+  document.getElementById('status').textContent = 'Error: No Discord token found.';
+  throw new Error('Missing token');
+}
+
+// 2. Fetch the Discord user's ID
+fetch("https://discord.com/api/users/@me", {
+  headers: {
+    "Authorization": "Bearer " + accessToken
+  }
+})
+  .then(res => res.json())
+  .then(async (discordUser) => {
+    const discordId = discordUser.id;
+    const username = (discordUser.username ? discordUser.username : '') + (discordUser.discriminator ? '#' + discordUser.discriminator : '');
+    const avatarHash = discordUser.avatar;
+    const avatarUrl = avatarHash ? `https://cdn.discordapp.com/avatars/${discordId}/${avatarHash}.png` : '';
+
+    // 3. Verify local Connect 26 session using cc-auth helpers
+    const user = typeof ccGetUser === 'function' ? ccGetUser() : null;
+    if (!user) {
+      document.getElementById('status').textContent = 'You must be logged into Connect 26.';
+      return;
+    }
+
+    // show UI and ask for confirmation
+    document.getElementById('status').textContent = 'Found Discord account';
+    const nameEl = document.getElementById('discordName');
+    const subEl = document.getElementById('discordSub');
+    const avatarEl = document.getElementById('avatar');
+    nameEl.textContent = username || discordId;
+    subEl.textContent = 'Discord ID: ' + discordId;
+    if (avatarUrl) { avatarEl.src = avatarUrl; avatarEl.classList.remove('hidden'); }
+    document.getElementById('actions').style.display = 'flex';
+
+    const finish = async () => {
+      if (typeof ccSetSetting === 'function') ccSetSetting('discord_id', discordId);
+      else localStorage.setItem('discord_id', discordId);
+      try { const stored = JSON.parse(localStorage.getItem('cc-user') || '{}'); stored.discord_id = discordId; localStorage.setItem('cc-user', JSON.stringify(stored)); } catch (e){}
+      document.getElementById('status').textContent = 'Discord linked successfully! You can close this tab.';
+      document.getElementById('actions').style.display = 'none';
+    };
+
+    document.getElementById('confirmBtn').onclick = () => {
+      if (!confirm('Link your Discord account to your Connect 26 profile?')) return;
+      finish();
+    };
+    document.getElementById('cancelBtn').onclick = () => { window.close(); };
+  });
+</script>
+</body>
+</html>
