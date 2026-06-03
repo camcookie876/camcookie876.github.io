@@ -69,41 +69,43 @@
     </div>
   </div>
 
-  <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
+  <script>
+    // Use the site's global Supabase (loaded via CDN above) for consistency
     const SUPABASE_URL = "https://uexubxzlmyjuktgeqfsf.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVleHVieHpsbXlqdWt0Z2VxZnNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MzUxODYsImV4cCI6MjA5MjIxMTE4Nn0.yuWkhA7b21uL2BGVn5zij6fSiBWQdCGXwevZyJN5EDE";
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     document.getElementById("createBtn").onclick = async () => {
       const title = document.getElementById("title").value.trim();
-      const optA = document.getElementById("optA").value.trim();
-      const optB = document.getElementById("optB").value.trim();
+      const optA = document.getElementById("optA").value.trim() || 'A';
+      const optB = document.getElementById("optB").value.trim() || 'B';
       const visibility = document.getElementById('visibility').value;
 
-      // Create pool
-      const { data: pool, error: poolErr } = await supabase
-        .from("pools")
-        .insert([{ title }])
+      if (!title) { alert('Please enter a title'); return; }
+
+      // Create pool with visibility and owner if logged in
+      const owner = (localStorage.getItem('user_id') || null);
+      const { data: pool, error: poolErr } = await client
+        .from('pools')
+        .insert([{ title, visibility, owner }])
         .select()
         .single();
 
-      if (poolErr) {
-        alert("Error creating pool");
-        console.log(poolErr);
-        return;
-      }
+      if (poolErr) { console.error(poolErr); alert('Error creating pool'); return; }
 
-      // Create options
-      await supabase.from("pool_options").insert([
+      // Create options (ensure labels exist)
+      const { error: optErr } = await client.from('pool_options').insert([
         { pool_id: pool.id, label: optA, position: 1 },
         { pool_id: pool.id, label: optB, position: 2 }
       ]);
+      if (optErr) { console.error(optErr); alert('Error creating options'); return; }
 
       // Output embed link
       const link = `/connect/26/tools/view?id=${pool.id}`;
-      document.getElementById("embedOut").value = link;
+      const out = document.getElementById('embedOut');
+      out.value = link;
+      out.select();
+      try { document.execCommand('copy'); alert('Link copied to clipboard'); } catch(e){}
     };
 
     // Render topbar using existing helper
