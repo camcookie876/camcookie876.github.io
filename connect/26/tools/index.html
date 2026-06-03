@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tools — Camcookie Connect 26</title>
+  <link rel="stylesheet" href="/connect/26/styles.css" />
+  <style>
+    /* small local overrides */
+    #toolsForm { max-width:720px; margin:20px auto; }
+    label { font-weight:700; display:block; margin-top:12px; }
+    .small { font-size:13px; color:var(--muted); }
+  </style>
+</head>
+<body>
+
+  <div id="topbar">
+    <div id="logo">
+      <div id="logo-icon">C</div>
+      Camcookie Connect 26
+    </div>
+    <div class="topbar-actions">
+      <div id="usernameDisplay" style="color:white; font-weight:600; margin-right:8px"></div>
+      <button class="btn secondary" onclick="window.location.href='/connect/26/'">Back</button>
+    </div>
+  </div>
+
+  <div id="main">
+    <div class="card" id="toolsForm">
+      <h1>Create a Tool</h1>
+      <p class="small">Create a simple shareable tool (pool/poll). Your username and keys are applied automatically.</p>
+
+      <label>Tool Title</label>
+      <input id="title" />
+
+      <label>Option A</label>
+      <input id="optA" />
+
+      <label>Option B</label>
+      <input id="optB" />
+
+      <label>Visibility</label>
+      <select id="visibility">
+        <option value="public">Public</option>
+        <option value="unlisted">Unlisted</option>
+        <option value="private">Private</option>
+      </select>
+
+      <button id="createBtn" class="btn">Create</button>
+
+      <h2 style="margin-top:18px">Embed / Share Link</h2>
+      <input id="embedOut" style="width:100%" readonly />
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    const SUPABASE_URL = "https://uexubxzlmyjuktgeqfsf.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVleHVieHpsbXlqdWt0Z2VxZnNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MzUxODYsImV4cCI6MjA5MjIxMTE4Nn0.yuWkhA7b21uL2BGVn5zij6fSiBWQdCGXwevZyJN5EDE";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    document.getElementById("usernameDisplay").textContent = localStorage.getItem("username") || "Guest";
+
+    document.getElementById("createBtn").onclick = async () => {
+      const title = document.getElementById("title").value.trim();
+      const optA = document.getElementById("optA").value.trim();
+      const optB = document.getElementById("optB").value.trim();
+      const visibility = document.getElementById("visibility").value;
+      if (!title) { alert('Enter a title'); return; }
+
+      const { data: pool, error } = await supabase
+        .from('pools')
+        .insert([{ title, visibility, owner: localStorage.getItem('user_id') || null }])
+        .select()
+        .single();
+
+      if (error) { console.error(error); alert('Failed to create'); return; }
+
+      await supabase.from('pool_options').insert([
+        { pool_id: pool.id, label: optA || 'A', position: 1 },
+        { pool_id: pool.id, label: optB || 'B', position: 2 }
+      ]);
+
+      const link = `/connect/26/tools/view?id=${pool.id}`;
+      document.getElementById('embedOut').value = link;
+      alert('Tool created — share the link');
+    };
+  </script>
+</body>
+</html>
