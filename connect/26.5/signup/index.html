@@ -1,6 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Create account — Connect 26.5</title>
+  <link rel="stylesheet" href="/connect/26.5/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/connect/26.5/common.js"></script>
+</head>
+<body>
+  <div id="topbar"></div>
+  <main class="page-wrap">
+    <section class="card">
+      <h1>Create account</h1>
+      <input id="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Password" />
+      <button id="createBtn" class="button">Create account</button>
+      <div id="status" class="status"></div>
+    </section>
+  </main>
+  <div id="toast" class="toast"></div>
+  <script>
+    renderTopbar('signup');
+    const client = supabaseClient;
+    document.getElementById('createBtn').onclick = async () => {
+      const e = document.getElementById('email').value.trim();
+      const p = document.getElementById('password').value;
+      if (!e || !p) return showError(document.getElementById('status'),'Enter email and password');
+      showToast('Creating account…');
+      const { data, error } = await client.auth.signUp({ email: e, password: p });
+      if (error) return showError(document.getElementById('status'), error.message);
+      showToast('Account created — check email');
+      window.location.href = '/connect/26.5/login/';
+    };
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Create account · Camcookie Connect 26.5</title>
