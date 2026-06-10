@@ -13,7 +13,7 @@
   <main class="page-wrap">
     <section class="card">
       <h1>Create account</h1>
-      <input id="email" placeholder="Email" />
+      <input id="username" placeholder="Username" />
       <input id="password" type="password" placeholder="Password" />
       <label style="display:block;margin-top:8px">Upload avatar (optional)</label>
       <input id="avatarFile" type="file" accept="image/*" />
@@ -26,15 +26,16 @@
     renderTopbar('signup');
     const client = supabaseClient;
     document.getElementById('createBtn').onclick = async () => {
-      const e = document.getElementById('email').value.trim();
+      const u = document.getElementById('username').value.trim();
       const p = document.getElementById('password').value;
       const file = document.getElementById('avatarFile').files[0];
-      if (!e || !p) return showError(document.getElementById('status'),'Enter email and password');
+      if (!u || !p) return showError(document.getElementById('status'),'Enter username and password');
       showToast('Creating account…');
-      const { data, error } = await client.auth.signUp({ email: e, password: p });
-      if (error) return showError(document.getElementById('status'), error.message);
+      // check username
+      const { data: exists } = await client.from('users').select('id').eq('username', u).maybeSingle();
+      if (exists) return showError(document.getElementById('status'),'Username already taken');
+      const hash = await (async function(str){ const enc=new TextEncoder().encode(str); const buf=await crypto.subtle.digest('SHA-256',enc); return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(''); })(p);
 
-      // if avatar provided, upload to storage and attach to profile
       let avatar_url = null;
       if (file) {
         const key = `avatars/${Date.now()}_${file.name}`;
@@ -45,18 +46,19 @@
         }
       }
 
-      // create profile record (if you have a profiles table)
-      try { await supabaseClient.from('profiles').insert({ id: data.user.id, email: e, avatar_url }).catch(()=>null); } catch(e){/* ignore */}
+      const { data, error } = await client.from('users').insert({ username: u, password_hash: hash, photo: avatar_url }).select().single();
+      if (error || !data) return showError(document.getElementById('status'),'Failed to create account');
 
-      // store session info in cc_sessions for multi-login support
-      const session = (await client.auth.getSession()).data?.session || null;
-      if (session) {
-        const sessions = JSON.parse(localStorage.getItem('cc_sessions')||'[]');
-        sessions.push({ id: data.user.id, email: e, access_token: session.access_token });
-        localStorage.setItem('cc_sessions', JSON.stringify(sessions));
-      }
+      // create token
+      const token = crypto.randomUUID().replace(/-/g,'');
+      const expires = new Date(Date.now()+24*60*60*1000).toISOString();
+      await client.from('tokens').insert({ user_id: data.id, token, expires_at: expires });
+      localStorage.setItem('session_token', token);
+      const sessions = JSON.parse(localStorage.getItem('cc_sessions')||'[]');
+      sessions.push({ id: data.id, username: data.username, token });
+      localStorage.setItem('cc_sessions', JSON.stringify(sessions));
 
-      showToast('Account created — check email');
+      showToast('Account created');
       window.location.href = '/connect/26.5/dashboard/';
     };
   </script>
