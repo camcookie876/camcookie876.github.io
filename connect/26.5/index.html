@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Camcookie Connect 26.5</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="common.js"></script>
+</head>
+<body>
+  <div id="topbar"></div>
+
+  <main class="page-wrap">
+    <section class="card hero">
+      <div>
+        <h1>Welcome to Camcookie Connect 26.5</h1>
+        <p class="small-note">A fresh, styled Connect experience with authentication, dashboard access, and organization management.</p>
+      </div>
+
+      <div class="link-row">
+        <a class="button" href="login/">Sign in</a>
+        <a class="button secondary" href="signup/">Create account</a>
+        <a class="button secondary" href="dashboard/">Go to dashboard</a>
+        <a class="button secondary" href="organizations/">Organizations</a>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    renderTopbar("home");
+  </script>
+</body>
+</html>

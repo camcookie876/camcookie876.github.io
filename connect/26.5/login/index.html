@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign in · Camcookie Connect 26.5</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../common.js"></script>
+</head>
+<body>
+  <div id="topbar"></div>
+
+  <main class="page-wrap">
+    <section class="card form-card">
+      <h1>Sign in</h1>
+      <p class="small-note">Use your email and password to access the dashboard.</p>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="email" placeholder="you@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" />
+      </div>
+
+      <button id="loginBtn" class="button">Sign in</button>
+      <p id="loginError" class="status"></p>
+
+      <p class="small-note">New here? <a href="../signup/">Create an account</a></p>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    renderTopbar("login");
+
+    async function initLogin() {
+      const user = await getSessionUser();
+      if (user) {
+        window.location.href = "/connect/26.5/dashboard/";
+      }
+    }
+
+    initLogin();
+
+    $("loginBtn").addEventListener("click", async () => {
+      showError($("loginError"), "");
+
+      const email = $("email").value.trim();
+      const password = $("password").value.trim();
+
+      if (!email || !password) {
+        showError($("loginError"), "Enter both email and password.");
+        return;
+      }
+
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        showError($("loginError"), error.message);
+        return;
+      }
+
+      showToast("Signed in successfully.");
+      window.location.href = "/connect/26.5/dashboard/";
+    });
+  </script>
+</body>
+</html>

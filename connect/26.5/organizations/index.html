@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Organizations · Camcookie Connect 26.5</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../common.js"></script>
+</head>
+<body>
+  <div id="topbar"></div>
+
+  <main class="page-wrap">
+    <section class="card form-card">
+      <h1>Organizations</h1>
+      <p class="small-note">Create organizations, join by code, and keep your teams separate from the dashboard.</p>
+
+      <div class="form-group">
+        <label for="orgName">Create a new organization</label>
+        <input id="orgName" placeholder="Organization name" />
+      </div>
+      <button id="createOrgBtn" class="button">Create organization</button>
+      <p id="createOrgStatus" class="status"></p>
+
+      <hr style="margin: 28px 0 24px; border-color: rgba(219, 228, 255, 0.9);" />
+
+      <div class="form-group">
+        <label for="orgJoinCode">Join an organization by code</label>
+        <input id="orgJoinCode" placeholder="Organization join code" />
+      </div>
+      <button id="joinOrgBtn" class="button secondary">Join organization</button>
+      <p id="joinOrgStatus" class="status"></p>
+    </section>
+
+    <section class="card">
+      <h2>Your organizations</h2>
+      <div id="orgList" class="small-note">Loading your organizations...</div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    renderTopbar("organizations");
+
+    async function initOrganizations() {
+      const user = await requireAuth();
+      if (!user) return;
+      await loadOrganizations();
+    }
+
+    async function loadOrganizations() {
+      const orgList = $("orgList");
+      orgList.textContent = "Loading your organizations...";
+
+      const { data, error } = await supabaseClient
+        .from("organization_members")
+        .select("*, organizations(*)")
+        .eq("user_id", (await getSessionUser()).id);
+
+      if (error) {
+        orgList.textContent = "Unable to load organizations yet. " + error.message;
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        orgList.innerHTML = "<p class=\"small-note\">You are not a member of any organizations yet.</p>";
+        return;
+      }
+
+      orgList.innerHTML = data.map(item => {
+        const org = item.organizations;
+        return `
+          <div style="padding: 16px; border-radius: 16px; border: 1px solid rgba(219,228,255,.95); margin-bottom: 12px; background: #f8fbff;">
+            <strong>${org.name}</strong>
+            <div class="small-note" style="margin-top: 6px;">Role: ${item.role || "member"}</div>
+            <div class="small-note" style="margin-top: 6px;">Code: <strong>${org.join_code || "not set"}</strong></div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    $("createOrgBtn").addEventListener("click", async () => {
+      showError($("createOrgStatus"), "");
+      const name = $("orgName").value.trim();
+      if (!name) {
+        showError($("createOrgStatus"), "Enter a name for the organization.");
+        return;
+      }
+
+      const joinCode = generateJoinCode();
+      const { data, error } = await supabaseClient
+        .from("organizations")
+        .insert({ name, owner_user_id: (await getSessionUser()).id, join_code: joinCode })
+        .select()
+        .single();
+
+      if (error) {
+        showError($("createOrgStatus"), error.message);
+        return;
+      }
+
+      await supabaseClient.from("organization_members").insert({
+        organization_id: data.id,
+        user_id: (await getSessionUser()).id,
+        role: "owner"
+      });
+
+      showToast("Organization created.");
+      $("orgName").value = "";
+      await loadOrganizations();
+    });
+
+    $("joinOrgBtn").addEventListener("click", async () => {
+      showError($("joinOrgStatus"), "");
+      const code = $("orgJoinCode").value.trim();
+      if (!code) {
+        showError($("joinOrgStatus"), "Enter an organization code.");
+        return;
+      }
+
+      const { data: orgs, error: orgError } = await supabaseClient
+        .from("organizations")
+        .select("*")
+        .eq("join_code", code)
+        .limit(1);
+
+      if (orgError || !orgs || orgs.length === 0) {
+        showError($("joinOrgStatus"), "Organization not found.");
+        return;
+      }
+
+      const org = orgs[0];
+      const user = await getSessionUser();
+
+      const { error: membershipError } = await supabaseClient
+        .from("organization_members")
+        .insert({ organization_id: org.id, user_id: user.id, role: "member" });
+
+      if (membershipError) {
+        showError($("joinOrgStatus"), membershipError.message);
+        return;
+      }
+
+      showToast("Joined organization.");
+      $("orgJoinCode").value = "";
+      await loadOrganizations();
+    });
+
+    initOrganizations();
+  </script>
+</body>
+</html>

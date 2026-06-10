@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>App</h2>
+
+<div id="userInfo"></div>
+<div id="permissions"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const supabaseClient = supabase.createClient("YOUR_URL", "YOUR_ANON_KEY");
+
+const userInfoDiv = document.getElementById("userInfo");
+const permissionsDiv = document.getElementById("permissions");
+
+async function load() {
+  const { data, error } = await supabaseClient.auth.getUser();
+  if (error || !data.user) {
+    window.location.href = "../../login/";
+    return;
+  }
+
+  const user = data.user;
+  userInfoDiv.textContent = "Logged in as: " + (user.user_metadata.username || "");
+
+  // Example: load permissions for this app
+  const { data: perms } = await supabaseClient
+    .from("app_permissions")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("app_id", "APP_ID_HERE");
+
+  permissionsDiv.textContent = "Permissions: " + JSON.stringify(perms || []);
+}
+
+load();
+</script>
+
+</body>
+</html>

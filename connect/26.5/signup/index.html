@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Create account · Camcookie Connect 26.5</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../common.js"></script>
+</head>
+<body>
+  <div id="topbar"></div>
+
+  <main class="page-wrap">
+    <section class="card form-card">
+      <h1>Create account</h1>
+      <p class="small-note">Sign up with your email and a secure password.</p>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="email" placeholder="you@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="new-password" placeholder="••••••••" />
+      </div>
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input id="username" placeholder="Username" />
+      </div>
+
+      <div class="form-group">
+        <label for="realname">Real name</label>
+        <input id="realname" placeholder="Real name" />
+      </div>
+
+      <button id="signupBtn" class="button">Create account</button>
+      <p id="signupError" class="status"></p>
+
+      <p class="small-note">Already have an account? <a href="../login/">Sign in</a></p>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    renderTopbar("signup");
+
+    async function initSignup() {
+      const user = await getSessionUser();
+      if (user) {
+        window.location.href = "/connect/26.5/dashboard/";
+      }
+    }
+
+    initSignup();
+
+    $("signupBtn").addEventListener("click", async () => {
+      showError($("signupError"), "");
+
+      const email = $("email").value.trim();
+      const password = $("password").value.trim();
+      const username = $("username").value.trim();
+      const realname = $("realname").value.trim();
+
+      if (!email || !password || !username) {
+        showError($("signupError"), "Email, password, and username are required.");
+        return;
+      }
+
+      const { data, error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username,
+            realname
+          }
+        }
+      });
+
+      if (error) {
+        showError($("signupError"), error.message);
+        return;
+      }
+
+      showToast("Account created. Redirecting...");
+      window.location.href = "/connect/26.5/dashboard/";
+    });
+  </script>
+</body>
+</html>
