@@ -14,7 +14,7 @@
     <section id="loginBox" class="card">
       <h1>Sign in</h1>
       <p class="status muted">Enter your credentials to continue.</p>
-      <input id="email" placeholder="Email or username" />
+      <input id="username" placeholder="Username" />
       <input id="password" type="password" placeholder="Password" />
       <div style="display:flex;gap:8px;margin-top:10px">
         <button id="signInBtn" class="button">Sign in</button>
@@ -27,13 +27,24 @@
   <script>
     renderTopbar('login');
     const client = supabaseClient;
+    async function hashPassword(str) { const enc = new TextEncoder().encode(str); const buf = await crypto.subtle.digest('SHA-256', enc); return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
     document.getElementById('signInBtn').onclick = async () => {
-      const e = document.getElementById('email').value.trim();
+      const u = document.getElementById('username').value.trim();
       const p = document.getElementById('password').value;
-      if (!e || !p) return showError(document.getElementById('status'), 'Enter email and password');
+      if (!u || !p) return showError(document.getElementById('status'), 'Enter username and password');
       showToast('Signing in…');
-      const { data, error } = await client.auth.signInWithPassword({ email: e, password: p });
-      if (error) return showError(document.getElementById('status'), error.message);
+      const hash = await hashPassword(p);
+      const { data } = await client.from('users').select('*').eq('username', u).eq('password_hash', hash).maybeSingle();
+      if (!data) return showError(document.getElementById('status'),'Incorrect username or password');
+      // create token
+      const token = crypto.randomUUID().replace(/-/g,'');
+      const expires = new Date(Date.now()+24*60*60*1000).toISOString();
+      await client.from('tokens').insert({ user_id: data.id, token, expires_at: expires });
+      localStorage.setItem('session_token', token);
+      // add to cc_sessions for multi-account switcher
+      const sessions = JSON.parse(localStorage.getItem('cc_sessions')||'[]');
+      sessions.push({ id: data.id, username: data.username, token });
+      localStorage.setItem('cc_sessions', JSON.stringify(sessions));
       showToast('Signed in');
       window.location.href = '/connect/26.5/dashboard/';
     };

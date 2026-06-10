@@ -29,32 +29,58 @@ function showError(element, message) {
 function renderTopbar(activePage = "home") {
   const topbar = $("topbar");
   if (!topbar) return;
-
-  const navItems = [
-    { title: "Home", href: "/connect/26.5/", page: "home" },
-    { title: "Dashboard", href: "/connect/26.5/dashboard/", page: "dashboard" },
-    { title: "Organizations", href: "/connect/26.5/organizations/", page: "organizations" }
-  ];
-
-  topbar.innerHTML = `
-    <div class="brand">Camcookie Connect 26.5</div>
-    <nav class="topbar-nav">
-      ${navItems.map(item => `<a href="${item.href}" class="${activePage === item.page ? "active" : ""}">${item.title}</a>`).join("")}
-    </nav>
-    <button id="logoutBtn" class="secondary">Logout</button>
-  `;
-
-  const logoutBtn = $("logoutBtn");
-  if (logoutBtn) {
-    if (activePage === "login" || activePage === "signup" || activePage === "home") {
-      logoutBtn.style.display = "none";
-    } else {
-      logoutBtn.addEventListener("click", async () => {
-        await supabaseClient.auth.signOut();
-        window.location.href = "/connect/26.5/login/";
-      });
+  // build nav depending on session state
+  (async ()=>{
+    const token = localStorage.getItem('session_token') || null;
+    let user = null;
+    if (token) {
+      const { data } = await supabaseClient.from('tokens').select('token,expires_at,user_id,users(username,photo)').eq('token', token).maybeSingle();
+      if (data && new Date(data.expires_at) > new Date()) user = { id: data.user_id, username: data.users?.username, photo: data.users?.photo };
     }
-  }
+    const nav = document.createElement('div');
+    nav.style.display = 'flex'; nav.style.alignItems = 'center'; nav.style.gap='12px';
+
+    const brand = document.createElement('div'); brand.className='brand'; brand.textContent='Camcookie Connect 26.5';
+    topbar.innerHTML = '';
+    topbar.appendChild(brand);
+
+    const navEl = document.createElement('nav'); navEl.className='topbar-nav';
+    // always show home
+    navEl.innerHTML += `<a href="/connect/26.5/" class="${activePage==='home'?'active':''}">Home</a>`;
+    if (user) {
+      navEl.innerHTML += `<a href="/connect/26.5/dashboard/" class="${activePage==='dashboard'?'active':''}">Dashboard</a>`;
+      navEl.innerHTML += `<a href="/connect/26.5/organizations/" class="${activePage==='organizations'?'active':''}">Organizations</a>`;
+    }
+
+    topbar.appendChild(navEl);
+
+    const right = document.createElement('div'); right.style.marginLeft='auto'; right.style.display='flex'; right.style.alignItems='center'; right.style.gap='10px';
+
+    if (!user) {
+      // show login / signup buttons
+      if (activePage !== 'login') right.innerHTML += `<a class="button" href="/connect/26.5/login/">Sign in</a>`;
+      if (activePage !== 'signup') right.innerHTML += `<a class="button secondary" href="/connect/26.5/signup/">Create account</a>`;
+    } else {
+      // show user avatar, username, multi-session switcher
+      const avatar = document.createElement('img'); avatar.src = user.photo || '/connect/26.5/default-avatar.png'; avatar.style.width='36px'; avatar.style.height='36px'; avatar.style.borderRadius='999px'; avatar.style.objectFit='cover';
+      const name = document.createElement('div'); name.textContent = user.username || user.id; name.style.marginRight='8px'; name.style.color='white'; name.style.fontWeight='600';
+      const logoutBtn = document.createElement('button'); logoutBtn.className='secondary'; logoutBtn.textContent='Logout';
+      logoutBtn.onclick = async ()=>{ localStorage.removeItem('session_token'); window.location.href='/connect/26.5/login/'; };
+
+      right.appendChild(avatar); right.appendChild(name); right.appendChild(logoutBtn);
+
+      // multi-session quick switcher: list stored sessions in localStorage
+      const sessions = JSON.parse(localStorage.getItem('cc_sessions')||'[]');
+      if (sessions.length>1) {
+        const sel = document.createElement('select');
+        sessions.forEach((s,idx)=>{ const opt=document.createElement('option'); opt.value=idx; opt.textContent=s.username||s.id; sel.appendChild(opt); });
+        sel.onchange = async ()=>{ const s = sessions[sel.value]; if(s?.token) { localStorage.setItem('session_token', s.token); showToast('Switched session'); window.location.reload(); }};
+        right.appendChild(sel);
+      }
+    }
+
+    topbar.appendChild(right);
+  })();
 }
 
 async function getSessionUser() {
