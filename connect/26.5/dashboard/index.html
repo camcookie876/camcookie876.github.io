@@ -1,6 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard — Connect 26.5</title>
+  <link rel="stylesheet" href="/connect/26.5/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/connect/26.5/common.js"></script>
+</head>
+<body>
+  <div id="topbar"></div>
+  <main class="page-wrap">
+    <section class="card">
+      <h1>Your Dashboard</h1>
+      <p class="status">Quick access to apps and organizations.</p>
+      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+        <a class="button" href="/connect/26.5/organizations/">Organizations</a>
+        <a class="button secondary" href="/connect/26.5/">Home</a>
+      </div>
+    </section>
+  </main>
+  <div id="toast" class="toast"></div>
+  <script>
+    (async ()=>{ renderTopbar('dashboard'); await requireAuth(); })();
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dashboard · Camcookie Connect 26.5</title>

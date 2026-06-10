@@ -1,6 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Organizations — Connect 26.5</title>
+  <link rel="stylesheet" href="/connect/26.5/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/connect/26.5/common.js"></script>
+</head>
+<body>
+  <div id="topbar"></div>
+  <main class="page-wrap">
+    <section class="card">
+      <h1>Organizations</h1>
+      <p class="status">Manage your organizations and invite members.</p>
+      <div id="orgList" style="margin-top:12px"></div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <input id="orgName" placeholder="New organization name" />
+        <button id="createOrg" class="button">Create</button>
+      </div>
+      <div id="status" class="status"></div>
+    </section>
+  </main>
+  <div id="toast" class="toast"></div>
+  <script>
+    renderTopbar('organizations');
+    (async ()=>{
+      await requireAuth();
+      const list = document.getElementById('orgList');
+      async function refresh(){
+        const { data } = await supabaseClient.from('organizations').select('*').limit(50);
+        list.innerHTML = data ? data.map(o=>`<div class=\"card\" style=\"margin-bottom:8px\">${o.name}</div>`).join('') : '<p class="status">No organizations</p>';
+      }
+      document.getElementById('createOrg').onclick = async ()=>{
+        const name = document.getElementById('orgName').value.trim();
+        if(!name) return showError(document.getElementById('status'),'Enter a name');
+        const { error } = await supabaseClient.from('organizations').insert({ name }).select();
+        if(error) return showError(document.getElementById('status'), error.message);
+        showToast('Organization created'); document.getElementById('orgName').value=''; refresh();
+      };
+      refresh();
+    })();
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Organizations · Camcookie Connect 26.5</title>
