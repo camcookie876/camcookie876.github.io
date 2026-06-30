@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>Pattle and Ball</title>
+<link rel="icon" href="data:," />
+<style>
+  :root{
+    --bg:#0b0b0b; --fg:#f2f2f2; --dim:#9a9a9a; --line:#3a3a3a; --panel:#121212; --panel2:#181818; --acc:#5dd6ff; --ok:#b6f36f;
+  }
+  html,body{height:100%;margin:0;background:#0a0a0a;color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;user-select:none;overflow:hidden}
+  .app{position:fixed; inset:0; display:flex; flex-direction:column;}
+  .topbar{height:48px; display:flex; align-items:center; justify-content:space-between; padding:0 12px; background:linear-gradient(#111,#0c0c0c); border-bottom:1px solid #222}
+  .topbar .left,.topbar .right{display:flex; align-items:center; gap:12px; color:var(--dim); font-weight:600}
+  .score{color:var(--fg); font-weight:800}
+  .badge{display:inline-block; padding:4px 10px; border-radius:999px; background:#1f1f1f; border:1px solid #2a2a2a; color:#a9d9ff; font-size:12px}
+  .main{flex:1; position:relative; background:#000; display:grid; place-items:center;}
+  canvas{display:block; width:100%; height:100%}
+  .toolbar{position:absolute; top:8px; right:8px; display:flex; gap:8px; z-index:5}
+  .iconbtn{background:#141414; border:1px solid #232323; color:#cfcfcf; width:36px; height:36px; border-radius:10px; display:grid; place-items:center; font-weight:900}
+  .iconbtn:active{transform:translateY(1px)}
+  .touchbar{height:96px; background:rgba(0,0,0,.65); border-top:1px solid #222; display:flex; align-items:center; justify-content:space-between; padding:12px}
+  .pad{display:flex; gap:8px}
+  .pad button{width:68px; height:68px; font-size:24px; border-radius:12px; background:#171717; color:#e8e8e8; border:1px solid #2a2a2a; font-weight:800}
+  .pad button:active{transform:translateY(1px)}
+  /* Overlays */
+  .overlay{position:absolute; inset:0; display:none; align-items:center; justify-content:center; padding:20px; z-index:10}
+  .overlay.show{display:flex}
+  .panel{background:linear-gradient(#121212,#0f0f0f); width:min(980px,94vw); border:1px solid #222; border-radius:16px; box-shadow:0 24px 70px rgba(0,0,0,.6); padding:18px}
+  .panel h1,.panel h3{margin:0 0 10px 0}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  .card{background:var(--panel2); border:1px solid #222; border-radius:12px; padding:14px}
+  .row{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  label{font-weight:700; color:#cfcfcf}
+  select,button{background:var(--panel); color:var(--fg); border:1px solid #2a2a2a; border-radius:10px; padding:10px 12px; font-weight:700}
+  .primary{background:#1b2730; border-color:#273a44}
+  .actions{display:flex; justify-content:space-between; align-items:center; margin-top:12px}
+  /* Shop */
+  .shopgrid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .item{background:var(--panel2); border:1px solid #222; border-radius:12px; padding:12px; display:flex; gap:12px; align-items:center}
+  .chip{width:56px; height:56px; border-radius:10px; box-shadow:inset 0 0 0 2px rgba(0,0,0,.5)}
+  .meta{flex:1}
+  .name{font-weight:800}
+  .desc{color:var(--dim); font-size:12px; margin-top:4px}
+  .cost{margin-top:6px; color:var(--ok); font-weight:800}
+  @media (max-width: 900px){
+    .grid{grid-template-columns:1fr}
+    .shopgrid{grid-template-columns:1fr}
+    .touchbar{height:84px}
+    .pad button{width:60px; height:60px; font-size:22px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar" aria-live="polite">
+    <div class="left">
+      <span>Points: <span id="pts" class="score">0</span></span>
+      <span class="badge" id="status">Home</span>
+    </div>
+    <div class="right">
+      <span class="badge">First to 11</span>
+    </div>
+  </div>
+
+  <div class="main">
+    <canvas id="game" aria-label="Pattle and Ball game area"></canvas>
+
+    <div class="toolbar">
+      <button class="iconbtn" id="pauseBtn" title="Pause" aria-label="Pause">II</button>
+      <button class="iconbtn" id="shopBtn" title="Shop" aria-label="Open shop">S</button>
+      <button class="iconbtn" id="homeBtn" title="Home" aria-label="Exit to home">H</button>
+    </div>
+
+    <!-- Home overlay -->
+    <div class="overlay show" id="homeOverlay">
+      <div class="panel" role="dialog" aria-modal="true" aria-labelledby="title">
+        <h1 id="title">Pattle and Ball</h1>
+        <p style="color:var(--dim); margin:0 0 10px 0">Pure arcade gameplay. No fluff.</p>
+
+        <div class="grid" role="group" aria-label="Setup">
+          <div class="card">
+            <div class="row">
+              <label for="mode">Mode</label>
+              <select id="mode">
+                <option value="cpu">1P vs CPU</option>
+                <option value="pvp">2 Players</option>
+              </select>
+            </div>
+            <div class="row" id="botRow">
+              <label for="bot">Bot</label>
+              <select id="bot">
+                <option value="chill">ChillBot (Easy)</option>
+                <option value="aggro">AggroBot (Medium)</option>
+                <option value="wizard">WizardBot (Smart)</option>
+              </select>
+            </div>
+            <div class="row">
+              <label for="ballSpeed">Ball speed</label>
+              <select id="ballSpeed">
+                <option value="4.0">Slow</option>
+                <option value="5.0" selected>Normal</option>
+                <option value="6.5">Fast</option>
+              </select>
+            </div>
+            <div class="row">
+              <label for="skinSelect">Equipped skin</label>
+              <select id="skinSelect"></select>
+            </div>
+            <div class="row">
+              <label for="bgSelect">Background</label>
+              <select id="bgSelect"></select>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="row" style="justify-content:space-between; width:100%">
+              <div>
+                <div class="row"><span>Points:</span> <span id="ptsHome" class="score">0</span></div>
+                <div class="row" style="margin-top:8px"><span class="badge" id="saveState">Progress saved</span></div>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:10px; align-items:flex-end">
+                <button id="openShopHome">Open shop</button>
+                <button id="resetProgress">Reset progress</button>
+              </div>
+            </div>
+            <div class="row" style="margin-top:10px">
+              <small style="color:var(--dim)">Earn points by rallies (+1), goals (+5), wins (+20).</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="startBtn" class="primary">Start game</button>
+          <small style="color:var(--dim)">P1: W/S • P2: Up/Down • Space to serve</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shop overlay -->
+    <div class="overlay" id="shopOverlay">
+      <div class="panel" role="dialog" aria-modal="true" aria-labelledby="shopTitle">
+        <h3 id="shopTitle">Shop • Skins and backgrounds</h3>
+        <div class="shopgrid" id="shopGrid"></div>
+        <div class="row" style="justify-content:space-between; margin-top:12px">
+          <button id="closeShop">Close</button>
+          <small style="color:var(--dim)">Purchases persist on this device.</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Touch controls bar (below the game area, never overlapping canvas) -->
+  <div class="touchbar">
+    <div class="pad">
+      <button id="p1Up"  aria-label="P1 up">↑</button>
+      <button id="p1Down" aria-label="P1 down">↓</button>
+    </div>
+    <div style="color:var(--dim); font-size:14px; text-align:center">
+      P1: W/S • P2: ↑/↓
+    </div>
+    <div class="pad">
+      <button id="p2Up"  aria-label="P2 up">↑</button>
+      <button id="p2Down" aria-label="P2 down">↓</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  // Canvas and sizing
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const dpr = () => Math.max(1, Math.min(2, window.devicePixelRatio || 1)); // cap DPR for perf
+  let W = 0, H = 0;
+
+  function resize() {
+    const ratio = 900/520; // target aspect
+    const vw = window.innerWidth, vh = window.innerHeight - 96 - 48; // minus touchbar + topbar
+    let cw = vw, ch = Math.floor(vw/ratio);
+    if (ch > vh) { ch = vh; cw = Math.floor(vh*ratio); }
+    canvas.style.width = cw + 'px';
+    canvas.style.height = ch + 'px';
+    const r = dpr();
+    canvas.width = Math.floor(cw*r);
+    canvas.height = Math.floor(ch*r);
+    ctx.setTransform(r,0,0,r,0,0);
+    W = cw; H = ch;
+    // reposition paddles if out of bounds after resize
+    p1.y = clamp(p1.y, 0, H - PADDLE_H);
+    p2.y = clamp(p2.y, 0, H - PADDLE_H);
+  }
+  window.addEventListener('resize', resize);
+
+  // UI
+  const ptsEl = document.getElementById('pts');
+  const ptsHome = document.getElementById('ptsHome');
+  const statusEl = document.getElementById('status');
+  const modeEl = document.getElementById('mode');
+  const botEl = document.getElementById('bot');
+  const botRow = document.getElementById('botRow');
+  const ballSpeedEl = document.getElementById('ballSpeed');
+  const skinSelect = document.getElementById('skinSelect');
+  const bgSelect = document.getElementById('bgSelect');
+  const startBtn = document.getElementById('startBtn');
+  const homeOverlay = document.getElementById('homeOverlay');
+  const shopOverlay = document.getElementById('shopOverlay');
+  const shopGrid = document.getElementById('shopGrid');
+  const shopBtn = document.getElementById('shopBtn');
+  const openShopHome = document.getElementById('openShopHome');
+  const closeShop = document.getElementById('closeShop');
+  const resetProgress = document.getElementById('resetProgress');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const homeBtn = document.getElementById('homeBtn');
+  const saveState = document.getElementById('saveState');
+
+  // Touch buttons
+  const p1UpBtn = document.getElementById('p1Up');
+  const p1DownBtn = document.getElementById('p1Down');
+  const p2UpBtn = document.getElementById('p2Up');
+  const p2DownBtn = document.getElementById('p2Down');
+
+  // Storage key
+  const saveKey = 'Pattle and Ball_plus_fx_v1';
+
+  // Game constants
+  const PADDLE_W = 12, PADDLE_H = 96, PAD_M = 28;
+  const BALL = 10, MAX_ANGLE = Math.PI * 60 / 180;
+  const SPEED_INC = 0.16, SPEED_MAX = 10.5;
+  const P1_V = 7.2, P2_V = 7.2;
+  const WIN = 11;
+
+  // Bots (beatable)
+  const BOTS = {
+    chill:  { speed: 5.2, react: 0.60 },
+    aggro:  { speed: 6.6, react: 0.78 },
+    wizard: { speed: 6.0, react: 0.88 }
+  };
+
+  // Skins
+  const SKINS = [
+    { id:'classic', name:'Classic', cost:0,   desc:'White paddles, white ball.', pad:'#ffffff', ball:'#ffffff', type:'skin' },
+    { id:'neon',    name:'Neon',    cost:120, desc:'Electric cyan.',             pad:'#36e2ff', ball:'#9bf3ff', type:'skin' },
+    { id:'wood',    name:'Wood',    cost:180, desc:'Warm wood tone.',            pad:'#be8a4a', ball:'#f2d3a1', type:'skin' },
+    { id:'void',    name:'Void',    cost:300, desc:'Deep purple.',               pad:'#c7a0ff', ball:'#c7a0ff', type:'skin' }
+  ];
+
+  // Backgrounds
+  const BACKGROUNDS = [
+    { id:'dark',   name:'Dark Grid',     cost:0,   desc:'Default minimalist.', type:'bg' },
+    { id:'swirl',  name:'Swirl',         cost:150, desc:'Soft radial swirl.',  type:'bg' },
+    { id:'forest', name:'Forest',        cost:200, desc:'Deep green gradient.', type:'bg' },
+    { id:'station',name:'Station',       cost:250, desc:'Steel blue lines.',    type:'bg' },
+    { id:'stars',  name:'Starfield',     cost:300, desc:'Sparse twinkles.',     type:'bg' }
+  ];
+
+  // State
+  let points = 0;
+  let ownedSkins = new Set(['classic']);
+  let ownedBgs = new Set(['dark']);
+  let equipSkin = 'classic';
+  let equipBg = 'dark';
+
+  let p1 = { x: PAD_M, y: 0, score: 0 };
+  let p2 = { x: 0, y: 0, score: 0 };
+  let ball = { x: 0, y: 0, vx: 0, vy: 0, speed: 5.0, server: 1 };
+
+  let running = false, waitingServe = true, paused = false, gameOver = false;
+
+  const keys = new Set();
+  let p1HeldUp=false, p1HeldDown=false, p2HeldUp=false, p2HeldDown=false;
+
+  // Helpers
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const skinCfg = () => SKINS.find(s => s.id === equipSkin) || SKINS[0];
+
+  function drawBackground(id) {
+    if (id === 'dark') {
+      // subtle grid
+      ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H);
+      ctx.strokeStyle = '#101010'; ctx.lineWidth = 1;
+      for (let x=0; x<W; x+=24){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+      for (let y=0; y<H; y+=24){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+      return;
+    }
+    if (id === 'swirl') {
+      const g = ctx.createRadialGradient(W*0.5,H*0.5,10, W*0.5,H*0.5, Math.max(W,H)*0.6);
+      g.addColorStop(0,'#141414'); g.addColorStop(1,'#050505');
+      ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+      return;
+    }
+    if (id === 'forest') {
+      const g = ctx.createLinearGradient(0,0,0,H);
+      g.addColorStop(0,'#0f2216'); g.addColorStop(1,'#08140d');
+      ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+      return;
+    }
+    if (id === 'station') {
+      const g = ctx.createLinearGradient(0,0,W,H);
+      g.addColorStop(0,'#0e1620'); g.addColorStop(1,'#0a0f15');
+      ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+      ctx.strokeStyle = '#1a2a38'; ctx.lineWidth = 3;
+      for (let x=PAD_M; x<W-PAD_M; x+=100){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+      return;
+    }
+    if (id === 'stars') {
+      ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      const n = Math.floor((W*H)/40000);
+      for (let i=0;i<n;i++){
+        const x = Math.random()*W, y = Math.random()*H;
+        ctx.fillRect(x,y,1,1);
+      }
+      return;
+    }
+  }
+
+  // Save / load
+  function save() {
+    localStorage.setItem(saveKey, JSON.stringify({
+      points,
+      ownedSkins:[...ownedSkins],
+      ownedBgs:[...ownedBgs],
+      equipSkin, equipBg,
+      bot: botEl.value,
+      mode: modeEl.value,
+      ballSpeed: ballSpeedEl.value
+    }));
+    ptsEl.textContent = points;
+    ptsHome.textContent = points;
+    saveState.textContent = 'Progress saved';
+  }
+  function load() {
+    try {
+      const data = JSON.parse(localStorage.getItem(saveKey));
+      if (data) {
+        points = data.points ?? 0;
+        ownedSkins = new Set(data.ownedSkins || ['classic']);
+        ownedBgs = new Set(data.ownedBgs || ['dark']);
+        equipSkin = data.equipSkin || 'classic';
+        equipBg = data.equipBg || 'dark';
+        if (data.bot && BOTS[data.bot]) botEl.value = data.bot;
+        if (data.mode) modeEl.value = data.mode;
+        if (data.ballSpeed) ballSpeedEl.value = data.ballSpeed;
+      }
+    } catch {}
+    ptsEl.textContent = points; ptsHome.textContent = points;
+    botRow.style.display = (modeEl.value === 'cpu') ? 'flex' : 'none';
+  }
+
+  // UI: selects
+  function refreshSkinSelect() {
+    skinSelect.innerHTML = '';
+    [...ownedSkins].forEach(id => {
+      const s = SKINS.find(k => k.id === id);
+      if (!s) return;
+      const opt = document.createElement('option');
+      opt.value = s.id; opt.textContent = s.name;
+      skinSelect.appendChild(opt);
+    });
+    skinSelect.value = equipSkin;
+  }
+  function refreshBgSelect() {
+    bgSelect.innerHTML = '';
+    [...ownedBgs].forEach(id => {
+      const b = BACKGROUNDS.find(k => k.id === id);
+      if (!b) return;
+      const opt = document.createElement('option');
+      opt.value = b.id; opt.textContent = b.name;
+      bgSelect.appendChild(opt);
+    });
+    bgSelect.value = equipBg;
+  }
+
+  // Shop
+  function buildShop() {
+    shopGrid.innerHTML = '';
+
+    const all = [
+      ...SKINS.map(s => ({...s})),
+      ...BACKGROUNDS.map(b => ({...b}))
+    ];
+
+    all.forEach(it => {
+      const owned = it.type === 'skin' ? ownedSkins.has(it.id) : ownedBgs.has(it.id);
+      const card = document.createElement('div'); card.className='item';
+      const chip = document.createElement('div'); chip.className='chip';
+      chip.style.background = it.type==='skin' ? (it.pad || '#666') : '#1a1a1a';
+      const meta = document.createElement('div'); meta.className='meta';
+      const name = document.createElement('div'); name.className='name';
+      name.textContent = it.name + ((it.type==='skin' && equipSkin===it.id) || (it.type==='bg' && equipBg===it.id) ? ' (equipped)' : '');
+      const desc = document.createElement('div'); desc.className='desc'; desc.textContent = it.desc;
+      const cost = document.createElement('div'); cost.className='cost'; cost.textContent = owned ? 'Owned' : `${it.cost} pts`;
+      meta.appendChild(name); meta.appendChild(desc); meta.appendChild(cost);
+
+      const btn = document.createElement('button');
+      if (owned) {
+        btn.textContent = 'Equip';
+        btn.onclick = () => {
+          if (it.type==='skin'){ equipSkin = it.id; refreshSkinSelect(); }
+          else { equipBg = it.id; refreshBgSelect(); }
+          save(); buildShop();
+        };
+      } else {
+        btn.textContent = 'Buy';
+        btn.disabled = points < it.cost;
+        btn.onclick = () => {
+          if (points >= it.cost) {
+            points -= it.cost;
+            if (it.type==='skin'){ ownedSkins.add(it.id); equipSkin = it.id; refreshSkinSelect(); }
+            else { ownedBgs.add(it.id); equipBg = it.id; refreshBgSelect(); }
+            save(); buildShop();
+          }
+        };
+      }
+
+      card.appendChild(chip); card.appendChild(meta); card.appendChild(btn);
+      shopGrid.appendChild(card);
+    });
+  }
+
+  // Bind UI
+  modeEl.addEventListener('change', () => { botRow.style.display = (modeEl.value==='cpu') ? 'flex' : 'none'; save(); });
+  botEl.addEventListener('change', save);
+  ballSpeedEl.addEventListener('change', save);
+  skinSelect.addEventListener('change', () => { if (ownedSkins.has(skinSelect.value)) { equipSkin=skinSelect.value; save(); } });
+  bgSelect.addEventListener('change', () => { if (ownedBgs.has(bgSelect.value)) { equipBg=bgSelect.value; save(); } });
+
+  document.getElementById('openShopHome').addEventListener('click', () => { homeOverlay.classList.remove('show'); shopOverlay.classList.add('show'); buildShop(); });
+  shopBtn.addEventListener('click', () => { shopOverlay.classList.add('show'); buildShop(); });
+  document.getElementById('closeShop').addEventListener('click', () => shopOverlay.classList.remove('show'));
+
+  document.getElementById('resetProgress').addEventListener('click', () => {
+    if (!confirm('Reset all progress?')) return;
+    points=0; ownedSkins=new Set(['classic']); ownedBgs=new Set(['dark']); equipSkin='classic'; equipBg='dark';
+    refreshSkinSelect(); refreshBgSelect(); save(); buildShop();
+  });
+
+  document.getElementById('homeBtn').addEventListener('click', () => {
+    homeOverlay.classList.add('show'); shopOverlay.classList.remove('show');
+    running=false; paused=false; waitingServe=true; statusEl.textContent='Home';
+  });
+
+  document.getElementById('pauseBtn').addEventListener('click', () => {
+    paused=!paused; statusEl.textContent = paused ? 'Paused' : (running ? 'Playing' : 'Ready');
+  });
+
+  document.getElementById('startBtn').addEventListener('click', () => {
+    homeOverlay.classList.remove('show');
+    resetGame();
+    statusEl.textContent = 'Ready';
+  });
+
+  // Touch holds
+  function bindHold(el, setFn){
+    const start = e => { e.preventDefault(); setFn(true); };
+    const end   = e => { e.preventDefault(); setFn(false); };
+    el.addEventListener('pointerdown', start); el.addEventListener('pointerup', end);
+    el.addEventListener('pointerleave', end); el.addEventListener('pointercancel', end);
+    el.addEventListener('touchstart', start, {passive:false});
+    el.addEventListener('touchend', end, {passive:false});
+  }
+  bindHold(p1UpBtn, v=>p1HeldUp=v); bindHold(p1DownBtn, v=>p1HeldDown=v);
+  bindHold(p2UpBtn, v=>p2HeldUp=v); bindHold(p2DownBtn, v=>p2HeldDown=v);
+
+  // Keyboard
+  window.addEventListener('keydown', e => {
+    const k = e.code;
+    if (['ArrowUp','ArrowDown','KeyW','KeyS','Space','KeyP','KeyR','KeyH'].includes(k)) e.preventDefault();
+    // Serve / control
+    if (k==='Space' && waitingServe && !gameOver) serve();
+    if (k==='KeyP') { paused=!paused; statusEl.textContent = paused ? 'Paused' : (running ? 'Playing' : 'Ready'); }
+    if (k==='KeyR') resetGame();
+    if (k==='KeyH') { homeOverlay.classList.add('show'); running=false; waitingServe=true; paused=false; statusEl.textContent='Home'; }
+    // P1: W/S
+    if (k==='KeyW') keys.add('KeyW');
+    if (k==='KeyS') keys.add('KeyS');
+    // P2: Arrows
+    if (k==='ArrowUp') keys.add('ArrowUp');
+    if (k==='ArrowDown') keys.add('ArrowDown');
+  }, {passive:false});
+  window.addEventListener('keyup', e => {
+    const k=e.code;
+    if (k==='KeyW') keys.delete('KeyW');
+    if (k==='KeyS') keys.delete('KeyS');
+    if (k==='ArrowUp') keys.delete('ArrowUp');
+    if (k==='ArrowDown') keys.delete('ArrowDown');
+  });
+  window.addEventListener('blur', ()=>{ keys.clear(); p1HeldUp=p1HeldDown=p2HeldUp=p2HeldDown=false; paused=true; statusEl.textContent='Paused'; });
+
+  // Game functions
+  function resetPositions() {
+    p1.x = PAD_M; p2.x = W - PAD_M - PADDLE_W;
+    p1.y = (H - PADDLE_H)/2; p2.y = (H - PADDLE_H)/2;
+    ball.x = W/2; ball.y = H/2; ball.vx=0; ball.vy=0; ball.speed = parseFloat(ballSpeedEl.value) || 5.0;
+  }
+  function resetGame() {
+    p1.score=0; p2.score=0; gameOver=false; waitingServe=true; running=false;
+    resetPositions();
+  }
+  function serve() {
+    waitingServe=false; running=true; paused=false;
+    ball.speed = parseFloat(ballSpeedEl.value) || 5.0;
+    const dir = (ball.server===1) ? 1 : -1;
+    const angle = (Math.random()*0.3 - 0.15);
+    ball.vx = Math.cos(angle)*ball.speed*dir;
+    ball.vy = Math.sin(angle)*ball.speed;
+    statusEl.textContent='Playing';
+  }
+
+  function wallBounce(){
+    if (ball.y <= BALL/2 && ball.vy<0){ ball.y=BALL/2; ball.vy=-ball.vy; }
+    if (ball.y >= H-BALL/2 && ball.vy>0){ ball.y=H-BALL/2; ball.vy=-ball.vy; }
+  }
+  function aabbPaddle(p){
+    const bx=ball.x-BALL/2, by=ball.y-BALL/2, bw=BALL, bh=BALL;
+    return (bx < p.x + PADDLE_W && bx + bw > p.x && by < p.y + PADDLE_H && by + bh > p.y);
+  }
+  function paddleBounceLeft(){
+    if (ball.vx<0 && ball.x-BALL/2<=p1.x+PADDLE_W && aabbPaddle(p1)){
+      const rel=(p1.y+PADDLE_H/2)-ball.y;
+      const norm=clamp(rel/(PADDLE_H/2),-1,1);
+      const ang=norm*MAX_ANGLE;
+      ball.speed=Math.min(ball.speed+SPEED_INC,SPEED_MAX);
+      ball.vx=Math.cos(ang)*ball.speed;
+      ball.vy=-Math.sin(ang)*ball.speed;
+      ball.x=p1.x+PADDLE_W+BALL/2+0.5;
+      points+=1; ptsEl.textContent=points; ptsHome.textContent=points; save();
+    }
+  }
+  function paddleBounceRight(){
+    if (ball.vx>0 && ball.x+BALL/2>=p2.x && aabbPaddle(p2)){
+      const rel=(p2.y+PADDLE_H/2)-ball.y;
+      const norm=clamp(rel/(PADDLE_H/2),-1,1);
+      const ang=norm*MAX_ANGLE;
+      ball.speed=Math.min(ball.speed+SPEED_INC,SPEED_MAX);
+      ball.vx=-Math.cos(ang)*ball.speed;
+      ball.vy=-Math.sin(ang)*ball.speed;
+      ball.x=p2.x-BALL/2-0.5;
+      points+=1; ptsEl.textContent=points; ptsHome.textContent=points; save();
+    }
+  }
+  function afterPoint(winner){
+    if (p1.score>=WIN || p2.score>=WIN){
+      gameOver=true; running=false; waitingServe=true;
+      if (p1.score>p2.score){ points+=20; ptsEl.textContent=points; ptsHome.textContent=points; save(); statusEl.textContent='P1 Wins! Press R'; }
+      else { statusEl.textContent='P2 Wins! Press R'; }
+      return;
+    }
+    ball.server=winner; resetPositions();
+    running=false; waitingServe=true; statusEl.textContent='Point. Space to serve';
+  }
+  function checkScore(){
+    if (ball.x < -BALL){ p2.score++; points+=5; ptsEl.textContent=points; ptsHome.textContent=points; save(); afterPoint(2); }
+    else if (ball.x > W+BALL){ p1.score++; points+=5; ptsEl.textContent=points; ptsHome.textContent=points; save(); afterPoint(1); }
+  }
+
+  function cpuStep(){
+    const bot = BOTS[botEl.value] || BOTS.chill;
+    const target = ball.y - PADDLE_H/2;
+    const dy = target - p2.y;
+    const step = clamp(dy * bot.react, -bot.speed, bot.speed);
+    p2.y = clamp(p2.y + step, 0, H - PADDLE_H);
+  }
+
+  // Update & render
+  function update(){
+    if (!running || paused) return;
+
+    // P1: W/S
+    let v1=0;
+    if (keys.has('KeyW') || p1HeldUp) v1 -= P1_V;
+    if (keys.has('KeyS') || p1HeldDown) v1 += P1_V;
+    p1.y = clamp(p1.y + v1, 0, H - PADDLE_H);
+
+    // P2: CPU or arrows/touch
+    if (modeEl.value === 'cpu') {
+      cpuStep();
+    } else {
+      let v2=0;
+      if (keys.has('ArrowUp') || p2HeldUp) v2 -= P2_V;
+      if (keys.has('ArrowDown') || p2HeldDown) v2 += P2_V;
+      p2.y = clamp(p2.y + v2, 0, H - PADDLE_H);
+    }
+
+    ball.x += ball.vx; ball.y += ball.vy;
+    wallBounce(); paddleBounceLeft(); paddleBounceRight(); checkScore();
+  }
+
+  function drawNet(){
+    ctx.fillStyle = '#3a3a3a'; const NET_W=4, SEG=18, GAP=14;
+    for (let y=0; y<H; y+=SEG+GAP) ctx.fillRect(W/2 - NET_W/2, y, NET_W, SEG);
+  }
+  function drawScore(){
+    ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.font='56px monospace';
+    ctx.fillText(p1.score, W*0.25, 10); ctx.fillText(p2.score, W*0.75, 10);
+  }
+  function drawPaddle(px,py,color){ ctx.fillStyle=color; ctx.fillRect(px,py,PADDLE_W,PADDLE_H); }
+  function drawBall(color){ ctx.fillStyle=color; ctx.fillRect(ball.x-BALL/2, ball.y-BALL/2, BALL, BALL); }
+
+  function render(){
+    drawBackground(equipBg);
+    drawNet();
+    drawScore();
+    const s = skinCfg();
+    drawPaddle(p1.x,p1.y,s.pad);
+    drawPaddle(p2.x,p2.y,s.pad);
+    drawBall(s.ball);
+    requestAnimationFrame(render);
+  }
+
+  // Boot
+  function boot() {
+    resize();
+    resetPositions();
+    statusEl.textContent='Home';
+    ptsEl.textContent=points; ptsHome.textContent=points;
+    refreshSkinSelect();
+    refreshBgSelect();
+  }
+
+  // Tickers
+  setInterval(update, 1000/60);
+  requestAnimationFrame(render);
+
+  // Load save after boot prep so UI exists
+  load();
+  boot();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,439 @@
+html
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>AI - Camcookie Connect 26</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/connect/26/cc-auth.js"></script>
+<script src="/connect/26/cc-friends.js"></script>
+<script src="/connect/26/cc-topbar.js"></script>
+<script src="/connect/26/cc-icons.js"></script>
+<style>
+    :root {
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --cyan: #06b6d4;
+      --bg: #eef3ff;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #dbe4ff;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --radius: 16px;
+      --shadow: 0 14px 30px rgba(37, 99, 235, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: radial-gradient(circle at top right, #dbeafe, #f8fbff 45%, #eef2ff 100%);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      width: 420px;
+      height: 420px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.25), rgba(37, 99, 235, 0));
+      pointer-events: none;
+      z-index: -1;
+      animation: drift 20s ease-in-out infinite;
+    }
+
+    body::before { top: -140px; right: -110px; }
+    body::after { bottom: -160px; left: -120px; animation-delay: -8s; }
+
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(16px, -14px) scale(1.05); }
+    }
+
+    .hidden { display: none !important; }
+    .muted { color: var(--muted); }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease;
+    }
+
+    button:hover { background: var(--blue-dark); transform: translateY(-1px); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    button.secondary { background: #fff; color: var(--blue-dark); border: 1px solid var(--blue); }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    #loadingScreen, #errorView {
+      min-height: 100vh;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .panel {
+      width: min(520px, 100%);
+      text-align: center;
+      animation: rise .3s ease;
+    }
+
+    @keyframes rise {
+      from { opacity: .5; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .spinner {
+      width: 42px;
+      height: 42px;
+      border: 4px solid #bfdbfe;
+      border-top-color: var(--blue);
+      border-radius: 999px;
+      animation: spin .9s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #appShell {
+      display: none;
+      min-height: 100vh;
+      padding: 24px 18px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--blue-dark);
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 24px;
+      font-size: 0.95rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .output {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      min-height: 120px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .message-log {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 240px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .message {
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .message.user {
+      background: #dbeafe;
+      color: var(--text);
+      align-self: flex-end;
+      max-width: 85%;
+    }
+
+    .message.ai {
+      background: #f0f7ff;
+      color: var(--text);
+      border-left: 3px solid var(--blue);
+      align-self: flex-start;
+      max-width: 85%;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-family: inherit;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .input-row input {
+      flex: 1;
+    }
+
+    .input-row button {
+      padding: 10px 20px;
+    }
+  </style>
+</head>
+<body>
+<noscript>
+<div style="background: #dc2626; color: white; padding: 20px; text-align: center;">
+<strong>JavaScript is required to use Camcookie Connect 26.</strong> Please enable JavaScript in your browser settings.
+    </div>
+</noscript>
+ Loading 
+<div id="loadingScreen">
+<div class="panel card">
+<div class="spinner"></div>
+<h2>Loading AI…</h2>
+<p class="muted">Checking your login and initializing AI tools.</p>
+</div>
+</div>
+ Error 
+<div class="hidden" id="errorView">
+<div class="panel card">
+<h2>Something went wrong.</h2>
+<p>Reload this page to try again.</p>
+<p class="muted" id="errorText"></p>
+</div>
+</div>
+ App Shell 
+<div id="appShell">
+<div id="topbar"></div>
+<div class="container">
+<h1>AI Tools</h1>
+<p class="subtitle">Build your AI-powered tools here. This page is a template you can customize.</p>
+<div class="grid-2">
+ Example 1: Text Transformation 
+<div class="card">
+<h2>Text Transformer</h2>
+<p class="muted">Example tool to transform text</p>
+<textarea id="input1" placeholder="Enter text to transform…"></textarea>
+<div style="display: flex; gap: 8px; margin-top: 12px;">
+<button onclick="transformToUpper()">UPPERCASE</button>
+<button class="secondary" onclick="transformToLower()">lowercase</button>
+</div>
+<div class="output" id="output1" style="margin-top: 12px;"></div>
+</div>
+ Example 2: Counter &amp; Stats 
+<div class="card">
+<h2>Text Statistics</h2>
+<p class="muted">Analyze text properties</p>
+<textarea id="input2" placeholder="Paste text to analyze…"></textarea>
+<button onclick="analyzeText()" style="margin-top: 12px; width: 100%;">Analyze</button>
+<div class="output" id="output2" style="margin-top: 12px;"></div>
+</div>
+ Example 3: Simple Chat 
+<div class="card" style="grid-column: 1 / -1;">
+<h2>AI Chat Simulator</h2>
+<p class="muted">This is an example chat interface. Connect your own AI API here.</p>
+<div class="message-log" id="chatLog"></div>
+<div class="input-row">
+<input id="chatInput" placeholder="Type a message…" type="text"/>
+<button onclick="sendChatMessage()">Send</button>
+</div>
+<p class="muted" style="font-size: 0.8rem; margin-top: 8px;">💡 Tip: Connect to OpenAI, Claude, or any AI API by adding your credentials in the code.</p>
+</div>
+</div>
+<div style="margin-top: 40px; padding: 20px; background: #f0f7ff; border-radius: var(--radius); border-left: 4px solid var(--blue);">
+<h3 style="margin-top: 0;">🛠️ How to Build Your AI Tool</h3>
+<ol style="color: var(--muted); line-height: 1.8;">
+<li>Edit the HTML to add your tool inputs/outputs</li>
+<li>Add JavaScript functions to process user input</li>
+<li>Connect to an AI API (OpenAI, Claude, Hugging Face, etc.)</li>
+<li>Display results in the designated output area</li>
+<li>Deploy and test with real users</li>
+</ol>
+</div>
+</div>
+</div>
+<script>
+    function $(id) { return document.getElementById(id); }
+
+    function showLoading() {
+      $("loadingScreen").style.display = "flex";
+      $("appShell").style.display = "none";
+      $("errorView").classList.add("hidden");
+    }
+
+    function showError(msg) {
+      $("loadingScreen").style.display = "none";
+      $("appShell").style.display = "none";
+      $("errorView").classList.remove("hidden");
+      $("errorText").textContent = msg;
+    }
+
+    function showApp() {
+      $("loadingScreen").style.display = "none";
+      $("appShell").style.display = "block";
+      $("errorView").classList.add("hidden");
+    }
+
+    // Example 1: Text Transformation
+    function transformToUpper() {
+      const input = $("input1").value;
+      if (!input.trim()) {
+        alert('Please enter some text');
+        return;
+      }
+      $("output1").textContent = input.toUpperCase();
+    }
+
+    function transformToLower() {
+      const input = $("input1").value;
+      if (!input.trim()) {
+        alert('Please enter some text');
+        return;
+      }
+      $("output1").textContent = input.toLowerCase();
+    }
+
+    // Example 2: Text Analysis
+    function analyzeText() {
+      const input = $("input2").value;
+      if (!input.trim()) {
+        alert('Please enter some text');
+        return;
+      }
+
+      const words = input.trim().split(/\s+/).length;
+      const chars = input.length;
+      const lines = input.split('\n').length;
+      const sentences = input.split(/[.!?]+/).length - 1;
+
+      const output = `
+Words: ${words}
+Characters: ${chars}
+Lines: ${lines}
+Sentences: ${sentences}
+Avg. word length: ${(chars / words).toFixed(2)} chars
+Avg. words per line: ${(words / lines).toFixed(2)}
+`;
+
+      $("output2").textContent = output;
+    }
+
+    // Example 3: Chat Simulator
+    function sendChatMessage() {
+      const input = $("chatInput").value.trim();
+      if (!input) return;
+
+      const chatLog = $("chatLog");
+
+      // Add user message
+      const userMsg = document.createElement('div');
+      userMsg.className = 'message user';
+      userMsg.textContent = input;
+      chatLog.appendChild(userMsg);
+
+      // Simulate AI response (replace with real API call)
+      setTimeout(() => {
+        const aiMsg = document.createElement('div');
+        aiMsg.className = 'message ai';
+        aiMsg.textContent = `[Example Response] You said: "${input}". Connect your own AI API here!`;
+        chatLog.appendChild(aiMsg);
+        chatLog.scrollTop = chatLog.scrollHeight;
+      }, 500);
+
+      $("chatInput").value = '';
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    // Allow Enter key in chat
+    $("chatInput")?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendChatMessage();
+    });
+
+    // Initialize
+    async function init() {
+      showLoading();
+
+      if (!ccIsAuthenticated()) {
+        showError('Please log in first.');
+        return;
+      }
+
+      const topbarDiv = $("topbar");
+      topbarDiv.innerHTML = ccCreateTopbarHTML();
+      ccInitTopbar();
+
+      showApp();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>

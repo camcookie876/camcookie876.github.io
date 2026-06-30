@@ -1,0 +1,637 @@
+html
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Dashboard - Camcookie Connect 26</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/connect/26/cc-auth.js"></script>
+<script src="/connect/26/cc-topbar.js"></script>
+<script src="/connect/26/cc-icons.js"></script>
+<script src="/connect/26/cc-scoring.js"></script>
+<style>
+    :root {
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --cyan: #06b6d4;
+      --bg: #eef3ff;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #dbe4ff;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --radius: 16px;
+      --shadow: 0 14px 30px rgba(37, 99, 235, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: radial-gradient(circle at top right, #dbeafe, #f8fbff 45%, #eef2ff 100%);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      width: 420px;
+      height: 420px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.25), rgba(37, 99, 235, 0));
+      pointer-events: none;
+      z-index: -1;
+      animation: drift 20s ease-in-out infinite;
+    }
+
+    body::before { top: -140px; right: -110px; }
+    body::after { bottom: -160px; left: -120px; animation-delay: -8s; }
+
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(16px, -14px) scale(1.05); }
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    #loadingScreen, #errorView {
+      min-height: 100vh;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .panel {
+      width: min(520px, 100%);
+      text-align: center;
+      animation: rise .3s ease;
+    }
+
+    @keyframes rise {
+      from { opacity: .5; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .spinner {
+      width: 42px;
+      height: 42px;
+      border: 4px solid #bfdbfe;
+      border-top-color: var(--blue);
+      border-radius: 999px;
+      animation: spin .9s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #dashboardShell {
+      display: none;
+      min-height: 100vh;
+      padding: 24px 18px;
+    }
+
+    .dashboard-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--blue-dark);
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 24px;
+      font-size: 0.95rem;
+    }
+
+    /* Desktop layout: Sidebar | Content | Leaderboard */
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      gap: 24px;
+      animation: rise .3s ease;
+    }
+
+    .sidebar, .main-content, .leaderboard-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Mobile layout */
+    @media (max-width: 1024px) {
+      .dashboard-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .widget {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    .widget h2 {
+      margin: 0 0 12px;
+      font-size: 1.1rem;
+      color: var(--blue-dark);
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .widget h3 {
+      margin: 12px 0 8px;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    /* Profile widget */
+    .profile-summary {
+      text-align: center;
+    }
+
+    .profile-photo {
+      width: 80px;
+      height: 80px;
+      border-radius: 999px;
+      object-fit: cover;
+      border: 3px solid var(--blue);
+      margin: 0 auto 12px;
+    }
+
+    .profile-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0 0 8px;
+    }
+
+    .profile-status {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* Usage score widget */
+    .score-display {
+      text-align: center;
+      padding: 12px 0;
+    }
+
+    .score-value {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--blue);
+      margin: 0;
+    }
+
+    .score-label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 4px 0 0;
+    }
+
+    .score-breakdown {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .score-component {
+      text-align: center;
+      padding: 8px;
+      background: #f8fbff;
+      border-radius: 8px;
+    }
+
+    .score-component-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--blue);
+    }
+
+    .score-component-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* Friends list */
+    .friends-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .friend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      background: #f8fbff;
+      border-radius: 8px;
+    }
+
+    .friend-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: var(--blue);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+
+    .friend-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .friend-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .friend-status {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    /* Apps grid */
+    .apps-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .app-item {
+      background: #f8fbff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .app-item:hover {
+      background: #f0f7ff;
+      border-color: var(--blue);
+      transform: translateY(-2px);
+    }
+
+    .app-icon {
+      width: 40px;
+      height: 40px;
+      margin: 0 auto 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app-icon svg {
+      width: 100%;
+      height: 100%;
+      color: var(--blue);
+    }
+
+    .app-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    /* Leaderboard */
+    .leaderboard-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .leaderboard-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      background: #f8fbff;
+      border-radius: 8px;
+      border-left: 3px solid var(--border);
+    }
+
+    .leaderboard-item.rank-1 {
+      border-left-color: #fbbf24;
+      background: #fef3c7;
+    }
+
+    .leaderboard-item.rank-2 {
+      border-left-color: #d1d5db;
+      background: #f3f4f6;
+    }
+
+    .leaderboard-item.rank-3 {
+      border-left-color: #fb923c;
+      background: #fed7aa;
+    }
+
+    .rank-number {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: var(--blue);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .leaderboard-item.rank-1 .rank-number {
+      background: #fbbf24;
+      color: #78350f;
+      font-size: 0.9rem;
+    }
+
+    .leaderboard-item.rank-2 .rank-number {
+      background: #d1d5db;
+      color: #374151;
+    }
+
+    .leaderboard-item.rank-3 .rank-number {
+      background: #fb923c;
+      color: #7c2d12;
+    }
+
+    .leaderboard-user {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .leaderboard-username {
+      font-size: 0.9rem;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .leaderboard-score {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .leaderboard-points {
+      font-weight: 600;
+      color: var(--blue);
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .hidden { display: none !important; }
+    .muted { color: var(--muted); }
+
+    #popup {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(30px);
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s ease;
+      z-index: 999;
+      background: var(--blue);
+      color: #fff;
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 8px 18px rgba(37,99,235,.35);
+    }
+
+    #popup.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+<noscript>
+<div style="background: #dc2626; color: white; padding: 20px; text-align: center; font-weight: 600;">
+      JavaScript is required to use Camcookie Connect 26. Please enable JavaScript in your browser settings.
+    </div>
+</noscript>
+<div id="topbar"></div>
+<div id="loadingScreen">
+<div class="panel">
+<div class="spinner"></div>
+<p>Loading your dashboard...</p>
+</div>
+</div>
+<div class="hidden" id="errorView">
+<div class="panel">
+<p class="muted" id="errorMsg" style="color:var(--danger);"></p>
+<button onclick="window.location.href='/connect/26/';">Return to Login</button>
+</div>
+</div>
+<div id="dashboardShell">
+<div class="dashboard-container">
+<h1>Dashboard</h1>
+<p class="subtitle">Welcome back! Here's your activity overview.</p>
+<div class="dashboard-layout">
+ Left Sidebar: Profile &amp; Stats 
+<div class="sidebar">
+ Profile Widget 
+<div class="widget">
+<div class="profile-summary">
+<img alt="Profile" class="profile-photo" id="profilePhoto"/>
+<p class="profile-name" id="profileName"></p>
+<p class="profile-status" id="profileStatus">Member</p>
+</div>
+</div>
+ Usage Score Widget 
+<div class="widget">
+<h2>Usage Score</h2>
+<div class="score-display">
+<p class="score-value" id="scoreValue">0</p>
+<p class="score-label">Total Score</p>
+</div>
+<div class="score-breakdown">
+<div class="score-component">
+<div class="score-component-value" id="scoreComponent1">0</div>
+<div class="score-component-label">Friends</div>
+</div>
+<div class="score-component">
+<div class="score-component-value" id="scoreComponent2">0</div>
+<div class="score-component-label">Active</div>
+</div>
+<div class="score-component">
+<div class="score-component-value" id="scoreComponent3">0</div>
+<div class="score-component-label">Chats</div>
+</div>
+<div class="score-component">
+<div class="score-component-value" id="scoreComponent4">0</div>
+<div class="score-component-label">Activity</div>
+</div>
+</div>
+</div>
+ Friends Widget 
+<div class="widget">
+<h2>Friends (<span id="friendCount">0</span>)</h2>
+<div class="friends-list" id="friendsList"></div>
+</div>
+</div>
+ Center: Apps &amp; Other Content 
+<div class="main-content">
+ Apps Widget 
+<div class="widget">
+<h2>Quick Launch</h2>
+<div class="apps-grid">
+<a class="app-item" href="/connect/26/apps/">
+<div class="app-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect height="7" width="7" x="3" y="3"></rect><rect height="7" width="7" x="14" y="3"></rect><rect height="7" width="7" x="14" y="14"></rect><rect height="7" width="7" x="3" y="14"></rect></svg></div>
+<div class="app-name">Apps</div>
+</a>
+<a class="app-item" href="/connect/26/chat/">
+<div class="app-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
+<div class="app-name">Chat</div>
+</a>
+<a class="app-item" href="/connect/26/books/">
+<div class="app-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></div>
+<div class="app-name">Books</div>
+</a>
+<a class="app-item" href="/connect/26/draw/">
+<div class="app-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div>
+<div class="app-name">Draw</div>
+</a>
+<a class="app-item" href="/connect/26/ai/">
+<div class="app-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="1"></circle><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m3.08 3.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m3.08-3.08l4.24-4.24M19.78 19.78l-4.24-4.24m-3.08-3.08l-4.24-4.24"></path></svg></div>
+<div class="app-name">AI</div>
+</a>
+<a class="app-item" href="/connect/26/tools/">
+<div class="app-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 4.3a4 4 0 0 1 5.6 5.6L12 18.3 5.7 12l9-7.7z"></path><path d="M7 7l10 10"></path></svg></div>
+<div class="app-name">Tools</div>
+</a>
+<a class="app-item" href="/connect/26/settings/">
+<div class="app-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m3.08 3.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m3.08-3.08l4.24-4.24M19.78 19.78l-4.24-4.24m-3.08-3.08l-4.24-4.24"></path></svg></div>
+<div class="app-name">Settings</div>
+</a>
+</div>
+</div>
+</div>
+ Right: Leaderboard 
+<div class="leaderboard-panel">
+<div class="widget">
+<h2>🏆 Leaderboard</h2>
+<div class="leaderboard-list" id="leaderboardList"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="popup"></div>
+<script>
+  const SUPABASE_URL = "https://uexubxzlmyjuktgeqfsf.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVleHVieHpsbXlqdWt0Z2VxZnNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MzUxODYsImV4cCI6MjA5MjIxMTE4Nn0.yuWkhA7b21uL2BGVn5zij6fSiBWQdCGXwevZyJN5EDE";
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  function $(id) { return document.getElementById(id); }
+
+  function showLoading() {
+    $("loadingScreen").style.display = "flex";
+    $("errorView").classList.add("hidden");
+    $("dashboardShell").style.display = "none";
+  }
+
+  function showError(msg) {
+    $("loadingScreen").style.display = "none";
+    $("errorView").classList.remove("hidden");
+    $("dashboardShell").style.display = "none";
+    $("errorMsg").textContent = msg;
+  }
+
+  function showDashboard() {
+    $("loadingScreen").style.display = "none";
+    $("errorView").classList.add("hidden");
+    $("dashboardShell").style.display = "block";
+  }
+
+  function renderTopbar() {
+    const topbarDiv = $("topbar");
+    topbarDiv.innerHTML = ccCreateTopbarHTML();
+    // Inject topbar styles
+    if (!document.getElementById('cc-topbar-styles')) {
+      const styleEl = document.createElement('style');
+      styleEl.id = 'cc-topbar-styles';
+      styleEl.textContent = TOPBAR_STYLES;
+      document.head.appendChild(styleEl);
+    }
+  }
+
+  function initDashboard() {
+    showLoading();
+
+    const token = localStorage.getItem('session_token');
+    const user = ccGetUser();
+
+    if (!token || !user) {
+      showError('Please log in first.');
+      return;
+    }
+
+    renderTopbar();
+    ccInitTopbar();
+
+    // Update profile
+    const photo = user.profile_photo || 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="24" r="14" fill="%23bfdbfe"/><rect x="10" y="40" width="44" height="20" rx="10" fill="%2393c5fd"/></svg>');
+    $("profilePhoto").src = photo;
+    $("profileName").textContent = user.username || 'User';
+
+    // TODO: Load actual data from Supabase
+    // For now, show placeholder data
+    $("scoreValue").textContent = '0';
+    $("scoreComponent1").textContent = '0';
+    $("scoreComponent2").textContent = '0';
+    $("scoreComponent3").textContent = '0';
+    $("scoreComponent4").textContent = '0';
+    $("friendCount").textContent = '0';
+    $("friendsList").innerHTML = '<p class="muted">No friends yet</p>';
+    $("leaderboardList").innerHTML = '<p class="muted">Leaderboard loading...</p>';
+
+    showDashboard();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDashboard);
+  } else {
+    initDashboard();
+  }
+</script>
+</body>
+</html>

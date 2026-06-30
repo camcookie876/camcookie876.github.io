@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Camcookie Games – Sudoku</title>
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --panel: #1f2833;
+      --accent: #66fcf1;
+      --accent-soft: #45a29e;
+      --text: #c5c6c7;
+      --strong: #ffffff;
+      --grid-border: #66fcf1;
+      --cell-border: #3a3f47;
+      --empty: #888888;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #1f2833 0, #0b0c10 55%, #000 100%);
+      color: var(--text);
+    }
+
+    .app {
+      background: rgba(15, 17, 24, 0.96);
+      border-radius: 18px;
+      padding: 20px 22px 18px;
+      box-shadow:
+        0 0 0 1px rgba(102, 252, 241, 0.1),
+        0 20px 40px rgba(0, 0, 0, 0.9);
+      max-width: 520px;
+      width: 100%;
+    }
+
+    .header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-line-top {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-soft);
+    }
+
+    .brand-line-main {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--strong);
+      letter-spacing: 0.06em;
+    }
+
+    .brand-line-sub {
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--empty);
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .difficulty-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--empty);
+    }
+
+    select {
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--accent-soft);
+      background: rgba(9, 11, 18, 0.9);
+      color: var(--text);
+      outline: none;
+    }
+
+    .btn {
+      margin-top: 4px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+      color: #000;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.8);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+    }
+
+    .btn.small {
+      padding: 4px 10px;
+      font-size: 11px;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      filter: brightness(0.96);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .highlight-toggle-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--empty);
+    }
+
+    .highlight-toolbar-wrapper {
+      margin: 4px 0 8px;
+    }
+
+    .highlight-toolbar {
+      display: none;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .highlight-toolbar.visible {
+      display: flex;
+    }
+
+    .hl-btn {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #000;
+    }
+
+    .hl-red  { background: #ff5050; }
+    .hl-blue { background: #50a0ff; }
+    .hl-green{ background: #50ff78; }
+    .hl-clear{ background: #cccccc; }
+
+    .hl-active {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .grid-wrapper {
+      padding: 10px;
+      border-radius: 14px;
+      background: radial-gradient(circle at top, #151822 0, #05060a 70%);
+      border: 1px solid rgba(102, 252, 241, 0.2);
+    }
+
+    .grid {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      grid-template-rows: repeat(9, 1fr);
+      border: 2px solid var(--grid-border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(7, 10, 18, 0.95);
+    }
+
+    .cell {
+      border: 1px solid var(--cell-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--strong);
+      user-select: none;
+      position: relative;
+    }
+
+    .cell[data-top-block="true"] { border-top: 2px solid var(--grid-border); }
+    .cell[data-left-block="true"] { border-left: 2px solid var(--grid-border); }
+    .cell[data-right-block="true"] { border-right: 2px solid var(--grid-border); }
+    .cell[data-bottom-block="true"] { border-bottom: 2px solid var(--grid-border); }
+
+    .cell.empty {
+      color: var(--empty);
+    }
+
+    .play-input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--accent);
+      outline: none;
+    }
+
+    .play-input:focus {
+      background: rgba(102, 252, 241, 0.1);
+    }
+
+    /* Row/col/box and selection highlighting */
+    .cell.highlight {
+      background: rgba(102, 252, 241, 0.18);
+    }
+    .cell.selected {
+      background: rgba(102, 252, 241, 0.35);
+    }
+    .cell.same-number {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Manual color highlights (override others) */
+    .cell.hl-red {
+      background: rgba(255, 80, 80, 0.45) !important;
+    }
+    .cell.hl-blue {
+      background: rgba(80, 160, 255, 0.45) !important;
+    }
+    .cell.hl-green {
+      background: rgba(80, 255, 120, 0.45) !important;
+    }
+
+    .footer {
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--empty);
+    }
+
+    .status {
+      color: var(--accent-soft);
+      text-align: right;
+    }
+
+    @media (max-width: 540px) {
+      .app {
+        margin: 12px;
+      }
+      .brand-line-main {
+        font-size: 18px;
+      }
+      .brand-line-sub {
+        font-size: 10px;
+      }
+      .cell {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="brand">
+        <div class="brand-line-top">Camcookie Games</div>
+        <div class="brand-line-main">Sudoku</div>
+        <div class="brand-line-sub">Logic Grid – V1</div>
+      </div>
+      <div class="controls">
+        <div class="difficulty-label">Difficulty</div>
+        <select id="difficulty">
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+        <button class="btn" id="generateButton">Generate</button>
+      </div>
+    </div>
+
+    <div class="top-row">
+      <div class="highlight-toggle-label">Highlight tools</div>
+      <button class="btn small" id="toggleHighlightTools">Show</button>
+      <button class="btn small" id="toggleAutoHighlight">Auto Highlight: ON</button>
+    </div>
+
+    <div class="highlight-toolbar-wrapper">
+      <div class="highlight-toolbar" id="highlightToolbar">
+        <button class="hl-btn hl-red" data-color="red">Red</button>
+        <button class="hl-btn hl-blue" data-color="blue">Blue</button>
+        <button class="hl-btn hl-green" data-color="green">Green</button>
+        <button class="hl-btn hl-clear" data-color="clear">Clear</button>
+      </div>
+    </div>
+
+    <div class="grid-wrapper">
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="footer">
+      <div>Offline | JS Only</div>
+      <div class="status" id="status">Ready</div>
+    </div>
+  </div>
+
+  <script>
+    const gridElement = document.getElementById("grid");
+    const statusElement = document.getElementById("status");
+    const difficultySelect = document.getElementById("difficulty");
+    const generateButton = document.getElementById("generateButton");
+    const highlightToolbar = document.getElementById("highlightToolbar");
+    const toggleHighlightToolsBtn = document.getElementById("toggleHighlightTools");
+    let autoHighlightEnabled = true;
+const toggleAutoHighlightBtn = document.getElementById("toggleAutoHighlight");
+
+toggleAutoHighlightBtn.addEventListener("click", () => {
+  autoHighlightEnabled = !autoHighlightEnabled;
+
+  toggleAutoHighlightBtn.textContent =
+    autoHighlightEnabled ? "Auto Highlight: ON" : "Auto Highlight: OFF";
+
+  // Clear any existing auto highlights
+  clearHighlights();
+});
+
+    const SIZE = 9;
+
+    function createGridCells() {
+      gridElement.innerHTML = "";
+      for (let row = 0; row < SIZE; row++) {
+        for (let col = 0; col < SIZE; col++) {
+          const cell = document.createElement("div");
+          cell.classList.add("cell");
+          if (row % 3 === 0) cell.dataset.topBlock = "true";
+          if (col % 3 === 0) cell.dataset.leftBlock = "true";
+          if (col === SIZE - 1) cell.dataset.rightBlock = "true";
+          if (row === SIZE - 1) cell.dataset.bottomBlock = "true";
+          gridElement.appendChild(cell);
+        }
+      }
+    }
+
+    createGridCells();
+
+    function emptyBoard() {
+      return Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function isSafe(board, row, col, num) {
+      for (let i = 0; i < SIZE; i++) {
+        if (board[row][i] === num || board[i][col] === num) return false;
+      }
+      const br = row - (row % 3);
+      const bc = col - (col % 3);
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 3; c++) {
+          if (board[br + r][bc + c] === num) return false;
+        }
+      }
+      return true;
+    }
+
+    function fillBoard(board) {
+      for (let row = 0; row < SIZE; row++) {
+        for (let col = 0; col < SIZE; col++) {
+          if (board[row][col] === 0) {
+            const nums = shuffle([1,2,3,4,5,6,7,8,9]);
+            for (const num of nums) {
+              if (isSafe(board, row, col, num)) {
+                board[row][col] = num;
+                if (fillBoard(board)) return true;
+                board[row][col] = 0;
+              }
+            }
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    function countSolutions(board) {
+      let count = 0;
+
+      function solve() {
+        for (let row = 0; row < SIZE; row++) {
+          for (let col = 0; col < SIZE; col++) {
+            if (board[row][col] === 0) {
+              for (let num = 1; num <= 9; num++) {
+                if (isSafe(board, row, col, num)) {
+                  board[row][col] = num;
+                  solve();
+                  board[row][col] = 0;
+                  if (count > 1) return;
+                }
+              }
+              return;
+            }
+          }
+        }
+        count++;
+      }
+
+      solve();
+      return count;
+    }
+
+    function createPuzzle(solution, difficulty) {
+      const puzzle = solution.map(r => r.slice());
+      let removals =
+        difficulty === "easy"   ? 40 :
+        difficulty === "medium" ? 50 :
+        55;
+
+      const cells = [];
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) cells.push({r,c});
+      }
+      shuffle(cells);
+
+      let removed = 0;
+      for (const {r,c} of cells) {
+        if (removed >= removals) break;
+        const backup = puzzle[r][c];
+        puzzle[r][c] = 0;
+
+        const copy = puzzle.map(row => row.slice());
+        if (countSolutions(copy) !== 1) {
+          puzzle[r][c] = backup;
+        } else {
+          removed++;
+        }
+      }
+
+      return puzzle;
+    }
+
+    // Sudoku row/column/box highlighting
+    function clearHighlights() {
+      document.querySelectorAll(".cell").forEach(c => {
+        c.classList.remove("highlight", "selected", "same-number");
+      });
+    }
+
+    function highlightCell(row, col, value) {
+      clearHighlights();
+      const cells = gridElement.querySelectorAll(".cell");
+      let index = 0;
+
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          const cell = cells[index++];
+          const cellValue = cell.textContent.trim() || cell.querySelector("input")?.value || "";
+
+          if (r === row || c === col ||
+              (Math.floor(r/3) === Math.floor(row/3) &&
+               Math.floor(c/3) === Math.floor(col/3))) {
+            cell.classList.add("highlight");
+          }
+
+          if (value && cellValue === value) {
+            cell.classList.add("same-number");
+          }
+
+          if (r === row && c === col) {
+            cell.classList.add("selected");
+          }
+        }
+      }
+    }
+
+    // Manual highlight tools
+    let highlightMode = null;
+    let highlightToolsVisible = false;
+
+    toggleHighlightToolsBtn.addEventListener("click", () => {
+      highlightToolsVisible = !highlightToolsVisible;
+      if (highlightToolsVisible) {
+        highlightToolbar.classList.add("visible");
+        toggleHighlightToolsBtn.textContent = "Hide";
+      } else {
+        highlightToolbar.classList.remove("visible");
+        toggleHighlightToolsBtn.textContent = "Show";
+        highlightMode = null;
+        document.querySelectorAll(".hl-btn").forEach(b => b.classList.remove("hl-active"));
+      }
+    });
+
+    document.querySelectorAll(".hl-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".hl-btn").forEach(b => b.classList.remove("hl-active"));
+        const color = btn.dataset.color;
+
+        if (color === "clear") {
+          highlightMode = "clear";
+          btn.classList.add("hl-active");
+          return;
+        }
+
+        highlightMode = color;
+        btn.classList.add("hl-active");
+      });
+    });
+
+    function renderBoard(board) {
+      const cells = gridElement.querySelectorAll(".cell");
+      let index = 0;
+
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          const cell = cells[index++];
+          cell.innerHTML = "";
+          cell.classList.remove("empty", "hl-red", "hl-blue", "hl-green");
+
+          const value = board[r][c];
+
+          if (value === 0) {
+            const input = document.createElement("input");
+            input.type = "text";
+            input.maxLength = 1;
+            input.classList.add("play-input");
+
+            input.addEventListener("input", () => {
+              if (!/^[1-9]$/.test(input.value)) input.value = "";
+              checkWin();
+            });
+
+            cell.appendChild(input);
+            cell.classList.add("empty");
+          } else {
+            cell.textContent = value;
+          }
+
+          cell.onclick = () => {
+            const fixed = cell.textContent.trim();
+            const input = cell.querySelector("input");
+            const cellValue = fixed || input?.value || "";
+            if (autoHighlightEnabled) {
+  highlightCell(r, c, cellValue);
+} else {
+  clearHighlights(); // remove auto tinting
+}
+
+            // Only allow manual color highlight when tools are visible
+            if (highlightToolsVisible && highlightMode) {
+              cell.classList.remove("hl-red", "hl-blue", "hl-green");
+              if (highlightMode === "red")   cell.classList.add("hl-red");
+              if (highlightMode === "blue")  cell.classList.add("hl-blue");
+              if (highlightMode === "green") cell.classList.add("hl-green");
+              if (highlightMode === "clear") {
+                // highlight classes already removed above
+              }
+            }
+          };
+        }
+      }
+    }
+
+    function checkWin() {
+      const cells = gridElement.querySelectorAll(".cell");
+      let idx = 0;
+      const board = [];
+
+      for (let r = 0; r < SIZE; r++) {
+        board[r] = [];
+        for (let c = 0; c < SIZE; c++) {
+          const cell = cells[idx++];
+          const fixed = cell.textContent.trim();
+          const input = cell.querySelector("input");
+          const value = fixed !== "" ? Number(fixed) : Number(input?.value || 0);
+          if (!value) {
+            statusElement.textContent = "Keep going…";
+            return;
+          }
+          board[r][c] = value;
+        }
+      }
+
+      function valid(arr) {
+        return new Set(arr).size === 9;
+      }
+
+      for (let i = 0; i < SIZE; i++) {
+        if (!valid(board[i])) return;
+        if (!valid(board.map(r => r[i]))) return;
+      }
+
+      for (let br = 0; br < 3; br++) {
+        for (let bc = 0; bc < 3; bc++) {
+          const box = [];
+          for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 3; c++) {
+              box.push(board[br*3+r][bc*3+c]);
+            }
+          }
+          if (!valid(box)) return;
+        }
+      }
+
+      statusElement.textContent = "Solved — great job!";
+    }
+
+    function generateSudoku() {
+      statusElement.textContent = "Generating…";
+      setTimeout(() => {
+        const board = emptyBoard();
+        fillBoard(board);
+        const puzzle = createPuzzle(board, difficultySelect.value);
+        renderBoard(puzzle);
+        statusElement.textContent = "Puzzle ready";
+      }, 30);
+    }
+
+    generateButton.addEventListener("click", generateSudoku);
+    generateSudoku();
+  </script>
+</body>
+</html>

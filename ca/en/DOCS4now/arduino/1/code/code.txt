@@ -1,0 +1,303 @@
+// Camcookie Security System v4
+// Remote control + more sensitive + dashboard-ready
+// Sensors: HC-SR04 ultrasonic + LDR
+// Outputs: Buzzer + LEDs
+// Input: Arm/Disarm button + Serial commands
+
+// ---------------- Pin Definitions ----------------
+const int PIN_TRIG = 8;
+const int PIN_ECHO = 9;
+
+const int PIN_LDR = A0;
+
+const int PIN_BTN = 2; // Arm/Disarm button (INPUT_PULLUP)
+
+const int PIN_BUZZER = 6;
+
+const int PIN_LED_ARMED = 10; // Green LED
+const int PIN_LED_ALARM = 11; // Red LED
+
+// ---------------- System States ----------------
+enum State {
+  DISARMED,
+  ARMING,
+  ARMED,
+  ALARM
+};
+
+State state = DISARMED;
+unsigned long stateStart = 0;
+
+// ---------------- Config ----------------
+const unsigned long ARMING_DELAY = 3000; // faster arming
+const unsigned long DISARM_HOLD = 1500;  // faster disarm
+
+// More sensitive detection
+float baselineDist = 0;
+const float DIST_THRESHOLD = 25.0; // more sensitive
+int motionHits = 0;
+const int MOTION_REQUIRED = 2;
+
+int baselineLDR = 0;
+const int LDR_THRESHOLD = 120; // more sensitive
+int lightHits = 0;
+const int LIGHT_REQUIRED = 2;
+
+// Timing
+unsigned long lastUltra = 0;
+unsigned long lastLDR = 0;
+unsigned long lastBlink = 0;
+
+// ---------------- Utility Functions ----------------
+float readUltrasonicRaw() {
+  digitalWrite(PIN_TRIG, LOW);
+  delayMicroseconds(2);
+  digitalWrite(PIN_TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(PIN_TRIG, LOW);
+
+  long duration = pulseIn(PIN_ECHO, HIGH, 40000);
+  if (duration == 0) return -1;
+
+  return duration / 58.0;
+}
+
+float smoothUltrasonic() {
+  float total = 0;
+  int count = 0;
+
+  for (int i = 0; i < 5; i++) {
+    float d = readUltrasonicRaw();
+    if (d > 0) {
+      total += d;
+      count++;
+    }
+    delay(5);
+  }
+
+  if (count == 0) return -1;
+  return total / count;
+}
+
+int smoothLDR() {
+  long total = 0;
+  for (int i = 0; i < 5; i++) {
+    total += analogRead(PIN_LDR);
+    delay(3);
+  }
+  return total / 5;
+}
+
+void beep(int ms, int freq = 2000) {
+  tone(PIN_BUZZER, freq, ms);
+}
+
+void setState(State newState, const char* reason = "") {
+  state = newState;
+  stateStart = millis();
+
+  Serial.print("{\"event\":\"STATE_CHANGE\",\"state\":\"");
+  switch (state) {
+    case DISARMED: Serial.print("DISARMED"); break;
+    case ARMING:   Serial.print("ARMING"); break;
+    case ARMED:    Serial.print("ARMED"); break;
+    case ALARM:    Serial.print("ALARM"); break;
+  }
+  Serial.print("\",\"reason\":\"");
+  Serial.print(reason);
+  Serial.println("\"}");
+}
+
+// ---------------- Setup ----------------
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(PIN_TRIG, OUTPUT);
+  pinMode(PIN_ECHO, INPUT);
+
+  pinMode(PIN_LDR, INPUT);
+
+  pinMode(PIN_BTN, INPUT_PULLUP);
+
+  pinMode(PIN_BUZZER, OUTPUT);
+
+  pinMode(PIN_LED_ARMED, OUTPUT);
+  pinMode(PIN_LED_ALARM, OUTPUT);
+
+  digitalWrite(PIN_LED_ARMED, LOW);
+  digitalWrite(PIN_LED_ALARM, LOW);
+
+  Serial.println("{\"event\":\"BOOT\",\"msg\":\"Camcookie Security System v4 Ready\"}");
+  setState(DISARMED);
+}
+
+// ---------------- Remote Command Handling ----------------
+void handleCommand(String cmd) {
+  cmd.trim();
+
+  if (cmd == "ARM") {
+    setState(ARMING, "remote");
+    beep(80);
+    baselineDist = smoothUltrasonic();
+    baselineLDR = smoothLDR();
+  }
+else if (cmd == "TOGGLE_LIGHT") {
+    static bool lightOn = false;
+    lightOn = !lightOn;
+
+    digitalWrite(PIN_LED_ARMED, lightOn ? HIGH : LOW);
+
+    Serial.print("{\"event\":\"LIGHT_TOGGLED\",\"on\":");
+    Serial.print(lightOn ? "true" : "false");
+    Serial.println("}");
+}
+  else if (cmd == "DISARM") {
+    setState(DISARMED, "remote");
+    beep(120, 1200);
+  }
+
+  else if (cmd == "TRIGGER") {
+    setState(ALARM, "remote_trigger");
+    beep(200, 2500);
+  }
+
+  else if (cmd == "RESET") {
+    setState(DISARMED, "reset_remote");
+    beep(120, 1200);
+  }
+
+  else if (cmd == "SILENT") {
+    noTone(PIN_BUZZER);
+  }
+
+  else if (cmd == "STATUS") {
+    Serial.print("{\"state\":\"");
+    switch (state) {
+      case DISARMED: Serial.print("DISARMED"); break;
+      case ARMING:   Serial.print("ARMING"); break;
+      case ARMED:    Serial.print("ARMED"); break;
+      case ALARM:    Serial.print("ALARM"); break;
+    }
+    Serial.println("\"}");
+  }
+}
+
+// ---------------- Button Handling ----------------
+bool buttonPressed() {
+  return digitalRead(PIN_BTN) == LOW;
+}
+
+// ---------------- State Logic ----------------
+void loopDisarmed() {
+  digitalWrite(PIN_LED_ARMED, LOW);
+  digitalWrite(PIN_LED_ALARM, LOW);
+
+  float dist = smoothUltrasonic();
+  int ldr = smoothLDR();
+
+  Serial.print("{\"state\":\"DISARMED\",\"dist\":");
+  Serial.print(dist);
+  Serial.print(",\"ldr\":");
+  Serial.print(ldr);
+  Serial.println(",\"alarm\":false}");
+
+  if (buttonPressed()) {
+    setState(ARMING, "button");
+    beep(80);
+    baselineDist = smoothUltrasonic();
+    baselineLDR = smoothLDR();
+  }
+}
+
+void loopArming() {
+  unsigned long now = millis();
+
+  if ((now / 300) % 2 == 0) digitalWrite(PIN_LED_ARMED, HIGH);
+  else digitalWrite(PIN_LED_ARMED, LOW);
+
+  if (now - stateStart >= ARMING_DELAY) {
+    setState(ARMED, "armed");
+    beep(100);
+    beep(100);
+  }
+}
+
+void loopArmed() {
+  digitalWrite(PIN_LED_ARMED, HIGH);
+  digitalWrite(PIN_LED_ALARM, LOW);
+
+  unsigned long now = millis();
+
+  if (buttonPressed() && (now - stateStart >= DISARM_HOLD)) {
+    setState(DISARMED, "disarm_button");
+    beep(150, 1200);
+    return;
+  }
+
+  float d = smoothUltrasonic();
+  int l = smoothLDR();
+
+  Serial.print("{\"state\":\"ARMED\",\"dist\":");
+  Serial.print(d);
+  Serial.print(",\"ldr\":");
+  Serial.print(l);
+  Serial.println(",\"alarm\":false}");
+
+  if (d > 0 && abs(d - baselineDist) > DIST_THRESHOLD) {
+    motionHits++;
+  } else motionHits = 0;
+
+  if (motionHits >= MOTION_REQUIRED) {
+    setState(ALARM, "motion");
+    beep(200, 2500);
+    return;
+  }
+
+  if (abs(l - baselineLDR) > LDR_THRESHOLD) {
+    lightHits++;
+  } else lightHits = 0;
+
+  if (lightHits >= LIGHT_REQUIRED) {
+    setState(ALARM, "light");
+    beep(200, 2500);
+    return;
+  }
+}
+
+void loopAlarm() {
+  unsigned long now = millis();
+
+  if ((now / 200) % 2 == 0) digitalWrite(PIN_LED_ALARM, HIGH);
+  else digitalWrite(PIN_LED_ALARM, LOW);
+
+  if ((now / 500) % 2 == 0) beep(200, 2200);
+
+  float d = smoothUltrasonic();
+  int l = smoothLDR();
+
+  Serial.print("{\"state\":\"ALARM\",\"dist\":");
+  Serial.print(d);
+  Serial.print(",\"ldr\":");
+  Serial.print(l);
+  Serial.println(",\"alarm\":true}");
+
+  if (buttonPressed() && (now - stateStart >= DISARM_HOLD)) {
+    setState(DISARMED, "reset_button");
+    beep(150, 1200);
+  }
+}
+
+// ---------------- Main Loop ----------------
+void loop() {
+  if (Serial.available()) {
+    String cmd = Serial.readStringUntil('\n');
+    handleCommand(cmd);
+  }
+
+  switch (state) {
+    case DISARMED: loopDisarmed(); break;
+    case ARMING:   loopArming(); break;
+    case ARMED:    loopArmed(); break;
+    case ALARM:    loopAlarm(); break;
+  }
+}

@@ -1,0 +1,50 @@
+HTML
+<html lang="en">
+<head>
+<link href="/us/es/logo.png" rel="icon"/>
+<meta charset="utf-8"/>
+<title>Inicio - Ember</title>
+<link href="/us/es/styles.css" rel="stylesheet"/>
+<meta content="Ember — a clean, fast, independent search engine." name="description"/>
+</head>
+<body>
+ Su JS de barra superior existente 
+<script src="/us/es/script.js"></script>
+<noscript>
+<div style="background: #ffe6e6; border: 2px solid #ff4444; border-radius: 12px; padding: 16px; margin: 20px auto; max-width: 600px; text-align: center;">
+<h3 style="color: #cc0000; margin: 0 0 8px;">JavaScript requerido</h3>
+<p style="margin: 0; color: #333;">Este sitio requiere JavaScript para la navegación y la búsqueda. </p>
+</div>
+</noscript>
+<main class="content">
+ HÉROE 
+<section class="hero">
+<h1 class="header">ASCUA</h1>
+<p>Tu motor de búsqueda rápido e independiente creado por Camcookie.</p>
+<p>.</p>
+ BARRA DE BÚSQUEDA DE BRAZAS 
+<div class="ember-search-wrapper">
+<form class="ember-search-box" id="emberSearchForm">
+<input autocomplete="off" class="ember-search-input" id="emberQuery" placeholder="Buscar ascua…" required="" type="text"/>
+<button class="ember-search-btn" type="submit">Buscar</button>
+</form>
+</div>
+</section>
+</main>
+ PIE DE PÁGINA 
+<footer class="footer">
+<p>Búsqueda de ascuas • Prototipo</p>
+</footer>
+ EMBER BÚSQUEDA JS 
+<script>
+document.getElementById("emberSearchForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  const q = document.getElementById("emberQuery").value.trim();
+  if (!q) return;
+
+  // Redirect to your search results page
+  window.location.href = "results/?q=" + encodeURIComponent(q);
+});
+</script>
+</body>
+</html>

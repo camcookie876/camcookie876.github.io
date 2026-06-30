@@ -1,0 +1,24 @@
+---
+
+HTML
+<html lang="en">
+<head>
+<link href="/ca/fr/logo.png" rel="icon"/>
+<meta charset="utf-8"/>
+<title>404 - Camcookie</title>
+<meta content="Page not found. Use the site navigation or search to find the page you need." name="description"/>
+<link href="/ca/fr/styles.css" rel="stylesheet"/>
+</head>
+<body>
+<script src="/ca/fr/script.js"></script>
+<center><h1 class="header">404</h1></center>
+<div class="content">
+<p>Désolé, cette page est introuvable.</p>
+<p>Vous avez essayé de visiter : <div id="url"></div></p>
+<a class="links" href="/ca/fr/">Retour à la maison</a>
+</div>
+<script>
+  document.getElementById('url').textContent = window.location.href;
+  </script>
+</body>
+</html>

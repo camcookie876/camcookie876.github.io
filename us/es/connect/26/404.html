@@ -1,0 +1,22 @@
+HTML
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>404 - Conectar 26</title>
+<style>
+    body{margin:0;font-family:system-ui;background:#eef3ff;color:#0f172a;display:grid;place-items:center;min-height:100vh}
+    .card{background:#fff;border:1px solid #dbe4ff;border-radius:16px;padding:24px;max-width:560px;box-shadow:0 14px 30px rgba(37,99,235,.16)}
+    a{color:#1d4ed8;font-weight:700;text-decoration:none}
+  </style>
+</head>
+<body>
+<div class="card">
+<h1>404 - Página no encontrada</h1>
+<p>Esa página de Connect 26 no existe.</p>
+<p><strong>URL solicitada:</strong> <span id="url"></span></p>
+<p><a href="/connect/26/">Ir a Connect 26 Iniciar sesión</a> · <a href="/connect/">Ir a Conectar Inicio</a></p>
+</div>
+<script>document.getElementById('url').textContent = window.location.href;</script>
+</body>
+</html>
