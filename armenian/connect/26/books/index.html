@@ -1,0 +1,1960 @@
+html
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Գրքեր - Camcookie Connect 26</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/armenian/connect/26/cc-auth.js"></script>
+<script src="/armenian/connect/26/cc-friends.js"></script>
+<script src="/armenian/connect/26/cc-topbar.js"></script>
+<script src="/armenian/connect/26/cc-icons.js"></script>
+<style>
+    :root {
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --cyan: #06b6d4;
+      --bg: #eef3ff;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #dbe4ff;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --radius: 16px;
+      --shadow: 0 14px 30px rgba(37, 99, 235, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: radial-gradient(circle at top right, #dbeafe, #f8fbff 45%, #eef2ff 100%);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      width: 420px;
+      height: 420px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.25), rgba(37, 99, 235, 0));
+      pointer-events: none;
+      z-index: -1;
+      animation: drift 20s ease-in-out infinite;
+    }
+
+    body::before { top: -140px; right: -110px; }
+    body::after { bottom: -160px; left: -120px; animation-delay: -8s; }
+
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(16px, -14px) scale(1.05); }
+    }
+
+    .hidden { display: none !important; }
+    .muted { color: var(--muted); }
+
+    input, textarea, button { font: inherit; }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 140px;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease;
+    }
+
+    button:hover { background: var(--blue-dark); transform: translateY(-1px); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    button.secondary {
+      background: #fff;
+      color: var(--blue-dark);
+      border: 1px solid var(--blue);
+    }
+
+    button.ghost {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    #loadingScreen, #errorView {
+      min-height: 100vh;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .panel {
+      width: min(520px, 100%);
+      text-align: left;
+      animation: rise .3s ease;
+    }
+
+    @keyframes rise {
+      from { opacity: .5; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .spinner {
+      width: 42px;
+      height: 42px;
+      border: 4px solid #bfdbfe;
+      border-top-color: var(--blue);
+      border-radius: 999px;
+      animation: spin .9s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #appShell {
+      display: none;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    #topbar {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding: 10px 18px;
+      background: var(--blue);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand { font-weight: 800; letter-spacing: .02em; }
+
+    .top-nav {
+      display: flex;
+      gap: 6px;
+      margin-left: 12px;
+      flex-wrap: wrap;
+    }
+
+    .top-nav button {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, .55);
+      border-radius: 999px;
+      color: #fff;
+      font-size: .9rem;
+      padding: 6px 11px;
+    }
+
+    .top-nav button.active {
+      background: #fff;
+      color: var(--blue-dark);
+      border-color: #fff;
+    }
+
+    .top-nav button.secondary {
+      background: rgba(255,255,255,.14);
+      color: #fff;
+      border-color: rgba(255,255,255,.6);
+    }
+
+    .top-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      position: relative;
+      min-width: 220px;
+      max-width: 360px;
+      flex: 1;
+    }
+
+    .search-wrap input {
+      padding-left: 30px;
+      padding-right: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.7);
+      background: rgba(255,255,255,.12);
+      color: #fff;
+    }
+
+    .search-wrap input::placeholder { color: rgba(255,255,255,.8); }
+
+    .search-wrap input:focus {
+      background: #fff;
+      color: var(--text);
+      border-color: #fff;
+      box-shadow: 0 0 0 2px rgba(15,23,42,.15);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: .8rem;
+      opacity: .8;
+    }
+
+    #main {
+      width: min(1240px, 100%);
+      margin: 0 auto;
+      padding: 18px;
+      flex: 1;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.6fr);
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .view { display: none; }
+    .view.active { display: block; animation: fade .2s ease; }
+    @keyframes fade { from { opacity: .5; } to { opacity: 1; } }
+
+    .section-title {
+      margin: 0 0 6px;
+      font-size: 1.1rem;
+    }
+
+    .story-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .story-card {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      padding: 10px 12px;
+      cursor: pointer;
+      text-align: left;
+      transition: border-color .15s ease, background .15s ease, transform .12s ease;
+    }
+
+    .story-card:hover {
+      border-color: var(--blue);
+      background: #f8fbff;
+      transform: translateY(-1px);
+    }
+
+    .story-card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: baseline;
+    }
+
+    .story-title {
+      font-weight: 600;
+      font-size: .98rem;
+    }
+
+    .story-meta {
+      font-size: .8rem;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .tag-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: var(--blue-dark);
+      font-size: .75rem;
+      margin-right: 4px;
+      margin-top: 2px;
+    }
+
+    .story-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .story-actions button {
+      font-size: .8rem;
+      padding: 5px 9px;
+      border-radius: 999px;
+    }
+
+    .reader-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .reader-header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+    }
+
+    .reader-title {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .reader-meta {
+      font-size: .85rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .reader-tags {
+      margin-top: 6px;
+    }
+
+    .reader-summary {
+      font-size: .9rem;
+      color: var(--text);
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+
+    .chapter-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      font-size: .85rem;
+    }
+
+    .chapter-nav select {
+      width: auto;
+      min-width: 120px;
+      padding: 6px 8px;
+      font-size: .85rem;
+    }
+
+    .chapter-body {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid var(--border);
+      font-size: .95rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .reader-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+      margin-top: 4px;
+    }
+
+    .reader-toolbar button {
+      font-size: .8rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+
+    .editor-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .editor-section h4 {
+      margin: 0 0 4px;
+      font-size: .9rem;
+    }
+
+    .editor-section small {
+      font-size: .75rem;
+      color: var(--muted);
+    }
+
+    .chapter-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 220px;
+      overflow-y: auto;
+      margin-top: 6px;
+    }
+
+    .chapter-item {
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #f9fafb;
+      padding: 6px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: .85rem;
+      cursor: pointer;
+    }
+
+    .chapter-item.active {
+      border-color: var(--blue);
+      background: #eff6ff;
+    }
+
+    .chapter-item span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 180px;
+    }
+
+    .chapter-item button {
+      font-size: .75rem;
+      padding: 3px 7px;
+      border-radius: 999px;
+    }
+
+    .comment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      margin-top: 6px;
+    }
+
+    .comment {
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #f9fafb;
+      padding: 6px 8px;
+      font-size: .85rem;
+    }
+
+    .comment-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: .75rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .comment-body {
+      white-space: pre-wrap;
+    }
+
+    .bookmark-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #dcfce7;
+      color: #166534;
+      font-size: .75rem;
+      margin-left: 4px;
+    }
+
+    #popup {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(30px);
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s ease;
+      z-index: 999;
+      background: var(--blue);
+      color: #fff;
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 8px 18px rgba(37,99,235,.35);
+    }
+
+    #popup.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    #modalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 998;
+    }
+
+    #modal {
+      width: min(420px, 100%);
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    #modalTitle { margin-top: 0; margin-bottom: 8px; }
+    #modalBody { display: grid; gap: 8px; margin-bottom: 12px; }
+    #modalActions { display: flex; justify-content: flex-end; gap: 8px; }
+
+    footer {
+      padding: 12px 18px 18px;
+      text-align: center;
+      font-size: .85rem;
+      color: var(--muted);
+    }
+
+    footer a {
+      color: var(--blue-dark);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .editor-grid { grid-template-columns: 1fr; }
+      .topbar-search { width: 100%; }
+      .search-wrap { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+ Բեռնվում է 
+<div id="loadingScreen">
+<div class="panel card">
+<div class="spinner"></div>
+<h2>Camcookie գրքերի բեռնում…</h2>
+<p class="muted">Ստուգելով ձեր մուտքը և ձեր գրադարանը վերցնելը:</p>
+</div>
+</div>
+ Սխալ 
+<div class="hidden" id="errorView">
+<div class="panel card">
+<h2>Սխալ առաջացավ</h2>
+<p class="muted" id="errorText"></p>
+</div>
+</div>
+ App Shell 
+<div id="appShell">
+<div id="topbar"></div>
+<div id="main">
+<div class="layout">
+ ՁԱԽ. Պատմությունների ցանկ + զտիչներ 
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+<h3 class="section-title">Աշխատանքներ</h3><h1>Գրքերն այս պահին չեն աշխատում:</h1>
+<div style="display:flex;gap:6px;flex-wrap:wrap;">
+<button id="newStoryBtn">Նոր աշխատանք</button>
+<button class="secondary" id="clearSearchBtn">Մաքրել որոնումը</button>
+</div>
+</div>
+<p class="muted" style="font-size:.8rem;margin-bottom:8px;">
+            Զննեք ձեր և այլոց աշխատանքները: 
+          </p>
+<div class="story-list" id="storyList"></div>
+</div>
+ ԱՋ՝ Ընթերցող / Խմբագիր 
+<div class="card reader-card">
+ Ընթերցողի դիտում 
+<div id="readerView">
+<div class="reader-header">
+<h2 class="reader-title" id="readerTitle">Աշխատանք ընտրված չէ</h2>
+<div class="reader-meta" id="readerMeta"></div>
+<div class="reader-tags" id="readerTags"></div>
+</div>
+<div class="reader-summary hidden" id="readerSummaryWrap"></div>
+<div style="margin-top:8px;">
+<div class="chapter-nav">
+<span style="font-weight:600;font-size:.85rem;">Գլուխներ</span>
+<select id="chapterSelect"></select>
+<span class="muted" id="chapterCountLabel"></span>
+</div>
+<div class="chapter-body" id="chapterBody">
+<span class="muted" style="font-size:.9rem;">Ընտրեք ստեղծագործություն կամ ստեղծեք նորը, որպեսզի սկսեք կարդալ:</span>
+</div>
+</div>
+<div class="reader-toolbar">
+<button class="secondary" id="bookmarkBtn">Էջանիշ</button>
+<button class="secondary" id="shareCodeBtn">Համօգտագործեք կոդը</button>
+<button class="secondary" id="shareLinkBtn">Պատճենել հղումը</button>
+<button id="editStoryBtn">Խմբագրել</button>
+<button class="secondary" id="deleteStoryBtn" style="border-color:var(--danger);color:var(--danger);">Ջնջել</button>
+</div>
+<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:8px;">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+<h4 style="margin:0;font-size:.95rem;">Մեկնաբանություններ</h4>
+<button class="secondary" id="addCommentBtn" style="font-size:.8rem;padding:5px 9px;border-radius:999px;">Ավելացնել մեկնաբանություն</button>
+</div>
+<div class="comment-list" id="commentList"></div>
+</div>
+</div>
+ Խմբագրի տեսք 
+<div class="hidden" id="editorView">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+<h3 class="section-title" id="editorTitleLabel">Նոր աշխատանք</h3>
+<div style="display:flex;gap:6px;flex-wrap:wrap;">
+<button class="secondary" id="cancelEditBtn">Չեղարկել</button>
+<button id="saveStoryBtn">Պահպանել</button>
+</div>
+</div>
+<div class="editor-grid">
+<div class="editor-section">
+<h4>Աշխատանքային մանրամասներ</h4>
+<small>Այս աշխատանքի վերնագիր, ամփոփում և պիտակներ:</small>
+<div style="margin-top:6px;display:grid;gap:6px;">
+<div>
+<label style="font-size:.8rem;">Վերնագիր</label>
+<input id="editTitleInput" placeholder="Աշխատանքի անվանումը"/>
+</div>
+<div>
+<label style="font-size:.8rem;">Ամփոփում</label>
+<textarea id="editSummaryInput" placeholder="Աշխատանքի համառոտ ամփոփում"></textarea>
+</div>
+<div>
+<label style="font-size:.8rem;">Պիտակներ</label>
+<input id="editTagsInput" placeholder="Ստորակետերով բաժանված պիտակներ (օրինակ՝ ֆանտազիա, դանդաղ այրում, բմբուլ)"/>
+</div>
+</div>
+</div>
+<div class="editor-section">
+<h4>Գլուխներ</h4>
+<small>Կառավարեք այս աշխատանքի գլուխները:</small>
+<div style="margin-top:6px;">
+<div class="chapter-list" id="editorChapterList"></div>
+<button class="secondary" id="addChapterBtn" style="margin-top:6px;font-size:.8rem;padding:5px 9px;border-radius:999px;">Ավելացնել գլուխ</button>
+</div>
+</div>
+</div>
+<div style="margin-top:10px;">
+<h4 style="margin:0 0 4px;font-size:.9rem;">Գլուխ խմբագիր</h4>
+<small class="muted" id="currentChapterLabel">Ոչ մի գլուխ ընտրված չէ:</small>
+<div style="margin-top:6px;display:grid;gap:6px;">
+<input id="editChapterTitleInput" placeholder="Գլխի վերնագիր"/>
+<textarea id="editChapterContentInput" placeholder="Գլխի բովանդակությունը"></textarea>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<footer>
+<a href="/armenian/connect/26/terms" target="_blank">Պայմաններ և դրույթներ</a>
+</footer>
+</div>
+ Տոստի ելնող պատուհան 
+<div id="popup"></div>
+ Մոդալ 
+<div id="modalOverlay">
+<div id="modal">
+<h3 id="modalTitle"></h3>
+<div id="modalBody"></div>
+<div id="modalActions">
+<button class="secondary" id="modalCancelBtn">Չեղարկել</button>
+<button id="modalOkBtn">Լավ</button>
+</div>
+</div>
+</div>
+<script>
+    const SUPABASE_URL = "https://uexubxzlmyjuktgeqfsf.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVleHVieHpsbXlqdWt0Z2VxZnNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MzUxODYsImV4cCI6MjA5MjIxMTE4Nn0.yuWkhA7b21uL2BGVn5zij6fSiBWQdCGXwevZyJN5EDE";
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function $(id){ return document.getElementById(id); }
+
+    let currentUser = null;
+    let currentKey = null;
+
+    let stories = [];
+    let currentStory = null;
+    let currentChapters = [];
+    let currentChapter = null;
+    let currentComments = [];
+    let currentBookmarks = [];
+    let storyRealtimeChannel = null;
+
+    let editorMode = "create"; // "create" | "edit"
+    let editorStoryId = null;
+    let editorChapters = [];
+    let editorCurrentChapterIndex = -1;
+
+    function getParams() {
+      const p = new URLSearchParams(window.location.search);
+      return {
+        token: p.get("token"),
+        story: p.get("story")
+      };
+    }
+
+    function popup(msg) {
+      const el = $("popup");
+      el.textContent = msg;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 2200);
+    }
+
+    function showModal(title, bodyHTML, onOk) {
+      $("modalTitle").textContent = title;
+      $("modalBody").innerHTML = bodyHTML;
+      $("modalOverlay").style.display = "flex";
+
+      const okBtn = $("modalOkBtn");
+      const cancelBtn = $("modalCancelBtn");
+
+      const cleanup = () => {
+        $("modalOverlay").style.display = "none";
+        okBtn.onclick = null;
+        cancelBtn.onclick = null;
+      };
+
+      cancelBtn.onclick = cleanup;
+      okBtn.onclick = () => {
+        if (onOk) onOk();
+        cleanup();
+      };
+    }
+
+    async function hashString(str) {
+      const enc = new TextEncoder().encode(str);
+      const buf = await crypto.subtle.digest("SHA-256", enc);
+      return Array.from(new Uint8Array(buf))
+        .map(b => b.toString(16).padStart(2,"0"))
+        .join("");
+    }
+
+    async function encryptString(str, key) { return str; }
+    async function decryptString(str, key) { return str; }
+
+    async function loadUserFromToken(token) {
+      const now = new Date().toISOString();
+
+      const { data, error } = await client
+        .from("tokens")
+        .select("*, users(*)")
+        .eq("token", token)
+        .gt("expires_at", now)
+        .maybeSingle();
+
+      if (error || !data) return null;
+      return data.users;
+    }
+
+    async function requireUser() {
+      const params = getParams();
+
+      if (!params.token) {
+        const q = new URLSearchParams();
+        if (params.story) q.set("story", params.story);
+        window.location.href = "/armenian/connect/26/?" + q.toString();
+        return null;
+      }
+
+      const user = await loadUserFromToken(params.token);
+      if (!user) {
+        const q = new URLSearchParams();
+        if (params.story) q.set("story", params.story);
+        window.location.href = "/armenian/connect/26/?" + q.toString();
+        return null;
+      }
+
+      return user;
+    }
+
+    function generateCode(len) {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let out = "";
+      for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random()*chars.length)];
+      return out;
+    }
+
+    function setReaderMode() {
+      $("readerView").classList.remove("hidden");
+      $("editorView").classList.add("hidden");
+    }
+
+    function setEditorMode() {
+      $("readerView").classList.add("hidden");
+      $("editorView").classList.remove("hidden");
+    }
+
+    function renderStoryList(filterText = "") {
+      const list = $("storyList");
+      list.innerHTML = "";
+
+      const q = filterText.trim().toLowerCase();
+
+      const filtered = stories.filter(s => {
+        if (!q) return true;
+        const haystack = [
+          s.title || "",
+          s.summary || "",
+          s.author_username || "",
+          (s.tags_text || "")
+        ].join(" ").toLowerCase();
+        return haystack.includes(q);
+      });
+
+      if (filtered.length === 0) {
+        list.innerHTML = '<div class="muted" style="font-size:.9rem;">No works found. Try a different search or create a new work.</div>';
+        return;
+      }
+
+      filtered.sort((a,b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at));
+
+      filtered.forEach(story => {
+        const card = document.createElement("div");
+        card.className = "story-card";
+
+        const header = document.createElement("div");
+        header.className = "story-card-header";
+
+        const title = document.createElement("div");
+        title.className = "story-title";
+        title.textContent = story.title || "Untitled work";
+
+        const metaRight = document.createElement("div");
+        metaRight.className = "muted";
+        metaRight.style.fontSize = ".75rem";
+        const isMine = story.author_id === currentUser.id;
+        metaRight.textContent = isMine ? "Yours" : (story.author_username || "Unknown");
+
+        header.appendChild(title);
+        header.appendChild(metaRight);
+
+        const meta = document.createElement("div");
+        meta.className = "story-meta";
+        const updated = story.updated_at || story.created_at;
+        const dateStr = updated ? new Date(updated).toLocaleDateString() : "";
+        meta.innerHTML =
+          `<span>${isMine ? "Author: You" : "Author: " + (story.author_username || "Unknown")}</span>` +
+          (dateStr ? `<span>Updated: ${dateStr}</span>` : "") +
+          (story.chapter_count ? `<span>${story.chapter_count} chapter${story.chapter_count > 1 ? "s" : ""}</span>` : "");
+
+        const tagsWrap = document.createElement("div");
+        if (story.tags && story.tags.length > 0) {
+          story.tags.forEach(t => {
+            const pill = document.createElement("span");
+            pill.className = "tag-pill";
+            pill.textContent = t;
+            tagsWrap.appendChild(pill);
+          });
+        }
+
+        const actions = document.createElement("div");
+        actions.className = "story-actions";
+
+        const openBtn = document.createElement("button");
+        openBtn.className = "secondary";
+        openBtn.textContent = "Open";
+        openBtn.onclick = (e) => {
+          e.stopPropagation();
+          openStory(story);
+        };
+
+        const editBtn = document.createElement("button");
+        editBtn.className = "secondary";
+        editBtn.textContent = "Edit";
+        editBtn.disabled = !isMine;
+        editBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (isMine) startEditStory(story);
+        };
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "secondary";
+        delBtn.style.borderColor = "var(--danger)";
+        delBtn.style.color = "var(--danger)";
+        delBtn.textContent = "Delete";
+        delBtn.disabled = !isMine;
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (isMine) deleteStory(story);
+        };
+
+        actions.appendChild(openBtn);
+        actions.appendChild(editBtn);
+        actions.appendChild(delBtn);
+
+        card.appendChild(header);
+        card.appendChild(meta);
+        if (story.summary) {
+          const summary = document.createElement("div");
+          summary.className = "muted";
+          summary.style.fontSize = ".85rem";
+          summary.style.marginTop = "4px";
+          summary.textContent = story.summary;
+          card.appendChild(summary);
+        }
+        if (tagsWrap.childNodes.length > 0) {
+          tagsWrap.style.marginTop = "4px";
+          card.appendChild(tagsWrap);
+        }
+        card.appendChild(actions);
+
+        card.onclick = () => openStory(story);
+
+        list.appendChild(card);
+      });
+    }
+
+    async function loadStories() {
+      const { data, error } = await client
+        .from("stories")
+        .select("*, author:users(username)")
+        .order("updated_at", { ascending: false });
+
+      if (error) {
+        console.error(error);
+        popup("Failed to load works.");
+        return;
+      }
+
+      stories = (data || []).map(s => ({
+        ...s,
+        author_username: s.author?.username || null
+      }));
+
+      for (const s of stories) {
+        const { count } = await client
+          .from("story_chapters")
+          .select("*", { count: "exact", head: true })
+          .eq("story_id", s.id);
+        s.chapter_count = count || 0;
+
+        const { data: tagRows } = await client
+          .from("story_tags")
+          .select("tags(name)")
+          .eq("story_id", s.id);
+        const tags = (tagRows || []).map(r => r.tags.name);
+        s.tags = tags;
+        s.tags_text = tags.join(" ");
+      }
+
+      await loadBookmarksForUser();
+      renderStoryList($("searchInput").value);
+    }
+
+    async function loadBookmarksForUser() {
+      const { data, error } = await client
+        .from("story_bookmarks")
+        .select("story_id")
+        .eq("user_id", currentUser.id);
+
+      if (error) {
+        console.error(error);
+        currentBookmarks = [];
+        return;
+      }
+      currentBookmarks = data.map(r => r.story_id);
+    }
+
+    function isBookmarked(storyId) {
+      return currentBookmarks.includes(storyId);
+    }
+
+    async function toggleBookmark() {
+      if (!currentStory) return;
+      const storyId = currentStory.id;
+
+      if (isBookmarked(storyId)) {
+        await client
+          .from("story_bookmarks")
+          .delete()
+          .eq("story_id", storyId)
+          .eq("user_id", currentUser.id);
+        currentBookmarks = currentBookmarks.filter(id => id !== storyId);
+        popup("Bookmark removed.");
+      } else {
+        await client
+          .from("story_bookmarks")
+          .insert({
+            story_id: storyId,
+            user_id: currentUser.id
+          });
+        currentBookmarks.push(storyId);
+        popup("Bookmarked.");
+      }
+
+      updateBookmarkButton();
+    }
+
+    function updateBookmarkButton() {
+      if (!currentStory) {
+        $("bookmarkBtn").textContent = "Bookmark";
+        $("bookmarkBtn").classList.remove("secondary");
+        return;
+      }
+      if (isBookmarked(currentStory.id)) {
+        $("bookmarkBtn").textContent = "Bookmarked";
+        $("bookmarkBtn").classList.add("secondary");
+      } else {
+        $("bookmarkBtn").textContent = "Bookmark";
+        $("bookmarkBtn").classList.remove("secondary");
+      }
+    }
+
+    async function openStory(story) {
+      currentStory = story;
+      setReaderMode();
+
+      $("readerTitle").textContent = story.title || "Untitled work";
+      const isMine = story.author_id === currentUser.id;
+      const updated = story.updated_at || story.created_at;
+      const dateStr = updated ? new Date(updated).toLocaleString() : "";
+      $("readerMeta").textContent =
+        (isMine ? "By you" : "By " + (story.author_username || "Unknown")) +
+        (dateStr ? " • Updated " + dateStr : "");
+
+      const tagsWrap = $("readerTags");
+      tagsWrap.innerHTML = "";
+      if (story.tags && story.tags.length > 0) {
+        story.tags.forEach(t => {
+          const pill = document.createElement("span");
+          pill.className = "tag-pill";
+          pill.textContent = t;
+          tagsWrap.appendChild(pill);
+        });
+      }
+
+      if (story.summary) {
+        $("readerSummaryWrap").classList.remove("hidden");
+        $("readerSummaryWrap").textContent = story.summary;
+      } else {
+        $("readerSummaryWrap").classList.add("hidden");
+        $("readerSummaryWrap").textContent = "";
+      }
+
+      $("editStoryBtn").disabled = !isMine;
+      $("deleteStoryBtn").disabled = !isMine;
+
+      await loadChaptersForStory(story.id);
+      await loadCommentsForStory(story.id);
+      await loadBookmarksForUser();
+      updateBookmarkButton();
+      setupStoryRealtime(story.id);
+    }
+
+    async function loadChaptersForStory(storyId) {
+      const { data, error } = await client
+        .from("story_chapters")
+        .select("*")
+        .eq("story_id", storyId)
+        .order("position", { ascending: true });
+
+      if (error) {
+        console.error(error);
+        popup("Failed to load chapters.");
+        return;
+      }
+
+      currentChapters = data || [];
+      const select = $("chapterSelect");
+      select.innerHTML = "";
+
+      if (currentChapters.length === 0) {
+        $("chapterBody").innerHTML = '<span class="muted" style="font-size:.9rem;">No chapters yet.</span>';
+        $("chapterCountLabel").textContent = "";
+        return;
+      }
+
+      currentChapters.forEach(ch => {
+        const opt = document.createElement("option");
+        opt.value = ch.id;
+        opt.textContent = `${ch.position}. ${ch.title || "Untitled chapter"}`;
+        select.appendChild(opt);
+      });
+
+      $("chapterCountLabel").textContent = `${currentChapters.length} chapter${currentChapters.length > 1 ? "s" : ""}`;
+
+      select.onchange = () => {
+        const id = select.value;
+        const ch = currentChapters.find(c => c.id === id);
+        if (ch) renderChapter(ch);
+      };
+
+      renderChapter(currentChapters[0]);
+      select.value = currentChapters[0].id;
+    }
+
+    function renderChapter(chapter) {
+      currentChapter = chapter;
+      $("chapterBody").textContent = chapter.content || "";
+    }
+
+    async function loadCommentsForStory(storyId) {
+      const { data, error } = await client
+        .from("story_comments")
+        .select("*, users(username)")
+        .eq("story_id", storyId)
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        console.error(error);
+        popup("Failed to load comments.");
+        return;
+      }
+
+      currentComments = data || [];
+      const list = $("commentList");
+      list.innerHTML = "";
+
+      if (currentComments.length === 0) {
+        list.innerHTML = '<div class="muted" style="font-size:.85rem;">No comments yet.</div>';
+        return;
+      }
+
+      currentComments.forEach(c => {
+        const div = document.createElement("div");
+        div.className = "comment";
+
+        const header = document.createElement("div");
+        header.className = "comment-header";
+        const author = c.users?.username || "Unknown";
+        const dateStr = new Date(c.created_at).toLocaleString();
+        header.innerHTML = `<span>${author}</span><span>${dateStr}</span>`;
+
+        const body = document.createElement("div");
+        body.className = "comment-body";
+        body.textContent = c.content;
+
+        div.appendChild(header);
+        div.appendChild(body);
+        list.appendChild(div);
+      });
+    }
+
+    async function addComment() {
+      if (!currentStory) {
+        popup("No work selected.");
+        return;
+      }
+
+      showModal(
+        "Add comment",
+        `<textarea id="commentInput" placeholder="Write your comment…"></textarea>`,
+        async () => {
+          const content = $("commentInput").value.trim();
+          if (!content) return;
+
+          await client
+            .from("story_comments")
+            .insert({
+              story_id: currentStory.id,
+              user_id: currentUser.id,
+              content
+            });
+
+          await loadCommentsForStory(currentStory.id);
+          popup("Comment added.");
+        }
+      );
+    }
+
+    function startNewStory() {
+      editorMode = "create";
+      editorStoryId = null;
+      editorChapters = [];
+      editorCurrentChapterIndex = -1;
+
+      $("editorTitleLabel").textContent = "New work";
+      $("editTitleInput").value = "";
+      $("editSummaryInput").value = "";
+      $("editTagsInput").value = "";
+      $("editorChapterList").innerHTML = "";
+      $("editChapterTitleInput").value = "";
+      $("editChapterContentInput").value = "";
+      $("currentChapterLabel").textContent = "No chapter selected.";
+
+      setEditorMode();
+    }
+
+    async function startEditStory(story) {
+      editorMode = "edit";
+      editorStoryId = story.id;
+      $("editorTitleLabel").textContent = "Edit work";
+
+      $("editTitleInput").value = story.title || "";
+      $("editSummaryInput").value = story.summary || "";
+      $("editTagsInput").value = (story.tags || []).join(", ");
+
+      const { data: chData, error } = await client
+        .from("story_chapters")
+        .select("*")
+        .eq("story_id", story.id)
+        .order("position", { ascending: true });
+
+      if (error) {
+        console.error(error);
+        popup("Failed to load chapters for editing.");
+        return;
+      }
+
+      editorChapters = (chData || []).map(ch => ({
+        id: ch.id,
+        position: ch.position,
+        title: ch.title,
+        content: ch.content,
+        _status: "existing"
+      }));
+
+      if (editorChapters.length === 0) {
+        editorChapters.push({
+          id: null,
+          position: 1,
+          title: "Chapter 1",
+          content: "",
+          _status: "new"
+        });
+      }
+
+      editorCurrentChapterIndex = 0;
+      renderEditorChapterList();
+      loadEditorChapterIntoForm();
+
+      setEditorMode();
+    }
+
+    function renderEditorChapterList() {
+      const list = $("editorChapterList");
+      list.innerHTML = "";
+
+      if (editorChapters.length === 0) {
+        list.innerHTML = '<div class="muted" style="font-size:.85rem;">No chapters yet.</div>';
+        return;
+      }
+
+      editorChapters.forEach((ch, idx) => {
+        const item = document.createElement("div");
+        item.className = "chapter-item";
+        if (idx === editorCurrentChapterIndex) item.classList.add("active");
+
+        const left = document.createElement("span");
+        left.textContent = `${ch.position}. ${ch.title || "Untitled chapter"}`;
+
+        const right = document.createElement("div");
+        const delBtn = document.createElement("button");
+        delBtn.className = "secondary";
+        delBtn.textContent = "Remove";
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          removeEditorChapter(idx);
+        };
+
+        right.appendChild(delBtn);
+        item.appendChild(left);
+        item.appendChild(right);
+
+        item.onclick = () => {
+          saveEditorChapterFromForm();
+          editorCurrentChapterIndex = idx;
+          loadEditorChapterIntoForm();
+          renderEditorChapterList();
+        };
+
+        list.appendChild(item);
+      });
+    }
+
+    function addEditorChapter() {
+      saveEditorChapterFromForm();
+
+      const nextPos = editorChapters.length > 0
+        ? Math.max(...editorChapters.map(c => c.position)) + 1
+        : 1;
+
+      editorChapters.push({
+        id: null,
+        position: nextPos,
+        title: `Chapter ${nextPos}`,
+        content: "",
+        _status: "new"
+      });
+
+      editorCurrentChapterIndex = editorChapters.length - 1;
+      renderEditorChapterList();
+      loadEditorChapterIntoForm();
+    }
+
+    function removeEditorChapter(idx) {
+      if (editorChapters.length === 1) {
+        popup("A work must have at least one chapter.");
+        return;
+      }
+
+      const ch = editorChapters[idx];
+      if (ch._status === "existing") {
+        ch._status = "delete";
+      } else {
+        editorChapters.splice(idx, 1);
+      }
+
+      const remaining = editorChapters.filter(c => c._status !== "delete");
+      remaining.forEach((c, i) => c.position = i + 1);
+      editorChapters = remaining;
+
+      if (editorCurrentChapterIndex >= editorChapters.length) {
+        editorCurrentChapterIndex = editorChapters.length - 1;
+      }
+
+      renderEditorChapterList();
+      loadEditorChapterIntoForm();
+    }
+
+    function loadEditorChapterIntoForm() {
+      if (editorCurrentChapterIndex < 0 || editorCurrentChapterIndex >= editorChapters.length) {
+        $("editChapterTitleInput").value = "";
+        $("editChapterContentInput").value = "";
+        $("currentChapterLabel").textContent = "No chapter selected.";
+        return;
+      }
+
+      const ch = editorChapters[editorCurrentChapterIndex];
+      $("editChapterTitleInput").value = ch.title || "";
+      $("editChapterContentInput").value = ch.content || "";
+      $("currentChapterLabel").textContent = `Editing chapter ${ch.position}`;
+    }
+
+    function saveEditorChapterFromForm() {
+      if (editorCurrentChapterIndex < 0 || editorCurrentChapterIndex >= editorChapters.length) return;
+      const ch = editorChapters[editorCurrentChapterIndex];
+      ch.title = $("editChapterTitleInput").value.trim() || `Chapter ${ch.position}`;
+      ch.content = $("editChapterContentInput").value;
+      if (ch._status === "existing") ch._status = "existing";
+    }
+
+    async function saveStory() {
+      saveEditorChapterFromForm();
+
+      const title = $("editTitleInput").value.trim();
+      const summary = $("editSummaryInput").value.trim();
+      const tagsRaw = $("editTagsInput").value.trim();
+      const tags = tagsRaw
+        ? tagsRaw.split(",").map(t => t.trim()).filter(Boolean)
+        : [];
+
+      if (!title) {
+        popup("Title is required.");
+        return;
+      }
+
+      if (editorChapters.length === 0) {
+        popup("At least one chapter is required.");
+        return;
+      }
+
+      let storyId = editorStoryId;
+
+      if (editorMode === "create") {
+        const code = generateCode(8);
+        const share_code = code;
+        const share_code_hash = await hashString(code);
+
+        const { data, error } = await client
+          .from("stories")
+          .insert({
+            author_id: currentUser.id,
+            title,
+            summary,
+            content: "",
+            share_code,
+            share_code_hash
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error(error);
+          popup("Failed to create work.");
+          return;
+        }
+
+        storyId = data.id;
+      } else {
+        const { error } = await client
+          .from("stories")
+          .update({
+            title,
+            summary
+          })
+          .eq("id", storyId);
+
+        if (error) {
+          console.error(error);
+          popup("Failed to update work.");
+          return;
+        }
+      }
+
+      await client
+        .from("story_tags")
+        .delete()
+        .eq("story_id", storyId);
+
+      for (const tagName of tags) {
+        let tagId = null;
+        const { data: existingTag } = await client
+          .from("tags")
+          .select("*")
+          .eq("name", tagName)
+          .maybeSingle();
+
+        if (existingTag) {
+          tagId = existingTag.id;
+        } else {
+          const { data: newTag } = await client
+            .from("tags")
+            .insert({ name: tagName })
+            .select()
+            .single();
+          tagId = newTag.id;
+        }
+
+        await client
+          .from("story_tags")
+          .insert({
+            story_id: storyId,
+            tag_id: tagId
+          });
+      }
+
+      const { data: existingChapters, error: chErr } = await client
+        .from("story_chapters")
+        .select("id")
+        .eq("story_id", storyId);
+
+      if (!chErr && existingChapters && existingChapters.length > 0) {
+        await client
+          .from("story_chapters")
+          .delete()
+          .eq("story_id", storyId);
+      }
+
+      let pos = 1;
+      for (const ch of editorChapters) {
+        await client
+          .from("story_chapters")
+          .insert({
+            story_id: storyId,
+            position: pos,
+            title: ch.title || `Chapter ${pos}`,
+            content: ch.content || ""
+          });
+        pos++;
+      }
+
+      popup("Work saved.");
+      setReaderMode();
+      await loadStories();
+
+      const savedStory = stories.find(s => s.id === storyId);
+      if (savedStory) {
+        await openStory(savedStory);
+      }
+    }
+
+    async function deleteStory(story) {
+      showModal(
+        "Delete work",
+        `<p>This will delete <strong>${story.title || "this work"}</strong> and all its chapters and comments.</p><p>Are you sure?</p>`,
+        async () => {
+          await client
+            .from("stories")
+            .delete()
+            .eq("id", story.id);
+
+          if (currentStory && currentStory.id === story.id) {
+            currentStory = null;
+            $("readerTitle").textContent = "No work selected";
+            $("readerMeta").textContent = "";
+            $("readerTags").innerHTML = "";
+            $("readerSummaryWrap").classList.add("hidden");
+            $("readerSummaryWrap").textContent = "";
+            $("chapterBody").innerHTML = '<span class="muted" style="font-size:.9rem;">Select a work or create a new one to start reading.</span>';
+            $("chapterSelect").innerHTML = "";
+            $("chapterCountLabel").textContent = "";
+          }
+
+          await loadStories();
+          popup("Work deleted.");
+        }
+      );
+    }
+
+    async function shareCode() {
+      if (!currentStory) {
+        popup("No work selected.");
+        return;
+      }
+
+      let story = currentStory;
+      if (!story.share_code || !story.share_code_hash) {
+        const code = generateCode(8);
+        const share_code = code;
+        const share_code_hash = await hashString(code);
+
+        const { data, error } = await client
+          .from("stories")
+          .update({
+            share_code,
+            share_code_hash
+          })
+          .eq("id", story.id)
+          .select()
+          .single();
+
+        if (!error && data) {
+          story = { ...story, share_code, share_code_hash };
+          currentStory = story;
+          const idx = stories.findIndex(s => s.id === story.id);
+          if (idx >= 0) stories[idx] = story;
+        }
+      }
+
+      showModal(
+        "Share code",
+        `<p>Share this code to let others open this work:</p><p><strong>${story.share_code}</strong></p>`,
+        () => {}
+      );
+    }
+
+    async function shareLink() {
+      if (!currentStory) {
+        popup("No work selected.");
+        return;
+      }
+
+      let story = currentStory;
+      if (!story.share_code || !story.share_code_hash) {
+        const code = generateCode(8);
+        const share_code = code;
+        const share_code_hash = await hashString(code);
+
+        const { data, error } = await client
+          .from("stories")
+          .update({
+            share_code,
+            share_code_hash
+          })
+          .eq("id", story.id)
+          .select()
+          .single();
+
+        if (!error && data) {
+          story = { ...story, share_code, share_code_hash };
+          currentStory = story;
+          const idx = stories.findIndex(s => s.id === story.id);
+          if (idx >= 0) stories[idx] = story;
+        }
+      }
+
+      const params = getParams();
+      const base = new URL("books.html", window.location.origin).toString();
+      const link = base + "?story=" + encodeURIComponent(story.share_code) + (params.token ? "&token=" + encodeURIComponent(params.token) : "");
+
+      try {
+        await navigator.clipboard.writeText(link);
+        popup("Link copied.");
+      } catch {
+        popup("Link: " + link);
+      }
+    }
+
+    async function openStoryFromCode(code) {
+      if (!code) return;
+
+      const hash = await hashString(code.trim());
+
+      const { data: story, error } = await client
+        .from("stories")
+        .select("*, author:users(username)")
+        .eq("share_code_hash", hash)
+        .maybeSingle();
+
+      if (error || !story) {
+        popup("Invalid work code.");
+        return;
+      }
+
+      const { data: tagRows } = await client
+        .from("story_tags")
+        .select("tags(name)")
+        .eq("story_id", story.id);
+      const tags = (tagRows || []).map(r => r.tags.name);
+
+      const { count } = await client
+        .from("story_chapters")
+        .select("*", { count: "exact", head: true })
+        .eq("story_id", story.id);
+
+      const fullStory = {
+        ...story,
+        author_username: story.author?.username || null,
+        tags,
+        tags_text: tags.join(" "),
+        chapter_count: count || 0
+      };
+
+      const idx = stories.findIndex(s => s.id === fullStory.id);
+      if (idx >= 0) stories[idx] = fullStory;
+      else stories.push(fullStory);
+
+      renderStoryList($("searchInput").value);
+      await openStory(fullStory);
+    }
+
+    function setupStoryRealtime(storyId) {
+      if (storyRealtimeChannel) storyRealtimeChannel.unsubscribe();
+
+      storyRealtimeChannel = client
+        .channel("stories-" + storyId)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "story_comments", filter: "story_id=eq." + storyId }, async payload => {
+          if (!currentStory || currentStory.id !== storyId) return;
+          await loadCommentsForStory(storyId);
+        })
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "story_chapters", filter: "story_id=eq." + storyId }, async payload => {
+          if (!currentStory || currentStory.id !== storyId) return;
+          await loadChaptersForStory(storyId);
+        })
+        .subscribe();
+    }
+
+    (async function init() {
+      try {
+        currentUser = await requireUser();
+        if (!currentUser) return;
+
+        currentKey = await hashString(currentUser.id);
+
+        $("loadingScreen").classList.add("hidden");
+        $("appShell").style.display = "flex";
+
+        // Initialize unified topbar
+        const topbarDiv = document.getElementById('topbar');
+        topbarDiv.innerHTML = ccCreateTopbarHTML();
+        ccInitTopbar();
+
+        await loadStories();
+
+        const params = getParams();
+        if (params.story) {
+          await openStoryFromCode(params.story);
+        }
+
+        $("navHomeBtn").onclick = () => {
+          const params = getParams();
+          const q = new URLSearchParams();
+          if (params.token) q.set("token", params.token);
+          window.location.href = "index.html?" + q.toString();
+        };
+        $("navChatsBtn").onclick = () => {
+          const params = getParams();
+          const q = new URLSearchParams();
+          if (params.token) q.set("token", params.token);
+          window.location.href = "/armenian/connect/26/?" + q.toString();
+        };
+        $("navSpacesBtn").onclick = () => {
+          const params = getParams();
+          const q = new URLSearchParams();
+          if (params.token) q.set("token", params.token);
+          window.location.href = "/armenian/connect/26/?" + q.toString() + "#spaces";
+        };
+
+      } catch (e) {
+          renderStoryList($("searchInput").value);
+        });
+
+        $("clearSearchBtn").onclick = () => {
+          $("searchInput").value = "";
+          renderStoryList("");
+        };
+
+        $("newStoryBtn").onclick = startNewStory;
+        $("editStoryBtn").onclick = () => {
+          if (!currentStory) {
+            popup("No work selected.");
+            return;
+          }
+          if (currentStory.author_id !== currentUser.id) {
+            popup("You can only edit your own works.");
+            return;
+          }
+          startEditStory(currentStory);
+        };
+        $("deleteStoryBtn").onclick = () => {
+          if (!currentStory) {
+            popup("No work selected.");
+            return;
+          }
+          if (currentStory.author_id !== currentUser.id) {
+            popup("You can only delete your own works.");
+            return;
+          }
+          deleteStory(currentStory);
+        };
+
+        $("bookmarkBtn").onclick = toggleBookmark;
+        $("shareCodeBtn").onclick = shareCode;
+        $("shareLinkBtn").onclick = shareLink;
+
+        $("addCommentBtn").onclick = addComment;
+
+        $("addChapterBtn").onclick = addEditorChapter;
+        $("saveStoryBtn").onclick = saveStory;
+        $("cancelEditBtn").onclick = () => {
+          setReaderMode();
+        };
+
+      } catch (e) {
+        console.error(e);
+        $("loadingScreen").classList.add("hidden");
+        $("errorView").classList.remove("hidden");
+        $("errorText").textContent = "Failed to load books. Please refresh or try again.";
+      }
+    })();
+  /* ============================================================
+   CAMCOOKIE CONNECT — BOOKS LOAD FIX PATCH
+   Fixes: stories not loading, chapters not loading,
+   tags not loading, comments not loading, bookmarks not loading.
+   ============================================================ */
+
+console.log("Books Load Patch Applied");
+
+/* -----------------------------
+   FIX: Load all stories correctly
+   ----------------------------- */
+async function loadStories() {
+  const { data, error } = await client
+    .from("stories")
+    .select(`
+      id,
+      title,
+      summary,
+      author_id,
+      created_at,
+      updated_at,
+      users ( username ),
+      story_chapters ( id ),
+      story_tags ( tags ( name ) )
+    `)
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    popup("Failed to load stories.");
+    return;
+  }
+
+  stories = data.map(s => ({
+    ...s,
+    author_username: s.users?.username || "Unknown",
+    chapter_count: s.story_chapters?.length || 0,
+    tags: (s.story_tags || []).map(t => t.tags.name)
+  }));
+
+  renderStoryList($("searchInput").value);
+}
+
+/* -----------------------------
+   FIX: Load a single story
+   ----------------------------- */
+async function openStory(story) {
+  currentStory = story;
+
+  $("readerTitle").textContent = story.title;
+  $("readerMeta").textContent =
+    `By ${story.author_username} • Updated ${new Date(story.updated_at).toLocaleString()}`;
+
+  $("readerTags").innerHTML = story.tags
+    .map(t => `<span class="tag-pill">${t}</span>`)
+    .join("");
+
+  if (story.summary) {
+    $("readerSummaryWrap").classList.remove("hidden");
+    $("readerSummaryWrap").textContent = story.summary;
+  } else {
+    $("readerSummaryWrap").classList.add("hidden");
+  }
+
+  await loadChaptersForStory(story.id);
+  await loadCommentsForStory(story.id);
+  await loadBookmarksForUser();
+  updateBookmarkButton();
+  setupStoryRealtime(story.id);
+}
+
+/* -----------------------------
+   FIX: Load chapters
+   ----------------------------- */
+async function loadChaptersForStory(storyId) {
+  const { data, error } = await client
+    .from("story_chapters")
+    .select("*")
+    .eq("story_id", storyId)
+    .order("position", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    popup("Failed to load chapters.");
+    return;
+  }
+
+  currentChapters = data || [];
+
+  const select = $("chapterSelect");
+  select.innerHTML = "";
+
+  if (currentChapters.length === 0) {
+    $("chapterBody").innerHTML = `<span class="muted">No chapters yet.</span>`;
+    $("chapterCountLabel").textContent = "";
+    return;
+  }
+
+  currentChapters.forEach(ch => {
+    const opt = document.createElement("option");
+    opt.value = ch.id;
+    opt.textContent = `${ch.position}. ${ch.title}`;
+    select.appendChild(opt);
+  });
+
+  $("chapterCountLabel").textContent =
+    `${currentChapters.length} chapter${currentChapters.length > 1 ? "s" : ""}`;
+
+  select.onchange = () => {
+    const ch = currentChapters.find(c => c.id === select.value);
+    renderChapter(ch);
+  };
+
+  renderChapter(currentChapters[0]);
+  select.value = currentChapters[0].id;
+}
+
+/* -----------------------------
+   FIX: Load comments
+   ----------------------------- */
+async function loadCommentsForStory(storyId) {
+  const { data, error } = await client
+    .from("story_comments")
+    .select("*, users(username)")
+    .eq("story_id", storyId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    popup("Failed to load comments.");
+    return;
+  }
+
+  currentComments = data || [];
+
+  const list = $("commentList");
+  list.innerHTML = "";
+
+  if (currentComments.length === 0) {
+    list.innerHTML = `<div class="muted">No comments yet.</div>`;
+    return;
+  }
+
+  currentComments.forEach(c => {
+    const div = document.createElement("div");
+    div.className = "comment";
+
+    div.innerHTML = `
+      <div class="comment-header">
+        <span>${c.users?.username || "Unknown"}</span>
+        <span>${new Date(c.created_at).toLocaleString()}</span>
+      </div>
+      <div class="comment-body">${c.content}</div>
+    `;
+
+    list.appendChild(div);
+  });
+}
+
+/* -----------------------------
+   FIX: Load bookmarks
+   ----------------------------- */
+async function loadBookmarksForUser() {
+  const { data, error } = await client
+    .from("story_bookmarks")
+    .select("story_id")
+    .eq("user_id", currentUser.id);
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  currentBookmarks = data.map(r => r.story_id);
+}
+
+/* -----------------------------
+   FIX: Realtime updates
+   ----------------------------- */
+function setupStoryRealtime(storyId) {
+  if (storyRealtimeChannel) storyRealtimeChannel.unsubscribe();
+
+  storyRealtimeChannel = client
+    .channel("story-" + storyId)
+    .on("postgres_changes", {
+      event: "INSERT",
+      schema: "public",
+      table: "story_comments",
+      filter: `story_id=eq.${storyId}`
+    }, async () => {
+      await loadCommentsForStory(storyId);
+    })
+    .on("postgres_changes", {
+      event: "INSERT",
+      schema: "public",
+      table: "story_chapters",
+      filter: `story_id=eq.${storyId}`
+    }, async () => {
+      await loadChaptersForStory(storyId);
+    })
+    .subscribe();
+}
+</script>
+</body>
+</html>

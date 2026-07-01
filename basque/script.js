@@ -1,0 +1,165 @@
+const PADGE_FILE = '/original/padge.json';
+
+const mainLinks = [
+  { name: 'HOME', url: '/original/' },
+  { name: 'DOCS', url: '/original/DOCS/' },
+  { name: 'EMBER', url: '/original/ember/' },
+  { name: 'MUSIC', url: '/original/DOCS4now/music/' },
+  { name: 'BOOKS', url: '/original/books4now/' },
+  { name: 'GAMES', url: '/original/game/' },
+  { name: 'CONNECT', url: '/original/connect/' }
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+  const pageIndex = [];
+  
+  // Initialize topbar
+  initTopbar();
+  
+  // Initialize footer
+  initFooter();
+  
+  // Load page index and init context menu
+  loadPageIndex();
+  initContextMenu();
+
+  function initTopbar() {
+    const navContainer = document.querySelector('.site-nav');
+    const dropdown = document.querySelector('.site-dropdown');
+    const menuBtn = document.querySelector('.site-menu-btn');
+
+    if (!navContainer && !dropdown) {
+      // Topbar doesn't exist, create it
+      const topbar = createTopbar();
+      document.body.prepend(topbar);
+      return;
+    }
+
+    // Desktop links
+    if (navContainer) {
+      mainLinks.forEach(link => {
+        const a = document.createElement('a');
+        a.href = link.url;
+        a.textContent = link.name;
+        navContainer.appendChild(a);
+      });
+    }
+
+    // Mobile dropdown
+    if (dropdown) {
+      mainLinks.forEach(link => {
+        const a = document.createElement('a');
+        a.href = link.url;
+        a.textContent = link.name;
+        dropdown.appendChild(a);
+      });
+    }
+
+    // Toggle dropdown
+    if (menuBtn && dropdown) {
+      menuBtn.addEventListener('click', () => {
+        dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.site-topbar')) {
+          dropdown.style.display = 'none';
+        }
+      });
+    }
+  }
+
+  function createTopbar() {
+    const bar = document.createElement('div');
+    bar.className = 'site-topbar';
+
+    const inner = document.createElement('div');
+    inner.className = 'site-topbar-inner';
+
+    const brand = document.createElement('a');
+    brand.className = 'site-brand';
+    brand.href = '/original/';
+    brand.innerHTML = '<img src="/original/logo.png" alt="Camcookie Logo"> <span>Camcookie</span>';
+
+    const nav = document.createElement('nav');
+    nav.className = 'site-nav';
+    
+    mainLinks.forEach(link => {
+      const a = document.createElement('a');
+      a.href = link.url;
+      a.textContent = link.name;
+      nav.appendChild(a);
+    });
+
+    const menuBtn = document.createElement('button');
+    menuBtn.className = 'site-menu-btn';
+    menuBtn.setAttribute('aria-label', 'Menu');
+    menuBtn.setAttribute('title', 'Menu');
+    menuBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>';
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'site-dropdown';
+    
+    mainLinks.forEach(link => {
+      const a = document.createElement('a');
+      a.href = link.url;
+      a.textContent = link.name;
+      dropdown.appendChild(a);
+    });
+
+    inner.appendChild(brand);
+    inner.appendChild(nav);
+    inner.appendChild(menuBtn);
+    inner.appendChild(dropdown);
+    
+    bar.appendChild(inner);
+
+    // Toggle dropdown
+    menuBtn.addEventListener('click', () => {
+      dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.site-topbar')) {
+        dropdown.style.display = 'none';
+      }
+    });
+
+    return bar;
+  }
+
+  function initFooter() {
+    const existingFooter = document.querySelector('.footer');
+    if (existingFooter) return;
+
+    const footer = document.createElement('footer');
+    footer.className = 'footer';
+    footer.innerHTML = `
+      <p>&copy; 2026 Camcookie. All rights reserved.</p>
+      <p><a href="/original/connect/">Connect</a></p>
+    `;
+    document.body.appendChild(footer);
+  }
+
+  function loadPageIndex() {
+    fetch(PADGE_FILE)
+      .then(response => response.json())
+      .then(data => {
+        if (data.pages && Array.isArray(data.pages)) {
+          pageIndex.push(...data.pages);
+        }
+      })
+      .catch(error => console.error('Error loading page index:', error));
+  }
+
+  function initContextMenu() {
+    document.addEventListener('contextmenu', (e) => {
+      const target = e.target;
+      if (target.tagName === 'A' || target.closest('a')) {
+        return;
+      }
+    });
+  }
+});

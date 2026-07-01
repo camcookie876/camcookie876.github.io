@@ -1,0 +1,80 @@
+html
+<html lang="en">
+<html lang="en"><head><meta charset="utf-8"/><title>Camcookie Security - UNO R3 - Camcookie DOCS</title>
+<meta content="Detailed Camcookie UNO R3 security project guide with wiring and code." name="description"/><link href="/armenian/styles.css" rel="stylesheet"/></head><body><noscript><div class="noscript-warning"><h3>⚠️ Պահանջվում է JavaScript</h3><p>Camcookie DOCS-ին անհրաժեշտ է JavaScript՝ որոնման, թեմայի փոփոխման և էջի գործառույթները գործարկելու համար:</p></div></noscript>
+<main>
+<h1>Camcookie Security – UNO R3</h1>
+<div class="warning">
+<h3>🚧 ԸՆԹԱՑՔՈՒՄ 🚧</h3>
+<p>Կոդը և գործառույթները կարող են ամբողջությամբ ճիշտ չաշխատեն: </p>
+<p>Սա ներկայումս աշխատում է միայն Microsoft Edge-ում համակարգչի վրա: </p>
+</div>
+<div class="description-box">
+<h2>1. Վերբեռնեք Arduino կոդը</h2>
+<p>
+      Ավելացնել <code>.ino</code> կոդը -ից  
+      <a href="/armenian/DOCS4now/arduino/1/code/code.txt">
+        https://camcookie876.github.io/armenian/DOCS/arduino/1/code/code.txt
+      </a>  
+      ձեր Arduino UNO R3-ին:
+    </p>
+<h2>2. Միացրեք լարերը</h2>
+<h3>🦄 Ուլտրաձայնային ցուցիչ (HC‑SR04)</h3>
+<table border="1">
+<tr><th>Սենսորային փին</th><th>Arduino փին</th></tr>
+<tr><td>VCC</td><td>5 Վ</td></tr>
+<tr><td>GND</td><td>GND</td></tr>
+<tr><td>TRIG</td><td>D8</td></tr>
+<tr><td>ԷԽՈ</td><td>D9</td></tr>
+</table>
+<h3>🌗 LDR (Լույսի ցուցիչ)</h3>
+<p>Օգտագործեք լարման բաժանարար՝ LDR + 10kΩ ռեզիստոր</p>
+<pre>
+5V ---- LDR ----+---- A0
+                
+    </pre>
+<h3>🔘 Թև / զինաթափ կոճակ</h3>
+<p>(Օգտագործելով ներքին ձգվող դիմադրություն)</p>
+<table border="1">
+<tr><th>Կոճակի քորոց</th><th>Arduino փին</th></tr>
+<tr><td>Մի կողմը</td><td>D2</td></tr>
+<tr><td>Մյուս կողմը</td><td>GND</td></tr>
+</table>
+<h3>🔊 Բուզեր</h3>
+<table border="1">
+<tr><th>Buzzer Pin</th><th>Arduino փին</th></tr>
+<tr><td>+</td><td>D6</td></tr>
+<tr><td>–</td><td>GND</td></tr>
+</table>
+<h3>💡 LED-ներ</h3>
+<p><strong>Կանաչ LED (զինված)</strong></p>
+<table border="1">
+<tr><th>LED փին</th><th>Arduino փին</th></tr>
+<tr><td>Անոդ</td><td>D10 (220Ω-ից)</td></tr>
+<tr><td>Կաթոդ</td><td>GND</td></tr>
+</table>
+<p><strong>Կարմիր LED (Զարթուցիչ)</strong></p>
+<table border="1">
+<tr><th>LED փին</th><th>Arduino փին</th></tr>
+<tr><td>Անոդ</td><td>D11 (220Ω-ից)</td></tr>
+<tr><td>Կաթոդ</td><td>GND</td></tr>
+</table>
+<h2>3. Տեղադրեք ուլտրաձայնային սենսորը</h2>
+<p>
+      Տեղադրեք HC‑SR04-ը, որտեղ ցանկանում եք նկատել շարժումը:  
+      <strong>Զգուշացում.</strong> Այն չի հայտնաբերի հեռավոր շարժում:
+    </p>
+<h2>4. Միացրեք ձեր Arduino-ն ձեր համակարգչին</h2>
+<p>
+      Այնուհետեւ բացեք  
+      <a href="https://unoserial.oneapp.dev/">https://unoserial.oneapp.dev/</a>
+</p>
+<h2>5. Սեղմեք «Միացեք»</h2>
+<p>Ընտրել <strong>Arduino UNO</strong> բացվող պատուհանում:</p>
+<h2>6. Վայելե՛ք։</h2>
+<p>Ձեր Camcookie Security UNO R3 համակարգը այժմ ակտիվ է:</p>
+</div>
+</main>
+<script src="/armenian/script.js"></script>
+</body>
+</html></html>

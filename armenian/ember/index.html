@@ -1,0 +1,50 @@
+html
+<html lang="en">
+<head>
+<link href="/armenian/logo.png" rel="icon"/>
+<meta charset="utf-8"/>
+<title>Տուն - Ember</title>
+<link href="/armenian/styles.css" rel="stylesheet"/>
+<meta content="Ember — a clean, fast, independent search engine." name="description"/>
+</head>
+<body>
+ Ձեր գոյություն ունեցող վերևի շտրիխ JS-ը 
+<script src="/armenian/script.js"></script>
+<noscript>
+<div style="background: #ffe6e6; border: 2px solid #ff4444; border-radius: 12px; padding: 16px; margin: 20px auto; max-width: 600px; text-align: center;">
+<h3 style="color: #cc0000; margin: 0 0 8px;">Պահանջվում է JavaScript</h3>
+<p style="margin: 0; color: #333;">Այս կայքը նավարկության և որոնման համար պահանջում է JavaScript: </p>
+</div>
+</noscript>
+<main class="content">
+ ՀԵՐՈՍ 
+<section class="hero">
+<h1 class="header">ՍԱՂԹ</h1>
+<p>Camcookie-ի կողմից ստեղծված ձեր արագ, անկախ որոնման համակարգը:</p>
+<p>.</p>
+ EMBER ՈՐՈՆՄԱՆ ԳԱՐ 
+<div class="ember-search-wrapper">
+<form class="ember-search-box" id="emberSearchForm">
+<input autocomplete="off" class="ember-search-input" id="emberQuery" placeholder="Որոնել Ember…" required="" type="text"/>
+<button class="ember-search-btn" type="submit">Որոնում</button>
+</form>
+</div>
+</section>
+</main>
+ էջատակ 
+<footer class="footer">
+<p>Ember Search • Նախատիպ</p>
+</footer>
+ EMBER SEARCH JS 
+<script>
+document.getElementById("emberSearchForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  const q = document.getElementById("emberQuery").value.trim();
+  if (!q) return;
+
+  // Redirect to your search results page
+  window.location.href = "results/?q=" + encodeURIComponent(q);
+});
+</script>
+</body>
+</html>

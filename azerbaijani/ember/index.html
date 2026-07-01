@@ -1,0 +1,50 @@
+html
+<html lang="en">
+<head>
+<link href="/azerbaijani/logo.png" rel="icon"/>
+<meta charset="utf-8"/>
+<title>Ev - Ember</title>
+<link href="/azerbaijani/styles.css" rel="stylesheet"/>
+<meta content="Ember — a clean, fast, independent search engine." name="description"/>
+</head>
+<body>
+ Mövcud topbar JS 
+<script src="/azerbaijani/script.js"></script>
+<noscript>
+<div style="background: #ffe6e6; border: 2px solid #ff4444; border-radius: 12px; padding: 16px; margin: 20px auto; max-width: 600px; text-align: center;">
+<h3 style="color: #cc0000; margin: 0 0 8px;">JavaScript Tələb olunur</h3>
+<p style="margin: 0; color: #333;">Bu sayt naviqasiya və axtarış üçün JavaScript tələb edir. </p>
+</div>
+</noscript>
+<main class="content">
+ QƏHRƏMAN 
+<section class="hero">
+<h1 class="header">EMBER</h1>
+<p>Camcookie tərəfindən hazırlanmış sürətli, müstəqil axtarış motorunuz.</p>
+<p>.</p>
+ EMBER AXTAR BAR 
+<div class="ember-search-wrapper">
+<form class="ember-search-box" id="emberSearchForm">
+<input autocomplete="off" class="ember-search-input" id="emberQuery" placeholder="Ember axtar..." required="" type="text"/>
+<button class="ember-search-btn" type="submit">Axtar</button>
+</form>
+</div>
+</section>
+</main>
+ FOOTTER 
+<footer class="footer">
+<p>Ember Axtar • Prototip</p>
+</footer>
+ EMBER SEARCH JS 
+<script>
+document.getElementById("emberSearchForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  const q = document.getElementById("emberQuery").value.trim();
+  if (!q) return;
+
+  // Redirect to your search results page
+  window.location.href = "results/?q=" + encodeURIComponent(q);
+});
+</script>
+</body>
+</html>

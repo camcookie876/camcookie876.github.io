@@ -1,0 +1,890 @@
+html
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Connect 26 - Marrazketa eta animazioa</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/basque/connect/26/cc-auth.js"></script>
+<script src="/basque/connect/26/cc-friends.js"></script>
+<script src="/basque/connect/26/cc-topbar.js"></script>
+<script src="/basque/connect/26/cc-icons.js"></script>
+<style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #eef2ff;
+      color: #0f172a;
+    }
+    #topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px;
+      background: #2563eb;
+      color: white;
+      border-bottom: 1px solid #1d4ed8;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      min-height: 56px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+    }
+
+    .dropdown-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      border: 1px solid #dbe4ff;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+      display: none;
+      min-width: 180px;
+      overflow: hidden;
+      z-index: 200;
+    }
+
+    .dropdown-menu.show {
+      display: block;
+    }
+
+    .dropdown-item {
+      display: block;
+      padding: 10px 14px;
+      color: #0f172a;
+      text-decoration: none;
+      border-bottom: 1px solid #e5e7eb;
+      background: white;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      font-size: 14px;
+    }
+
+    .dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .dropdown-item:hover {
+      background: #f8fbff;
+    }
+
+    .dropdown-item.active {
+      background: #eff6ff;
+      font-weight: 600;
+      color: #1d4ed8;
+    }
+
+    #userPhoto {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,0.65);
+      cursor: pointer;
+      object-fit: cover;
+      background: #fff;
+    }
+    #topbar .brand {
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+    #topbar .btn-row {
+      display: flex;
+      gap: 8px;
+    }
+    #userInfo {
+      font-size: 14px;
+    }
+    #main {
+      display: grid;
+      grid-template-columns: 260px 1fr 260px;
+      gap: 12px;
+      padding: 12px;
+      height: calc(100vh - 56px);
+    }
+    .panel {
+      background: #ffffff;
+      border-radius: 10px;
+      border: 1px solid #dbeafe;
+      padding: 10px;
+      overflow: auto;
+    }
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    #canvasWrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+    canvas {
+      border-radius: 10px;
+      border: 2px solid #3b82f6;
+      background: #ffffff;
+      touch-action: none;
+    }
+    .toolbar-group {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 8px;
+    }
+    .toolbar-group:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    label {
+      font-size: 13px;
+      display: block;
+      margin-bottom: 4px;
+    }
+    input[type="color"] {
+      width: 100%;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      padding: 0;
+    }
+    input[type="range"] {
+      width: 100%;
+    }
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    button {
+      border: none;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      background: #e5e7eb;
+      color: #111827;
+      transition: background 0.1s, transform 0.05s;
+    }
+    button.primary {
+      background: #3b82f6;
+      color: #ffffff;
+    }
+    button.danger {
+      background: #ef4444;
+      color: #ffffff;
+    }
+    button.active {
+      outline: 2px solid #2563eb;
+      background: #bfdbfe;
+    }
+    button:hover {
+      background: #d1d5db;
+    }
+    button.primary:hover {
+      background: #2563eb;
+    }
+    button.danger:hover {
+      background: #b91c1c;
+    }
+    button:active {
+      transform: scale(0.97);
+    }
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      font-size: 11px;
+      cursor: pointer;
+      background: #f9fafb;
+    }
+    .pill.active {
+      background: #3b82f6;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+    .gallery-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      margin-bottom: 6px;
+      cursor: pointer;
+    }
+    .gallery-item:hover {
+      background: #f9fafb;
+    }
+    .gallery-thumb {
+      width: 48px;
+      height: 36px;
+      border-radius: 4px;
+      object-fit: cover;
+      border: 1px solid #e5e7eb;
+      background: #f3f4f6;
+    }
+    .gallery-meta {
+      flex: 1;
+      font-size: 11px;
+    }
+    .gallery-meta strong {
+      display: block;
+      font-size: 12px;
+    }
+    .gallery-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .small {
+      font-size: 11px;
+      color: #6b7280;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 5px 7px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+<div id="topbar"></div>
+<div id="main">
+ EZKERRA: Tresnak 
+<div class="panel">
+<h2>Tresnak</h2>
+<div class="toolbar-group">
+<label for="titleInput">Izenburua</label>
+<input id="titleInput" placeholder="Izenbururik gabeko marrazkia" type="text"/>
+</div>
+<div class="toolbar-group">
+<label>Eskuila kolorea</label>
+<input id="colorPicker" type="color" value="#000000"/>
+</div>
+<div class="toolbar-group">
+<label>Eskuila tamaina: <span id="brushSizeLabel">4</span> px</label>
+<input id="brushSize" max="40" min="1" type="range" value="4"/>
+</div>
+<div class="toolbar-group">
+<label>Modua</label>
+<div class="btn-row">
+<button class="active" id="brushModeBtn">Eskuila</button>
+<button id="eraserModeBtn">Ezabagailua</button>
+</div>
+</div>
+<div class="toolbar-group">
+<label>Desegin / Berregin</label>
+<div class="btn-row">
+<button id="undoBtn">Desegin</button>
+<button id="redoBtn">Berregin</button>
+<button id="clearBtn">Garbi</button>
+</div>
+</div>
+<div class="toolbar-group">
+<label>Geruzak</label>
+<div class="pill-list" id="layersList"></div>
+<div class="btn-row" style="margin-top:6px;">
+<button id="addLayerBtn">Gehitu geruza</button>
+<button class="danger" id="deleteLayerBtn">Ezabatu geruza</button>
+</div>
+<div class="small" style="margin-top:4px;">Egin klik geruza bat hautatzeko.</div>
+</div>
+<div class="toolbar-group">
+<label>Animazioa</label>
+<div class="btn-row">
+<button id="addFrameBtn">Gehitu markoa mihisetik</button>
+<button id="playAnimBtn">Jolastu animazioa</button>
+<button class="danger" id="clearFramesBtn">Markoak garbiak</button>
+</div>
+<div class="small" style="margin-top:4px;">
+        Marrazkiak marrazkiaren barruan gordetzen dira animazio gisa.
+      </div>
+</div>
+<div class="toolbar-group">
+<label>Gorde eta esportatu</label>
+<div class="btn-row">
+<button class="primary" id="saveBtn">Gorde marrazkia</button>
+<button id="exportPngBtn">Esportatu PNG</button>
+</div>
+<div class="small" style="margin-top:4px;">
+        Gorde zure lana zure galerian edo deskargatu PNG gisa.
+      </div>
+</div>
+</div>
+ ZENTROA: Mihisea 
+<div class="panel" id="canvasPanel">
+<h2>Mihisea</h2>
+<div id="canvasWrapper">
+<canvas height="550" id="draw" width="900"></canvas>
+</div>
+</div>
+ ESKUINA: Galeria 
+<div class="panel">
+<h2>Nire Marrazkiak</h2>
+<div class="small" style="margin-bottom:6px;">
+      Egin klik marrazki batean mihisean kargatzeko.
+    </div>
+<div id="gallery"></div>
+</div>
+</div>
+<script>
+/* ============================================================
+   CONFIG
+   ============================================================ */
+    const SUPABASE_URL = "https://uexubxzlmyjuktgeqfsf.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVleHVieHpsbXlqdWt0Z2VxZnNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MzUxODYsImV4cCI6MjA5MjIxMTE4Nn0.yuWkhA7b21uL2BGVn5zij6fSiBWQdCGXwevZyJN5EDE";
+const LOGIN_PAGE = "/basque/connect/26/";
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function getParams() {
+  const p = new URLSearchParams(window.location.search);
+  return { token: p.get("token") };
+}
+
+let CURRENT_USER = null;
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+async function loadUserFromToken() {
+  const params = getParams();
+  const storedUser = ccGetUser();
+  const storedToken = ccGetToken();
+
+  if (ccIsAuthenticated() && storedUser) {
+    CURRENT_USER = storedUser;
+    const topbarDiv = document.getElementById('topbar');
+    topbarDiv.innerHTML = ccCreateTopbarHTML();
+    ccInitTopbar();
+    await loadGallery();
+    return;
+  }
+
+  const token = params.token || storedToken || localStorage.getItem('cc-token');
+  if (!token) {
+    window.location.href = LOGIN_PAGE;
+    return;
+  }
+
+  const now = new Date().toISOString();
+
+  const { data, error } = await client
+    .from("tokens")
+    .select("*, users(*)")
+    .eq("token", token)
+    .gt("expires_at", now)
+    .maybeSingle();
+
+  if (error || !data || !data.users) {
+    window.location.href = LOGIN_PAGE;
+    return;
+  }
+
+  CURRENT_USER = data.users;
+  ccSetToken(token);
+  ccSetUser(CURRENT_USER.id, CURRENT_USER.username, CURRENT_USER.photo || '');
+
+  const topbarDiv = document.getElementById('topbar');
+  topbarDiv.innerHTML = ccCreateTopbarHTML();
+  ccInitTopbar();
+  await loadGallery();
+}
+
+/* ============================================================
+   CANVAS + LAYERS + DRAWING
+   ============================================================ */
+const canvas = document.getElementById("draw");
+const ctx = canvas.getContext("2d");
+
+let layers = [];
+let activeLayerIndex = 0;
+
+let isDrawing = false;
+let lastX = 0;
+let lastY = 0;
+
+let brushColor = "#000000";
+let brushSize = 4;
+let mode = "brush"; // "brush" | "eraser"
+
+let undoStack = [];
+let redoStack = [];
+const MAX_HISTORY = 50;
+
+let animationFrames = []; // { index, duration_ms, image_data }
+
+/* ---------- Layers ---------- */
+function createLayer() {
+  const off = document.createElement("canvas");
+  off.width = canvas.width;
+  off.height = canvas.height;
+  const offCtx = off.getContext("2d");
+  offCtx.clearRect(0, 0, off.width, off.height);
+  return { canvas: off, ctx: offCtx };
+}
+
+function initLayers() {
+  layers = [createLayer()];
+  activeLayerIndex = 0;
+  renderLayersUI();
+  compositeLayers();
+  resetHistory();
+}
+
+function renderLayersUI() {
+  const list = document.getElementById("layersList");
+  list.innerHTML = "";
+  layers.forEach((layer, idx) => {
+    const pill = document.createElement("div");
+    pill.className = "pill" + (idx === activeLayerIndex ? " active" : "");
+    pill.textContent = "Layer " + (idx + 1);
+    pill.onclick = () => {
+      activeLayerIndex = idx;
+      renderLayersUI();
+    };
+    list.appendChild(pill);
+  });
+}
+
+function compositeLayers() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  layers.forEach(layer => {
+    ctx.drawImage(layer.canvas, 0, 0);
+  });
+}
+
+/* ---------- History (Undo/Redo) ---------- */
+function snapshot() {
+  // store flattened canvas state
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  undoStack.push(imgData);
+  if (undoStack.length > MAX_HISTORY) undoStack.shift();
+  redoStack = [];
+}
+
+function resetHistory() {
+  undoStack = [];
+  redoStack = [];
+  snapshot();
+}
+
+function applyImageData(imgData) {
+  ctx.putImageData(imgData, 0, 0);
+  // push flattened back into top layer only
+  layers = [createLayer()];
+  layers[0].ctx.putImageData(imgData, 0, 0);
+  activeLayerIndex = 0;
+  renderLayersUI();
+}
+
+function undo() {
+  if (undoStack.length <= 1) return;
+  const current = undoStack.pop();
+  redoStack.push(current);
+  const prev = undoStack[undoStack.length - 1];
+  applyImageData(prev);
+}
+
+function redo() {
+  if (redoStack.length === 0) return;
+  const next = redoStack.pop();
+  undoStack.push(next);
+  applyImageData(next);
+}
+
+/* ---------- Drawing ---------- */
+function getCanvasPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: e.clientX - rect.left,
+    y: e.clientY - rect.top
+  };
+}
+
+function startDraw(e) {
+  isDrawing = true;
+  const pos = getCanvasPos(e);
+  lastX = pos.x;
+  lastY = pos.y;
+  // snapshot before stroke
+  snapshot();
+}
+
+function endDraw() {
+  if (!isDrawing) return;
+  isDrawing = false;
+  compositeLayers();
+}
+
+function draw(e) {
+  if (!isDrawing) return;
+  const pos = getCanvasPos(e);
+  const layer = layers[activeLayerIndex];
+  const lctx = layer.ctx;
+
+  lctx.lineJoin = "round";
+  lctx.lineCap = "round";
+  lctx.lineWidth = brushSize;
+
+  if (mode === "eraser") {
+    lctx.globalCompositeOperation = "destination-out";
+    lctx.strokeStyle = "rgba(0,0,0,1)";
+  } else {
+    lctx.globalCompositeOperation = "source-over";
+    lctx.strokeStyle = brushColor;
+  }
+
+  lctx.beginPath();
+  lctx.moveTo(lastX, lastY);
+  lctx.lineTo(pos.x, pos.y);
+  lctx.stroke();
+
+  lastX = pos.x;
+  lastY = pos.y;
+
+  compositeLayers();
+}
+
+/* Mouse */
+canvas.addEventListener("mousedown", (e) => startDraw(e));
+canvas.addEventListener("mousemove", (e) => draw(e));
+canvas.addEventListener("mouseup", endDraw);
+canvas.addEventListener("mouseleave", endDraw);
+
+/* Touch */
+canvas.addEventListener("touchstart", (e) => {
+  const t = e.touches[0];
+  startDraw(t);
+  e.preventDefault();
+});
+canvas.addEventListener("touchmove", (e) => {
+  const t = e.touches[0];
+  draw(t);
+  e.preventDefault();
+});
+canvas.addEventListener("touchend", (e) => {
+  endDraw();
+  e.preventDefault();
+});
+
+/* ============================================================
+   TOOLBAR WIRES
+   ============================================================ */
+const colorPicker = document.getElementById("colorPicker");
+const brushSizeInput = document.getElementById("brushSize");
+const brushSizeLabel = document.getElementById("brushSizeLabel");
+const brushModeBtn = document.getElementById("brushModeBtn");
+const eraserModeBtn = document.getElementById("eraserModeBtn");
+const undoBtn = document.getElementById("undoBtn");
+const redoBtn = document.getElementById("redoBtn");
+const clearBtn = document.getElementById("clearBtn");
+const addLayerBtn = document.getElementById("addLayerBtn");
+const deleteLayerBtn = document.getElementById("deleteLayerBtn");
+const addFrameBtn = document.getElementById("addFrameBtn");
+const playAnimBtn = document.getElementById("playAnimBtn");
+const clearFramesBtn = document.getElementById("clearFramesBtn");
+const exportPngBtn = document.getElementById("exportPngBtn");
+const saveBtn = document.getElementById("saveBtn");
+const titleInput = document.getElementById("titleInput");
+
+colorPicker.oninput = (e) => {
+  brushColor = e.target.value;
+};
+
+brushSizeInput.oninput = (e) => {
+  brushSize = parseInt(e.target.value, 10);
+  brushSizeLabel.textContent = brushSize;
+};
+
+brushModeBtn.onclick = () => {
+  mode = "brush";
+  brushModeBtn.classList.add("active");
+  eraserModeBtn.classList.remove("active");
+};
+
+eraserModeBtn.onclick = () => {
+  mode = "eraser";
+  eraserModeBtn.classList.add("active");
+  brushModeBtn.classList.remove("active");
+};
+
+undoBtn.onclick = () => undo();
+redoBtn.onclick = () => redo();
+
+clearBtn.onclick = () => {
+  layers.forEach(l => l.ctx.clearRect(0, 0, canvas.width, canvas.height));
+  compositeLayers();
+  resetHistory();
+};
+
+addLayerBtn.onclick = () => {
+  layers.push(createLayer());
+  activeLayerIndex = layers.length - 1;
+  renderLayersUI();
+  snapshot();
+};
+
+deleteLayerBtn.onclick = () => {
+  if (layers.length <= 1) return;
+  layers.splice(activeLayerIndex, 1);
+  activeLayerIndex = Math.max(0, activeLayerIndex - 1);
+  renderLayersUI();
+  compositeLayers();
+  snapshot();
+};
+
+/* ============================================================
+   ANIMATION
+   ============================================================ */
+addFrameBtn.onclick = () => {
+  const dataUrl = canvas.toDataURL("image/png");
+  const frame = {
+    index: animationFrames.length,
+    duration_ms: 120,
+    image_data: dataUrl
+  };
+  animationFrames.push(frame);
+  alert("Frame " + frame.index + " added.");
+};
+
+let animPlaying = false;
+let animTimer = null;
+
+playAnimBtn.onclick = () => {
+  if (animationFrames.length === 0) {
+    alert("No frames yet. Add frames from the canvas first.");
+    return;
+  }
+  if (animPlaying) {
+    stopAnimation();
+  } else {
+    startAnimation();
+  }
+};
+
+function startAnimation() {
+  animPlaying = true;
+  playAnimBtn.textContent = "Stop animation";
+  let idx = 0;
+
+  const showFrame = () => {
+    const frame = animationFrames[idx];
+    const img = new Image();
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    };
+    img.src = frame.image_data;
+
+    idx = (idx + 1) % animationFrames.length;
+    animTimer = setTimeout(showFrame, frame.duration_ms);
+  };
+
+  showFrame();
+}
+
+function stopAnimation() {
+  animPlaying = false;
+  playAnimBtn.textContent = "Play animation";
+  if (animTimer) clearTimeout(animTimer);
+  compositeLayers();
+}
+
+clearFramesBtn.onclick = () => {
+  animationFrames = [];
+  alert("All frames cleared.");
+};
+
+/* ============================================================
+   EXPORT PNG
+   ============================================================ */
+exportPngBtn.onclick = () => {
+  const dataUrl = canvas.toDataURL("image/png");
+  const a = document.createElement("a");
+  a.href = dataUrl;
+  a.download = (titleInput.value || "drawing") + ".png";
+  a.click();
+};
+
+/* ============================================================
+   SAVE TO SUPABASE
+   ============================================================ */
+saveBtn.onclick = async () => {
+  if (!CURRENT_USER) {
+    alert("Not logged in.");
+    return;
+  }
+
+  const title = titleInput.value || "Untitled";
+  const flattened = canvas.toDataURL("image/png");
+  const isAnimation = animationFrames.length > 0;
+
+  const payload = {
+    user_id: CURRENT_USER.id,
+    title,
+    is_animation: isAnimation,
+    image_data: flattened,
+    frames: isAnimation ? animationFrames : null
+  };
+
+  const { data, error } = await client
+    .from("drawings")
+    .insert(payload)
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    console.error(error);
+    alert("Error saving drawing.");
+  } else {
+    alert("Drawing saved!");
+    loadGallery();
+  }
+};
+
+/* ============================================================
+   GALLERY
+   ============================================================ */
+const galleryEl = document.getElementById("gallery");
+
+async function loadGallery() {
+  if (!CURRENT_USER) return;
+
+  const { data, error } = await client
+    .from("drawings")
+    .select("*")
+    .eq("user_id", CURRENT_USER.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    galleryEl.innerHTML = "<div class='small'>Error loading gallery.</div>";
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    galleryEl.innerHTML = "<div class='small'>No drawings yet.</div>";
+    return;
+  }
+
+  galleryEl.innerHTML = "";
+  data.forEach(row => {
+    const item = document.createElement("div");
+    item.className = "gallery-item";
+
+    const thumb = document.createElement("img");
+    thumb.className = "gallery-thumb";
+    const thumbSrc = row.is_animation && row.frames && row.frames.length > 0
+      ? row.frames[0].image_data
+      : row.image_data;
+    thumb.src = thumbSrc;
+
+    const meta = document.createElement("div");
+    meta.className = "gallery-meta";
+    const title = document.createElement("strong");
+    title.textContent = row.title || "Untitled";
+    const info = document.createElement("div");
+    info.className = "small";
+    info.textContent = row.is_animation ? "Animation" : "Drawing";
+
+    meta.appendChild(title);
+    meta.appendChild(info);
+
+    const actions = document.createElement("div");
+    actions.className = "gallery-actions";
+
+    const loadBtn = document.createElement("button");
+    loadBtn.textContent = "Load";
+    loadBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      loadDrawing(row);
+    };
+
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "Delete";
+    delBtn.className = "danger";
+    delBtn.onclick = async (ev) => {
+      ev.stopPropagation();
+      if (!confirm("Delete this drawing?")) return;
+      const { error: delError } = await client
+        .from("drawings")
+        .delete()
+        .eq("id", row.id);
+      if (delError) {
+        console.error(delError);
+        alert("Error deleting drawing.");
+      } else {
+        loadGallery();
+      }
+    };
+
+    actions.appendChild(loadBtn);
+    actions.appendChild(delBtn);
+
+    item.appendChild(thumb);
+    item.appendChild(meta);
+    item.appendChild(actions);
+
+    item.onclick = () => loadDrawing(row);
+
+    galleryEl.appendChild(item);
+  });
+}
+
+function loadDrawing(row) {
+  stopAnimation();
+  titleInput.value = row.title || "Untitled";
+
+  // load flattened image into single layer
+  const img = new Image();
+  img.onload = () => {
+    layers = [createLayer()];
+    layers[0].ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    activeLayerIndex = 0;
+    renderLayersUI();
+    compositeLayers();
+    resetHistory();
+  };
+  img.src = row.image_data;
+
+  // load animation frames if any
+  animationFrames = Array.isArray(row.frames) ? row.frames : [];
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+initLayers();
+loadUserFromToken();
+</script>
+<script src="/basque/connect/26/camcookie-data.js"></script>
+<footer style="padding: 12px 18px 18px; text-align: center; font-size: .85rem; color: #6b7280; position: relative;">
+<a href="/basque/connect/26/terms" style="color: #1d4ed8; text-decoration: none; font-weight: 600;">Baldintzak eta baldintzak</a>
+</footer>
+</body>
+</html>
