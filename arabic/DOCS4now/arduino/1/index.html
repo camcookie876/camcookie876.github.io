@@ -1,0 +1,80 @@
+أتش تي أم أل
+<html lang="en">
+<html lang="en"><head><meta charset="utf-8"/><title>Camcookie Security - UNO R3 - Camcookie DOCS</title>
+<meta content="Detailed Camcookie UNO R3 security project guide with wiring and code." name="description"/><link href="/arabic/styles.css" rel="stylesheet"/></head><body><noscript><div class="noscript-warning"><h3>⚠️ مطلوب جافا سكريبت</h3><p>يحتاج Camcookie DOCS إلى JavaScript لتشغيل ميزات البحث وتبديل السمات والصفحة.</p></div></noscript>
+<main>
+<h1>كام كوكي الأمن – UNO R3</h1>
+<div class="warning">
+<h3>🚧 قيد التقدم 🚧</h3>
+<p>قد لا تعمل التعليمات البرمجية والوظائف بشكل كامل بشكل صحيح. </p>
+<p>يعمل هذا حاليًا فقط على Microsoft Edge على جهاز الكمبيوتر. </p>
+</div>
+<div class="description-box">
+<h2>1. قم بتحميل كود اردوينو</h2>
+<p>
+      أضف <code>.ino</code> رمز من  
+      <a href="/arabic/DOCS4now/arduino/1/code/code.txt">
+        https://camcookie876.github.io/arabic/DOCS/arduino/1/code/code.txt
+      </a>  
+      إلى Arduino UNO R3 الخاص بك.
+    </p>
+<h2>2. قم بتوصيل الأسلاك</h2>
+<h3>🟦 مستشعر الموجات فوق الصوتية (HC-SR04)</h3>
+<table border="1">
+<tr><th>دبوس الاستشعار</th><th>اردوينو دبوس</th></tr>
+<tr><td>VCC</td><td>5 فولت</td></tr>
+<tr><td>أرض</td><td>أرض</td></tr>
+<tr><td>علم حساب المثلثات</td><td>د8</td></tr>
+<tr><td>صدى</td><td>د9</td></tr>
+</table>
+<h3>🌗 LDR (مستشعر الضوء)</h3>
+<p>استخدم مقسم الجهد: مقاومة LDR + 10 كيلو أوم</p>
+<pre>
+5 فولت ---- LDR ----+---- A0
+                
+    </pre>
+<h3>🔘 زر الذراع / نزع السلاح</h3>
+<p>(باستخدام مقاومة السحب الداخلية)</p>
+<table border="1">
+<tr><th>دبوس الزر</th><th>اردوينو دبوس</th></tr>
+<tr><td>جانب واحد</td><td>د2</td></tr>
+<tr><td>الجانب الآخر</td><td>أرض</td></tr>
+</table>
+<h3>🔊 الجرس</h3>
+<table border="1">
+<tr><th>دبوس الجرس</th><th>اردوينو دبوس</th></tr>
+<tr><td>+</td><td>د6</td></tr>
+<tr><td>-</td><td>أرض</td></tr>
+</table>
+<h3>💡 مصابيح LED</h3>
+<p><strong>مؤشر LED أخضر (مسلح)</strong></p>
+<table border="1">
+<tr><th>دبوس LED</th><th>اردوينو دبوس</th></tr>
+<tr><td>الأنود</td><td>D10 (من خلال 220Ω)</td></tr>
+<tr><td>الكاثود</td><td>أرض</td></tr>
+</table>
+<p><strong>مؤشر LED أحمر (إنذار)</strong></p>
+<table border="1">
+<tr><th>دبوس LED</th><th>اردوينو دبوس</th></tr>
+<tr><td>الأنود</td><td>D11 (من خلال 220Ω)</td></tr>
+<tr><td>الكاثود</td><td>أرض</td></tr>
+</table>
+<h2>3. ضع مستشعر الموجات فوق الصوتية</h2>
+<p>
+      ضع HC-SR04 أينما تريد اكتشاف الحركة.  
+      <strong>تحذير:</strong> لن يكتشف الحركة البعيدة.
+    </p>
+<h2>4. قم بتوصيل Arduino بجهاز الكمبيوتر الخاص بك</h2>
+<p>
+      ثم افتح  
+      <a href="https://unoserial.oneapp.dev/">https://unoserial.oneapp.dev/</a>
+</p>
+<h2>5. انقر فوق "اتصال"</h2>
+<p>يختار <strong>اردوينو أونو</strong> في النافذة المنبثقة.</p>
+<h2>6. استمتع!</h2>
+<p>أصبح نظام Camcookie Security UNO R3 نشطًا الآن.</p>
+</div>
+</main>
+<script src="/arabic/script.js"></script>
+</body>
+</html></html>

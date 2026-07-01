@@ -1,0 +1,80 @@
+html
+<html lang="en">
+<html lang="en"><head><meta charset="utf-8"/><title>Camcookie Security - UNO R3 - Camcookie DOCS</title>
+<meta content="Detailed Camcookie UNO R3 security project guide with wiring and code." name="description"/><link href="/afrikaans/styles.css" rel="stylesheet"/></head><body><noscript><div class="noscript-warning"><h3>⚠️ JavaScript word vereis</h3><p>Camcookie DOCS het JavaScript nodig om soektog, temawisseling en bladsykenmerke uit te voer.</p></div></noscript>
+<main>
+<h1>Camcookie Sekuriteit – UNO R3</h1>
+<div class="warning">
+<h3>🚧 IN VOLGENDE 🚧</h3>
+<p>Die kode en funksies werk moontlik nie heeltemal korrek nie. </p>
+<p>Dit werk tans net op Microsoft Edge op 'n rekenaar. </p>
+</div>
+<div class="description-box">
+<h2>1. Laai die Arduino-kode op</h2>
+<p>
+      Voeg die <code>.ino</code> kode van  
+      <a href="/afrikaans/DOCS4now/arduino/1/code/code.txt">
+        https://camcookie876.github.io/afrikaans/DOCS/arduino/1/code/code.txt
+      </a>  
+      na jou Arduino UNO R3.
+    </p>
+<h2>2. Koppel die drade</h2>
+<h3>Ultrasoniese sensor (HC‑SR04)</h3>
+<table border="1">
+<tr><th>Sensorpen</th><th>Arduino-pen</th></tr>
+<tr><td>VCC</td><td>5V</td></tr>
+<tr><td>GND</td><td>GND</td></tr>
+<tr><td>TRIG</td><td>D8</td></tr>
+<tr><td>ECHO</td><td>D9</td></tr>
+</table>
+<h3>🌗 LDR (ligsensor)</h3>
+<p>Gebruik 'n spanningsverdeler: LDR + 10kΩ weerstand</p>
+<pre>
+5V ---- LDR ----+---- A0
+                
+    </pre>
+<h3>🔘 Skakel / Ontwapen-knoppie</h3>
+<p>(Gebruik interne optrekweerstand)</p>
+<table border="1">
+<tr><th>Knoppiespeld</th><th>Arduino-pen</th></tr>
+<tr><td>Een kant</td><td>D2</td></tr>
+<tr><td>Ander kant</td><td>GND</td></tr>
+</table>
+<h3>🔊 Buzzer</h3>
+<table border="1">
+<tr><th>Buzzer Pin</th><th>Arduino-pen</th></tr>
+<tr><td>+</td><td>D6</td></tr>
+<tr><td>–</td><td>GND</td></tr>
+</table>
+<h3>💡 LED's</h3>
+<p><strong>Groen LED (Gewapen)</strong></p>
+<table border="1">
+<tr><th>LED-pen</th><th>Arduino-pen</th></tr>
+<tr><td>Anode</td><td>D10 (deur 220Ω)</td></tr>
+<tr><td>Katode</td><td>GND</td></tr>
+</table>
+<p><strong>Rooi LED (alarm)</strong></p>
+<table border="1">
+<tr><th>LED-pen</th><th>Arduino-pen</th></tr>
+<tr><td>Anode</td><td>D11 (deur 220Ω)</td></tr>
+<tr><td>Katode</td><td>GND</td></tr>
+</table>
+<h2>3. Plaas die ultrasoniese sensor</h2>
+<p>
+      Plaas die HC-SR04 waar jy beweging wil bespeur.  
+      <strong>Waarskuwing:</strong> Dit sal nie ver-weg beweging opspoor nie.
+    </p>
+<h2>4. Koppel jou Arduino aan jou rekenaar</h2>
+<p>
+      Maak dan oop  
+      <a href="https://unoserial.oneapp.dev/">https://unoserial.oneapp.dev/</a>
+</p>
+<h2>5. Klik "Connect"</h2>
+<p>Kies <strong>Arduino VN</strong> in die pop-up.</p>
+<h2>6. Geniet!</h2>
+<p>Jou Camcookie Security UNO R3-stelsel is nou aktief.</p>
+</div>
+</main>
+<script src="/afrikaans/script.js"></script>
+</body>
+</html></html>

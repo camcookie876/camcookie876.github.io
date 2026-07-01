@@ -1,0 +1,361 @@
+html
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Programme - Camcookie Connect 26</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/afrikaans/connect/26/cc-auth.js"></script>
+<script src="/afrikaans/connect/26/cc-topbar.js"></script>
+<script src="/afrikaans/connect/26/cc-icons.js"></script>
+<style>
+    :root {
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --cyan: #06b6d4;
+      --bg: #eef3ff;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #dbe4ff;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --radius: 16px;
+      --shadow: 0 14px 30px rgba(37, 99, 235, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: radial-gradient(circle at top right, #dbeafe, #f8fbff 45%, #eef2ff 100%);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      width: 420px;
+      height: 420px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.25), rgba(37, 99, 235, 0));
+      pointer-events: none;
+      z-index: -1;
+      animation: drift 20s ease-in-out infinite;
+    }
+
+    body::before { top: -140px; right: -110px; }
+    body::after { bottom: -160px; left: -120px; animation-delay: -8s; }
+
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(16px, -14px) scale(1.05); }
+    }
+
+    .hidden { display: none !important; }
+    .muted { color: var(--muted); }
+
+    #loadingScreen, #errorView {
+      min-height: 100vh;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .panel {
+      width: min(520px, 100%);
+      text-align: center;
+      animation: rise .3s ease;
+    }
+
+    @keyframes rise {
+      from { opacity: .5; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .spinner {
+      width: 42px;
+      height: 42px;
+      border: 4px solid #bfdbfe;
+      border-top-color: var(--blue);
+      border-radius: 999px;
+      animation: spin .9s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #appShell {
+      display: none;
+      min-height: 100vh;
+      flex-direction: column;
+      padding: 24px 18px;
+    }
+
+    .app-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .app-tile {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .app-tile:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(37, 99, 235, 0.2);
+      border-color: var(--blue);
+    }
+
+    .app-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app-icon svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .app-tile h2 {
+      margin: 12px 0 8px;
+      color: var(--blue-dark);
+      font-size: 1.2rem;
+    }
+
+    .app-tile p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .beta {
+      display: inline-block;
+      background: var(--cyan);
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: .7rem;
+      margin-left: 6px;
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 24px;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--blue-dark);
+    }
+
+    #popup {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(30px);
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s ease;
+      z-index: 999;
+      background: var(--blue);
+      color: #fff;
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 8px 18px rgba(37,99,235,.35);
+    }
+
+    #popup.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+<div id="topbar"></div>
+<div class="hidden" id="loadingScreen">
+<div class="panel">
+<div class="spinner"></div>
+<p>Laai tans programme …</p>
+</div>
+</div>
+<div class="hidden" id="errorView">
+<div class="panel">
+<p class="muted" id="errorMsg" style="color:var(--danger);"></p>
+<button onclick="window.location.href='/afrikaans/connect/26/';">Keer terug na Aanmelding</button>
+</div>
+</div>
+<div id="appShell">
+<h1>Kies 'n toepassing</h1><p>Hierdie bladsy verlaat Camcookie as gevolg van die nuwe kontroleskerm.</p>
+<div class="app-grid" id="appGrid"></div>
+</div>
+<div id="popup"></div>
+<script>
+  const SUPABASE_URL = "https://uexubxzlmyjuktgeqfsf.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVleHVieHpsbXlqdWt0Z2VxZnNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MzUxODYsImV4cCI6MjA5MjIxMTE4Nn0.yuWkhA7b21uL2BGVn5zij6fSiBWQdCGXwevZyJN5EDE";
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  function $(id) { return document.getElementById(id); }
+
+  const apps = [
+    {
+      name: 'Chat',
+      path: '/afrikaans/connect/26/chat/',
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <g fill="none" stroke="#0099ff" stroke-width="55" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="480" cy="512" r="360" />
+    <path d="
+      M 300 450
+      Q 300 380 380 380
+      L 580 380
+      Q 660 380 660 450
+      L 660 560
+      Q 660 630 580 630
+      L 420 630
+      L 350 690
+      Q 360 640 300 560
+      Z
+    " />
+    <polygon points="860,450 1040,512 860,574" />
+  </g>
+</svg>`,
+      description: 'Join secure, encrypted chats.',
+      beta: true
+    },
+    {
+      name: 'Books',
+      path: '/afrikaans/connect/26/books/',
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <g fill="none" stroke="#0099ff" stroke-width="55" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="480" cy="512" r="360" />
+    <path d="
+      M 300 350
+      L 470 350
+      Q 520 350 550 380
+      L 550 675
+      Q 520 645 470 645
+      L 300 645
+      Z
+    " />
+    <path d="
+      M 490 350
+      L 660 350
+      Q 710 350 740 380
+      L 740 675
+      Q 710 645 660 645
+      L 490 645
+      Z
+    " />
+    <line x1="480" y1="350" x2="480" y2="675" />
+    <polygon points="860,450 1040,512 860,574" />
+  </g>
+</svg>`,
+      description: 'Read and share stories.',
+      beta: true
+    },
+    {
+      name: 'Draw',
+      path: '/afrikaans/connect/26/draw/',
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <g fill="none" stroke="#0099ff" stroke-width="55" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="480" cy="512" r="360" />
+    <path d="M 300 650 Q 350 400 600 350 Q 750 330 800 450" />
+    <line x1="500" y1="700" x2="550" y2="500" />
+    <line x1="550" y1="500" x2="700" y2="550" />
+    <polygon points="860,450 1040,512 860,574" />
+  </g>
+</svg>`,
+      description: 'Create, save, and export artwork anywhere! (Requires internet connection.)',
+      beta: false
+    }
+  ];
+
+  function popup(msg) {
+    const el = $("popup");
+    el.textContent = msg;
+    el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 2200);
+  }
+
+  function showLoading() {
+    $("loadingScreen").classList.remove("hidden");
+    $("errorView").classList.add("hidden");
+    $("appShell").style.display = "none";
+  }
+
+  function showError(msg) {
+    $("loadingScreen").classList.add("hidden");
+    $("errorView").classList.remove("hidden");
+    $("appShell").style.display = "none";
+    $("errorMsg").textContent = msg;
+  }
+
+  function showApps() {
+    $("loadingScreen").classList.add("hidden");
+    $("errorView").classList.add("hidden");
+    $("appShell").style.display = "flex";
+  }
+
+  function renderTopbar() {
+    const topbarDiv = $("topbar");
+    topbarDiv.innerHTML = ccCreateTopbarHTML();
+  }
+
+  function initUI() {
+
+    const grid = $("appGrid");
+    grid.innerHTML = apps.map(app => `
+      <a href="${app.path}" class="app-tile">
+        <div class="app-icon">${app.icon}</div>
+        <h2>Camcookie ${app.name}${app.beta ? '<span class="beta">BETA</span>' : ''}</h2>
+        <p>${app.description}</p>
+      </a>
+    `).join('');
+  }
+
+  function init() {
+    showLoading();
+    const token = localStorage.getItem('session_token');
+    const user = ccGetUser();
+
+    if (!token || !user) {
+      showError('Please log in first.');
+      return;
+    }
+
+    renderTopbar();
+    initUI();
+    ccInitTopbar();
+    const h = window.location.hash || "";
+    if (h.startsWith("#app=")) {
+      const appName = decodeURIComponent(h.slice(5)).toLowerCase();
+      const target = apps.find(a => a.name.toLowerCase() === appName);
+      if (target) { window.location.href = target.path + h; return; }
+    }
+    showApps();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+</script>
+</body>
+</html>

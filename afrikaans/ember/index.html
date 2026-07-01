@@ -1,0 +1,50 @@
+html
+<html lang="en">
+<head>
+<link href="/afrikaans/logo.png" rel="icon"/>
+<meta charset="utf-8"/>
+<title>Tuis - Ember</title>
+<link href="/afrikaans/styles.css" rel="stylesheet"/>
+<meta content="Ember — a clean, fast, independent search engine." name="description"/>
+</head>
+<body>
+ Jou bestaande topbalk JS 
+<script src="/afrikaans/script.js"></script>
+<noscript>
+<div style="background: #ffe6e6; border: 2px solid #ff4444; border-radius: 12px; padding: 16px; margin: 20px auto; max-width: 600px; text-align: center;">
+<h3 style="color: #cc0000; margin: 0 0 8px;">JavaScript vereis</h3>
+<p style="margin: 0; color: #333;">Hierdie webwerf benodig JavaScript vir navigasie en soektog. </p>
+</div>
+</noscript>
+<main class="content">
+ HELD 
+<section class="hero">
+<h1 class="header">EMBER</h1>
+<p>Jou vinnige, onafhanklike soekenjin gemaak deur Camcookie.</p>
+<p>.</p>
+ EMBER SOEKBAAN 
+<div class="ember-search-wrapper">
+<form class="ember-search-box" id="emberSearchForm">
+<input autocomplete="off" class="ember-search-input" id="emberQuery" placeholder="Soek Ember …" required="" type="text"/>
+<button class="ember-search-btn" type="submit">Soek</button>
+</form>
+</div>
+</section>
+</main>
+ VOET 
+<footer class="footer">
+<p>Ember Search • Prototipe</p>
+</footer>
+ EMBER SOEK JS 
+<script>
+document.getElementById("emberSearchForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  const q = document.getElementById("emberQuery").value.trim();
+  if (!q) return;
+
+  // Redirect to your search results page
+  window.location.href = "results/?q=" + encodeURIComponent(q);
+});
+</script>
+</body>
+</html>

@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 import os
 import shutil
+import time
 import requests
 from bs4 import BeautifulSoup, NavigableString
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# ---------------------------------------------
-# CONFIG
-# ---------------------------------------------
+# ---------------- CONFIG ----------------
 SOURCE_FOLDER = "original"
 
-# All languages Google Translate supports
 LANGUAGES = {
     "af": "afrikaans", "sq": "albanian", "am": "amharic", "ar": "arabic",
     "hy": "armenian", "az": "azerbaijani", "eu": "basque", "be": "belarusian",
@@ -42,30 +41,34 @@ LANGUAGES = {
 }
 
 TEXT_EXTENSIONS = {".html", ".htm", ".txt"}
+MAX_WORKERS = 4  # bump this if you want more parallelism
 
-# ---------------------------------------------
-# LOGGING
-# ---------------------------------------------
+# ---------------- GLOBAL STATE ----------------
+session = requests.Session()
+translate_cache = {}
+request_count = 0
+
 def log(msg):
     print(f"[STATUS] {msg}")
 
 def log_file(src, dest):
     print(f"[FILE] {src} -> {dest}")
 
+def log_lang(lang_code, folder_name, idx, total):
+    print(f"[LANG] {idx}/{total} {lang_code} -> {folder_name}")
+
 def log_request(url, params):
-    print(f"[REQUEST] GET {url} | params={params}")
+    global request_count
+    request_count += 1
+    print(f"[REQUEST #{request_count}] GET {url} | q={params.get('q','')[:40]}...")
 
-# ---------------------------------------------
-# TRANSLATION (Google)
-# ---------------------------------------------
-_translate_cache = {}
-
+# ---------------- TRANSLATION ----------------
 def translate_text(text, lang):
     if lang == "en":
         return text
     key = (text, lang)
-    if key in _translate_cache:
-        return _translate_cache[key]
+    if key in translate_cache:
+        return translate_cache[key]
 
     if not text.strip():
         return text
@@ -80,31 +83,24 @@ def translate_text(text, lang):
     }
 
     log_request(url, params)
-    resp = requests.get(url, params=params)
+    resp = session.get(url, params=params, timeout=10)
     resp.raise_for_status()
     data = resp.json()
     translated = data[0][0][0]
-    _translate_cache[key] = translated
+    translate_cache[key] = translated
     return translated
 
-# ---------------------------------------------
-# LINK REWRITE
-# ---------------------------------------------
+# ---------------- LINK REWRITE ----------------
 def rewrite_links(html, lang):
     folder = LANGUAGES[lang]
     html = html.replace("/original/", f"/{folder}/")
     html = html.replace("original/", f"{folder}/")
     return html
 
-# ---------------------------------------------
-# HTML TRANSLATION
-# ---------------------------------------------
+# ---------------- HTML TRANSLATION ----------------
 def translate_html(html, lang):
     html = rewrite_links(html, lang)
     soup = BeautifulSoup(html, "html.parser")
-
-    for tag in soup(["script", "style"]):
-        continue
 
     for element in soup.find_all(string=True):
         if isinstance(element, NavigableString):
@@ -120,21 +116,25 @@ def translate_html(html, lang):
             if any(ch in clean for ch in "{};<>"):
                 continue
 
-            translated = translate_text(clean, lang)
-            element.replace_with(text.replace(clean, translated))
+            try:
+                translated = translate_text(clean, lang)
+                element.replace_with(text.replace(clean, translated))
+            except Exception as e:
+                log(f"[WARN] text failed '{clean}': {e}")
 
     for tag in soup.find_all(True):
         for attr in ("placeholder", "title", "alt"):
             if attr in tag.attrs:
                 val = tag.attrs[attr].strip()
                 if val:
-                    tag.attrs[attr] = translate_text(val, lang)
+                    try:
+                        tag.attrs[attr] = translate_text(val, lang)
+                    except Exception as e:
+                        log(f"[WARN] attr {attr} failed '{val}': {e}")
 
     return str(soup)
 
-# ---------------------------------------------
-# FILE PROCESSING
-# ---------------------------------------------
+# ---------------- FILE PROCESSING ----------------
 def is_text_file(path):
     _, ext = os.path.splitext(path)
     return ext.lower() in TEXT_EXTENSIONS
@@ -162,12 +162,10 @@ def process_file(src, dest, lang):
     with open(dest, "w", encoding="utf-8") as f:
         f.write(content)
 
-# ---------------------------------------------
-# CLONE PER LANGUAGE
-# ---------------------------------------------
+# ---------------- PER-LANGUAGE CLONE ----------------
 def clone_language(lang):
     folder = LANGUAGES[lang]
-    log(f"Creating folder '{folder}' for language '{lang}'")
+    log(f"Starting language '{lang}' -> folder '{folder}'")
 
     for root, dirs, files in os.walk(SOURCE_FOLDER):
         rel = os.path.relpath(root, SOURCE_FOLDER)
@@ -178,23 +176,37 @@ def clone_language(lang):
             dest = os.path.join(folder, rel, file)
             process_file(src, dest, lang)
 
-# ---------------------------------------------
-# MAIN
-# ---------------------------------------------
+    log(f"Finished language '{lang}' -> folder '{folder}'")
+
+# ---------------- MAIN ----------------
 def main():
     if not os.path.isdir(SOURCE_FOLDER):
         raise SystemExit(f"Source folder '{SOURCE_FOLDER}' not found.")
 
-    log("Deleting old language folders...")
+    log("Cleaning old language folders...")
     for folder in LANGUAGES.values():
         if os.path.isdir(folder):
             shutil.rmtree(folder)
 
-    log("Starting full translation...")
-    for lang in LANGUAGES.keys():
-        clone_language(lang)
+    total_langs = len(LANGUAGES)
+    log(f"Translating into {total_langs} languages...")
+    start = time.time()
 
-    log("DONE — all languages generated successfully.")
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = {}
+        for idx, (lang, folder) in enumerate(LANGUAGES.items(), start=1):
+            log_lang(lang, folder, idx, total_langs)
+            futures[executor.submit(clone_language, lang)] = lang
+
+        for future in as_completed(futures):
+            lang = futures[future]
+            try:
+                future.result()
+            except Exception as e:
+                log(f"[ERROR] language '{lang}' failed: {e}")
+
+    elapsed = time.time() - start
+    log(f"DONE — all languages generated in {elapsed:.1f}s, {request_count} translation requests.")
 
 if __name__ == "__main__":
     main()

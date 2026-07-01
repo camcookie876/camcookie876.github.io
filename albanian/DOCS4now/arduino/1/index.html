@@ -1,0 +1,80 @@
+html
+<html lang="en">
+<html lang="en"><head><meta charset="utf-8"/><title>Camcookie Security - UNO R3 - Camcookie DOCS</title>
+<meta content="Detailed Camcookie UNO R3 security project guide with wiring and code." name="description"/><link href="/albanian/styles.css" rel="stylesheet"/></head><body><noscript><div class="noscript-warning"><h3>⚠️ Kërkohet JavaScript</h3><p>Camcookie DOCS ka nevojë për JavaScript për të ekzekutuar kërkimin, ndryshimin e temës dhe veçoritë e faqes.</p></div></noscript>
+<main>
+<h1>Siguria e Camcookie – UNO R3</h1>
+<div class="warning">
+<h3>🚧 NË PROGRES 🚧</h3>
+<p>Kodi dhe funksionet mund të mos funksionojnë plotësisht si duhet. </p>
+<p>Kjo aktualisht funksionon vetëm në Microsoft Edge në një PC. </p>
+</div>
+<div class="description-box">
+<h2>1. Ngarko kodin Arduino</h2>
+<p>
+      Shtoni <code>.ino</code> kodi nga  
+      <a href="/albanian/DOCS4now/arduino/1/code/code.txt">
+        https://camcookie876.github.io/albanian/DOCS/arduino/1/code/code.txt
+      </a>  
+      në Arduino UNO R3 tuaj.
+    </p>
+<h2>2. Lidhni telat</h2>
+<h3>🦬 Sensori tejzanor (HC‑SR04)</h3>
+<table border="1">
+<tr><th>Pini i sensorit</th><th>Pin Arduino</th></tr>
+<tr><td>KQV</td><td>5 V</td></tr>
+<tr><td>GND</td><td>GND</td></tr>
+<tr><td>TRIG</td><td>D8</td></tr>
+<tr><td>ECHO</td><td>D9</td></tr>
+</table>
+<h3>🌗 LDR (sensori i dritës)</h3>
+<p>Përdorni një ndarës të tensionit: LDR + rezistencë 10 kΩ</p>
+<pre>
+5V ---- LDR ----+---- A0
+                
+    </pre>
+<h3>🔘 Butoni i krahut / çarmatosjes</h3>
+<p>(Duke përdorur rezistencë të brendshme tërheqëse)</p>
+<table border="1">
+<tr><th>Kunj butoni</th><th>Pin Arduino</th></tr>
+<tr><td>Njëra anë</td><td>D2</td></tr>
+<tr><td>Ana tjetër</td><td>GND</td></tr>
+</table>
+<h3>🔊 Buzzer</h3>
+<table border="1">
+<tr><th>Kunja e sinjalit</th><th>Pin Arduino</th></tr>
+<tr><td>+</td><td>D6</td></tr>
+<tr><td>-</td><td>GND</td></tr>
+</table>
+<h3>💡 LED</h3>
+<p><strong>LED jeshile (e armatosur)</strong></p>
+<table border="1">
+<tr><th>Kunj LED</th><th>Pin Arduino</th></tr>
+<tr><td>Anoda</td><td>D10 (deri në 220 Ω)</td></tr>
+<tr><td>Katodë</td><td>GND</td></tr>
+</table>
+<p><strong>LED i kuq (Alarm)</strong></p>
+<table border="1">
+<tr><th>Kunj LED</th><th>Pin Arduino</th></tr>
+<tr><td>Anoda</td><td>D11 (deri në 220 Ω)</td></tr>
+<tr><td>Katodë</td><td>GND</td></tr>
+</table>
+<h2>3. Vendosni sensorin tejzanor</h2>
+<p>
+      Vendoseni HC-SR04 kudo që dëshironi të zbuloni lëvizjen.  
+      <strong>Paralajmërim:</strong> Nuk do të zbulojë lëvizjen e largët.
+    </p>
+<h2>4. Lidhni Arduino-n tuaj me PC-në tuaj</h2>
+<p>
+      Pastaj hapeni  
+      <a href="https://unoserial.oneapp.dev/">https://unoserial.oneapp.dev/</a>
+</p>
+<h2>5. Klikoni "Lidhu"</h2>
+<p>Zgjidhni <strong>Arduino UNO</strong> në dritaren kërcyese.</p>
+<h2>6. Kënaquni!</h2>
+<p>Sistemi juaj Camcookie Security UNO R3 është tani aktiv.</p>
+</div>
+</main>
+<script src="/albanian/script.js"></script>
+</body>
+</html></html>
