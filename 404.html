@@ -3,12 +3,25 @@ permalink: /404.html
 ---
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="refresh" content="0; url=/original/404.html" />
-  <title>Page not found</title>
-</head>
+  <head>
+    <link rel="icon" href="/original/logo.png">
+    <meta charset="UTF-8">
+    <title>404 - Camcookie</title>
+    <meta name="description" content="Page not found. Use the site navigation or search to find the page you need.">
+    <link rel="stylesheet" href="/original/styles.css">
+  </head>
 <body>
-  <p>Redirecting to the site home…</p>
+<script src="/original/script.js"></script>
+
+<center><h1 class="header">404</h1></center>
+<div class="content">
+    <p>Sorry, this page could not be found.</p>
+    <p>You tried to visit: <div id="url"></div></p>
+    <a class="links" href="/original/">Back to Home</a>
+</div>
+
+<script>
+  document.getElementById('url').textContent = window.location.href;
+  </script>
 </body>
 </html>
