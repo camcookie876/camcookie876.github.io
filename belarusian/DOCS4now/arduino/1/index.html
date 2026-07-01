@@ -1,0 +1,80 @@
+html
+<html lang="en">
+<html lang="en"><head><meta charset="utf-8"/><title>Camcookie Security - UNO R3 - Camcookie DOCS</title>
+<meta content="Detailed Camcookie UNO R3 security project guide with wiring and code." name="description"/><link href="/belarusian/styles.css" rel="stylesheet"/></head><body><noscript><div class="noscript-warning"><h3>⚠️ Патрабуецца JavaScript</h3><p>Camcookie DOCS патрабуе JavaScript для запуску пошуку, пераключэння тэм і функцый старонкі.</p></div></noscript>
+<main>
+<h1>Camcookie Security – UNO R3</h1>
+<div class="warning">
+<h3>🚧 РАБОТА 🚧</h3>
+<p>Код і функцыі могуць працаваць не зусім карэктна. </p>
+<p>У цяперашні час гэта працуе толькі ў Microsoft Edge на ПК. </p>
+</div>
+<div class="description-box">
+<h2>1. Загрузіце код Arduino</h2>
+<p>
+      Дадайце <code>.ino</code> код ад  
+      <a href="/belarusian/DOCS4now/arduino/1/code/code.txt">
+        https://camcookie876.github.io/belarusian/DOCS/arduino/1/code/code.txt
+      </a>  
+      да вашага Arduino UNO R3.
+    </p>
+<h2>2. Падключыце правады</h2>
+<h3>🟦 Ультрагукавы датчык (HC‑SR04)</h3>
+<table border="1">
+<tr><th>Штыфт датчыка</th><th>Штыфт Arduino</th></tr>
+<tr><td>VCC</td><td>5В</td></tr>
+<tr><td>GND</td><td>GND</td></tr>
+<tr><td>ТРЫГ</td><td>D8</td></tr>
+<tr><td>РЭХА</td><td>D9</td></tr>
+</table>
+<h3>🌗 LDR (датчык святла)</h3>
+<p>Выкарыстоўвайце дзельнік напружання: LDR + рэзістар 10 кОм</p>
+<pre>
+5 В ---- LDR ----+---- A0
+                
+    </pre>
+<h3>🔘 Кнопка пастаноўкі/зняцця з аховы</h3>
+<p>(З выкарыстаннем унутранага падцягвальнага рэзістара)</p>
+<table border="1">
+<tr><th>Кнопка Pin</th><th>Штыфт Arduino</th></tr>
+<tr><td>Адзін бок</td><td>D2</td></tr>
+<tr><td>Іншы бок</td><td>GND</td></tr>
+</table>
+<h3>🔊 Гукавы сігнал</h3>
+<table border="1">
+<tr><th>Зумер Pin</th><th>Штыфт Arduino</th></tr>
+<tr><td>+</td><td>D6</td></tr>
+<tr><td>–</td><td>GND</td></tr>
+</table>
+<h3>💡 святлодыёды</h3>
+<p><strong>Зялёны святлодыёд (уключаны)</strong></p>
+<table border="1">
+<tr><th>Святлодыёдны штыфт</th><th>Штыфт Arduino</th></tr>
+<tr><td>Анод</td><td>D10 (праз 220Ω)</td></tr>
+<tr><td>Катод</td><td>GND</td></tr>
+</table>
+<p><strong>Чырвоны святлодыёд (сігналізацыя)</strong></p>
+<table border="1">
+<tr><th>Святлодыёдны штыфт</th><th>Штыфт Arduino</th></tr>
+<tr><td>Анод</td><td>D11 (праз 220Ω)</td></tr>
+<tr><td>Катод</td><td>GND</td></tr>
+</table>
+<h2>3. Размесціце ультрагукавы датчык</h2>
+<p>
+      Размясціце HC‑SR04 усюды, дзе хочаце выяўляць рух.  
+      <strong>Папярэджанне:</strong> Ён не будзе выяўляць рух здалёк.
+    </p>
+<h2>4. Падключыце Arduino да ПК</h2>
+<p>
+      Затым адкрыйце  
+      <a href="https://unoserial.oneapp.dev/">https://unoserial.oneapp.dev/</a>
+</p>
+<h2>5. Націсніце «Падключыць»</h2>
+<p>Выберыце <strong>Arduino UNO</strong> ва ўсплываючым акне.</p>
+<h2>6. Атрымлівайце асалоду!</h2>
+<p>Ваша сістэма Camcookie Security UNO R3 зараз актыўная.</p>
+</div>
+</main>
+<script src="/belarusian/script.js"></script>
+</body>
+</html></html>
