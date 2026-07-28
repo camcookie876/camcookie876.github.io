@@ -1,0 +1,61 @@
+/* title Section */
+.title {
+    /* Without notice: 108px */
+    /* With notice:    177px */
+    height: calc(100vh - 177px);
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+        url('https://picsum.photos/1920/1080?blur=5') center/cover no-repeat;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0 2rem;
+    overflow-y: auto;
+}
+.title h1 {
+    font-size: 3rem;
+    animation: fadeInDown 1.5s ease forwards;
+    color: #0099ff;
+}
+.title p {
+    font-size: 1.2rem;
+    margin-top: 1rem;
+    max-width: 600px;
+    animation: fadeInUp 2s ease forwards;
+    font-weight: bold;
+    color: #ffffff;
+}
+.btn {
+    margin-top: 2rem;
+    padding: 0.8rem 2rem;
+    border: none;
+    background: #0099ff;
+    color: #fff;
+    font-size: 1rem;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+.btn:hover {
+    background: #0099ffcc;
+    transform: scale(1.05);
+}
+/* Animations */
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* Responsive */
+@media (max-width: 768px) {
+    .title h1 {
+        font-size: 2rem;
+    }
+    .title p {
+        font-size: 1rem;
+    }
+}

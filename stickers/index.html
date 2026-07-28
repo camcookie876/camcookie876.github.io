@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Camcookie Stickers</title>
+
+  <style>
+    body { font-family: Arial; margin: 0; }
+    #login, #signup, #profile-setup {
+      display: none;
+      border: 5px solid #fb922b;
+      width: 20%;
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 15px;
+    }
+    #app {
+      display: none;
+      padding: 10px;
+      margin-top: 15px;
+    }
+    #app input, #app button {
+      margin: 5px 0;
+    }
+    #app h2 {
+      margin-top: 20px;
+    }
+    #app .series, #app .instance {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+    }
+    .series, .instance {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+    }
+    .notice {
+      background: #fb2b2b;
+      text-align: center;
+      padding: 2px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #ffffff;
+      border-bottom: 8px solid transparent;
+      border-image: repeating-linear-gradient(
+          45deg,
+          black 0 10px,
+          yellow 10px 20px
+      ) 20;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    input {
+      width: 90%;
+      padding: 8px;
+      margin: 5px 0;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #fb922b;
+      color: #ffffff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #e07b1f;
+    }
+    .exit {
+      color: #0099ff;
+      text-decoration: none;
+      display: inline-block;
+      margin: 0;
+      border-bottom: 5px solid #0099ff;
+      border-right: 5px solid #0099ff;
+      border-bottom-right-radius: 10px;
+      padding: 5px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="notice">
+    <p>Site under development. Stickers are not available yet.</p><noscript><p>JavaScript is required for this site to function properly.</p></noscript>
+  </div>
+  <a href="/"><h1 class="exit">HOME</h1></a>
+  <!-- SIGNUP -->
+  <center>
+  <div id="signup">
+    <h2>Sign Up</h2>
+    <form id="signup-form">
+      <input name="email" type="email" placeholder="Email" required><br>
+      <input name="password" type="password" placeholder="Password" required><br>
+      <button type="submit">Sign Up</button>
+    </form>
+
+    <p>Already have an account?</p>
+    <button id="go-login">Log In</button>
+  </div>
+  </center>
+
+  <!-- LOGIN -->
+  <center>
+  <div id="login">
+    <h2>Log In</h2>
+    <form id="login-form">
+      <input name="email" type="email" placeholder="Email" required><br>
+      <input name="password" type="password" placeholder="Password" required><br>
+      <button type="submit">Log In</button>
+    </form>
+
+    <button id="back-signup">Back to Sign Up</button>
+  </div>
+  </center>
+  <!-- PROFILE SETUP -->
+  <div id="profile-setup">
+    <h2>Create Your Profile</h2>
+    <p>Your email is verified! Now choose a username.</p>
+
+    <form id="profile-form">
+      <input name="username" type="text" placeholder="Username" required><br>
+      <button type="submit">Create Profile</button>
+    </form>
+  </div>
+
+  <!-- APP -->
+  <div id="app">
+    <h2>Sticker Series</h2>
+    <div id="series-list"></div>
+
+    <h2>Your Stickers</h2>
+    <div id="instance-list"></div>
+
+    <h2>Claim Sticker</h2>
+    <form id="claim-form">
+      <input name="secret_code" type="text" placeholder="Sticker Secret Code" required><br>
+      <input name="series_id" type="text" placeholder="Series ID" required><br>
+      <button type="submit">Claim</button>
+    </form>
+
+    <button id="logout-btn">Log Out</button>
+  </div>
+
+  <!-- JS LOADED LAST -->
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    const supabase = createClient(
+      "https://stvavyzvqnxwfnzrmsfu.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0dmF2eXp2cW54d2ZuenJtc2Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwODM1MzcsImV4cCI6MjEwMDY1OTUzN30.-Gbb_3B6K0N4cmaGxqxDj7Yu3dOSE3v-6HsA7nzY9ec"
+    );
+
+    // DOM references
+    const signupSection = document.getElementById("signup");
+    const loginSection = document.getElementById("login");
+    const profileSection = document.getElementById("profile-setup");
+    const appSection = document.getElementById("app");
+
+    const signupForm = document.getElementById("signup-form");
+    const loginForm = document.getElementById("login-form");
+    const profileForm = document.getElementById("profile-form");
+
+    const seriesList = document.getElementById("series-list");
+    const instanceList = document.getElementById("instance-list");
+    const claimForm = document.getElementById("claim-form");
+    const logoutBtn = document.getElementById("logout-btn");
+
+    const goLoginBtn = document.getElementById("go-login");
+    const backSignupBtn = document.getElementById("back-signup");
+
+    // SECTION SWITCHER
+    function showSection(name) {
+      signupSection.style.display = "none";
+      loginSection.style.display = "none";
+      profileSection.style.display = "none";
+      appSection.style.display = "none";
+
+      if (name === "signup") signupSection.style.display = "block";
+      if (name === "login") loginSection.style.display = "block";
+      if (name === "profile-setup") profileSection.style.display = "block";
+      if (name === "app") appSection.style.display = "block";
+    }
+
+    window.showSection = showSection;
+
+    goLoginBtn.addEventListener("click", () => showSection("login"));
+    backSignupBtn.addEventListener("click", () => showSection("signup"));
+
+    // AUTH STATE LISTENER
+    supabase.auth.onAuthStateChange(async (_, session) => {
+      if (!session?.user) {
+        showSection("signup");
+        return;
+      }
+
+      const userId = session.user.id;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (!profile) {
+        showSection("profile-setup");
+        return;
+      }
+
+      showSection("app");
+      loadStickerSeries();
+      loadStickerInstances();
+    });
+
+    // SIGNUP
+    signupForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = e.target.email.value;
+      const password = e.target.password.value;
+
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.href
+        }
+      });
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      alert("Signup successful! Check your email to verify your account.");
+    });
+
+    // LOGIN
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = e.target.email.value;
+      const password = e.target.password.value;
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) alert(error.message);
+    });
+
+    // PROFILE CREATION
+    profileForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = e.target.username.value;
+      const user = (await supabase.auth.getUser()).data.user;
+
+      const { error } = await supabase.from("profiles").insert({
+        id: user.id,
+        username
+      });
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      alert("Profile created!");
+      showSection("app");
+      loadStickerSeries();
+      loadStickerInstances();
+    });
+
+    // LOAD SERIES
+    async function loadStickerSeries() {
+      const { data } = await supabase.from("sticker").select("*");
+      seriesList.innerHTML = "";
+
+      data.forEach((s) => {
+        const div = document.createElement("div");
+        div.className = "series";
+        div.innerHTML = `
+          <strong>${s.name}</strong><br>
+          Creator: ${s.creator_id}<br>
+          Series ID: ${s.series_id}<br>
+          Rarity: ${s.rarity}<br>
+          ${s.description ?? ""}
+        `;
+        seriesList.appendChild(div);
+      });
+    }
+
+    // LOAD USER STICKERS
+    async function loadStickerInstances() {
+      const user = (await supabase.auth.getUser()).data.user;
+
+      const { data } = await supabase
+        .from("sticker_instance")
+        .select("*, sticker(*)")
+        .eq("owner_id", user.id);
+
+      instanceList.innerHTML = "";
+
+      if (!data.length) {
+        instanceList.innerHTML = "<p>No stickers yet.</p>";
+        return;
+      }
+
+      data.forEach((sticker) => {
+        const div = document.createElement("div");
+        div.className = "instance";
+        div.innerHTML = `
+          <strong>Sticker:</strong> ${sticker.sticker.name}<br>
+          <strong>Series ID:</strong> ${sticker.sticker.series_id}<br>
+          <strong>Registered:</strong> ${sticker.is_registered}<br>
+          <strong>Label:</strong> ${sticker.label ?? "None"}
+        `;
+        instanceList.appendChild(div);
+      });
+    }
+
+    // CLAIM STICKER
+    claimForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const secretCode = e.target.secret_code.value;
+      const seriesId = e.target.series_id.value;
+
+      const user = (await supabase.auth.getUser()).data.user;
+
+      // Hash secret code client-side
+      const hashed = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(secretCode));
+      const hashedHex = Array.from(new Uint8Array(hashed)).map(b => b.toString(16).padStart(2, "0")).join("");
+
+      // Find sticker series
+      const { data: series } = await supabase
+        .from("sticker")
+        .select("*")
+        .eq("series_id", seriesId)
+        .maybeSingle();
+
+      if (!series) {
+        alert("Series not found.");
+        return;
+      }
+
+      // Find sticker instance
+      const { data: sticker } = await supabase
+        .from("sticker_instance")
+        .select("*")
+        .eq("hashed_code", hashedHex)
+        .eq("sticker_id", series.id)
+        .maybeSingle();
+
+      if (!sticker) {
+        alert("Sticker not found.");
+        return;
+      }
+
+      // Register sticker
+      await supabase
+        .from("sticker_instance")
+        .update({
+          owner_id: user.id,
+          is_registered: true,
+          registered_at: new Date().toISOString()
+        })
+        .eq("id", sticker.id);
+
+      await supabase.from("ownership_history").insert({
+        sticker_instance_id: sticker.id,
+        owner_id: user.id
+      });
+
+      alert("Sticker claimed!");
+      loadStickerInstances();
+    });
+
+    // LOGOUT
+    logoutBtn.addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      showSection("signup");
+    });
+
+    showSection("signup");
+  </script>
+</body>
+</html>
